@@ -1,17 +1,48 @@
 import { ApolloError } from "apollo-server-express";
-import { SignUpValidator } from "../../validators/user";
+import { SignUpValidator , LoginValidator } from "../../validators/user";
 import { hash, compare } from "bcryptjs";
 import { createToken } from "../../providers/jwt";
-
+import { Op } from "sequelize" ; 
 export default {
     Query: {
 
         Login: async (_, { identifier, password }, { db }) => {
 
-            var result = db.User.findAll();
-            console.log(result);
+            try {
 
-            return "Kachihaja";
+                await LoginValidator.validate({ identifier, password }, { abortEarly: true });
+                // get user that identifier match his email or phone number 
+                var user = await db.User.findOne({
+                    where: {
+
+                        [Op.or]: [
+                            { email: identifier },
+                            { phone: identifier }
+                        ]
+                    }
+                });
+                // there is no user with the given identifier 
+                if (user == null)
+                    throw new Error("Identifier not valid");
+
+
+                // check the password 
+                var isMath = await compare(password, user.password);
+
+                if (!isMath)
+                    throw new Error("Wrong password");
+
+                // create token 
+                var token = createToken(user.email, user.password);
+
+                return {
+                    user: user,
+                    token: token
+                }
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+
         }
     },
 
@@ -31,11 +62,11 @@ export default {
                 var user = await db.User.create(user);
 
 
-                return { 
-                    user , 
-                    token  
+                return {
+                    user,
+                    token
                 }
-                
+
             } catch (error) {
                 return new ApolloError(error.message);
             }
