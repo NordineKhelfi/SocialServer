@@ -4,5 +4,6 @@ import { config } from "dotenv"
 const { parsed }  = config() ;
 
 export const { 
-    PORT 
+    PORT  , 
+    JWT_SECRET 
 } = parsed
