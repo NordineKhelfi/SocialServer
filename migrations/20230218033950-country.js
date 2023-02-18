@@ -23,7 +23,8 @@ module.exports = {
     }).then(async () => {
 
       const countries = require("../assets/countries.json");
-      console.log(countries);
+
+      
       await queryInterface.bulkInsert("Countries", countries.map((country) => {
         return {
           name: country.name

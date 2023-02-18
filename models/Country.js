@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes } = require("sequelize");
 
-module.exports = (Sequelize, DataTypes) => {
+module.exports = (Sequelize, DataTypes , db ) => {
     const country = Sequelize.define("Country", {
         id: {
             type: DataTypes.INTEGER,
@@ -13,6 +13,13 @@ module.exports = (Sequelize, DataTypes) => {
         tablename: "Countries"
     });
 
+    
+    country.associate = (db) => { 
+        country.hasMany(db.User , { 
+            foreignKey : "countryId" , 
+            as : "users"
+        })
+    }
     return country;
 
 

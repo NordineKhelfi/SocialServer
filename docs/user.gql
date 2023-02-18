@@ -1,0 +1,40 @@
+mutation SignUp($user: UserInput) {
+  SignUp(user: $user) {
+    user { 
+      id 
+    }
+  }
+}
+
+{
+  "user": {
+    "birthday": "11-30-1996",
+    "confirmPassword": "kachihaja50",
+    "countryId": 1,
+    "email": "tamanikarim50@gmail.com",
+    "gender": true,
+    "lastname": "karim",
+    "name": "tamani",
+    "password": "kachihaja50",
+    "username": "tamani_50"
+  }
+}
+
+
+mutation EditProfile($userInput: EditUserInput) {
+  EditProfile(userInput: $userInput) {
+    id 
+    
+  }
+}
+
+{
+  "userInput": {
+    "bio": "kachihaja",
+    "countryId": 1,
+    "lastname": "tamani",
+    "name": "karim",
+    "socialMedia": null,
+    "username": "tamanikarim"
+  }
+}

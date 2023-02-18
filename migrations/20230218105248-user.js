@@ -21,6 +21,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      username : { 
+        type: Sequelize.STRING,
+        allowNull: false , 
+        unique : true 
+      
+      } , 
 
       email: {
         type: Sequelize.STRING,
@@ -49,6 +55,22 @@ module.exports = {
         allowNull: false
       },
 
+      bio: { 
+        type : Sequelize.STRING , 
+        allowNull : true 
+      } , 
+      private : { 
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : false 
+      }  , 
+
+      disabled : { 
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : false 
+      }  , 
+      
       countryId : { 
         type : Sequelize.INTEGER , 
         allowNull :  true  , 
