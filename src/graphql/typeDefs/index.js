@@ -1,12 +1,7 @@
-import route from "./route";
 import user from "./user" ; 
-import country from "./country" ; 
-import SocialMedia from "./SocialMedia" ; 
-
-
+import route from "./route" ; 
+ 
 export default [
-    route  , 
-    user  , 
-    country  , 
-    SocialMedia 
+    route , 
+    ...user
 ]

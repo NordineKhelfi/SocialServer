@@ -1,8 +1,8 @@
 import { ApolloError } from "apollo-server-express";
 import { hash, compare } from "bcryptjs";
-import { createToken } from "../../providers/jwt";
+import { createToken } from "../../../providers/jwt";
 import { Op } from "sequelize";
-import { SocialMediaValidator, SignUpValidator, LoginValidator } from "../../validators";
+import { SocialMediaValidator, SignUpValidator, LoginValidator } from "../../../validators";
 export default {
     Query: {
 
