@@ -1,14 +1,14 @@
 
 import path from "path";
-import { createWriteStream }from "fs" ; 
+import { createWriteStream , unlink} from "fs";
 
 const uploadFiles = async (mediaFiles, directory) => {
 
-    var paths = [] ; 
+    var paths = [];
     // loop over the media files 
-    for ( let index = 0 ; index < mediaFiles .length ; index ++ ) { 
+    for (let index = 0; index < mediaFiles.length; index++) {
 
-        
+
         // extract name and the read stream 
         const { filename, createReadStream } = await mediaFiles[index];
 
@@ -26,15 +26,35 @@ const uploadFiles = async (mediaFiles, directory) => {
 
         await new Promise((resolve, reject) => {
             stream.on("finish", async function () {
-                resolve() ; 
+                resolve();
             });
         });
         paths.push(distPath)
-    } 
-    return paths ; 
+    }
+    return paths;
+}
+
+
+const deleteFiles = async (files) => {
+    
+    
+    for(let index = 0 ; index < files.length ; index++) { 
+        await new Promise((resolve , reject) => { 
+
+           
+            unlink(files[index] , (error) => {
+                
+                resolve() ; 
+            })
+        }) 
+    } ; 
+
+
+
 }
 
 
 export {
-    uploadFiles
+    uploadFiles , 
+    deleteFiles
 }

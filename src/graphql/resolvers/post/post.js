@@ -1,4 +1,4 @@
-import { uploadFiles } from "../../../providers";
+import { deleteFiles, uploadFiles } from "../../../providers";
 import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_VIDEOS_DIR } from "../../../config";
 import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
@@ -37,13 +37,49 @@ export default {
                     const media = await db.Media.create({
                         path: outputs[index]
                     });
-                
+
                     await post.addMedia(media);
                     medium.splice(0, 0, media);
                 }
                 // assign all the uploaded media to the media attribute 
-                post.media = medium ; 
+                post.media = medium;
                 return post;
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+        deletePost: async (_, { postId }, { db, user }) => {
+            try {
+                // get the post by the given id and belongs to the given user 
+                const post = await db.Post.findOne({
+                    where: {
+                        userId: user.id,
+                        id: postId
+                    },
+                    include: [{
+                        model: db.Media,
+                        as: "media"
+                    }]
+                });
+                // if the post do not exists return error
+                if (post == null)
+                    throw new Error("Post not found");
+
+                // check if the post have media content 
+                // delete it before removing the post from database 
+                if (post.media) {
+
+                    //await post.deleteMedia() ; 
+                    post.media.forEach( async entry => { 
+                        await entry.destroy() ; 
+                    })
+                    // delete the files from the storage 
+                    await deleteFiles(post.media.map(file => file.path));
+                    
+                }
+                await post.destroy();
+                return postId
 
             } catch (error) {
                 return new ApolloError(error.message);
