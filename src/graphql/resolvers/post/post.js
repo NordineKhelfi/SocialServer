@@ -71,15 +71,87 @@ export default {
                 if (post.media) {
 
                     //await post.deleteMedia() ; 
-                    post.media.forEach( async entry => { 
-                        await entry.destroy() ; 
+                    post.media.forEach(async entry => {
+                        await entry.destroy();
                     })
                     // delete the files from the storage 
                     await deleteFiles(post.media.map(file => file.path));
-                    
+
                 }
                 await post.destroy();
                 return postId
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+        like: async (_, { postId }, { db, user }) => {
+
+            try {
+                // get the post and check if it's exists 
+                const post = await db.Post.findByPk(postId);
+                if (!post)
+                    throw new Error("Post not found");
+
+                // check if this post is allready likes or not 
+                const likes = await user.getLikes({
+                    where: {
+                        id: postId
+                    }
+                });
+
+                // if the post allready liked remove the likes 
+                // and decreese the number of likes in the post 
+                if (likes && likes.length >  0  ) {
+                    await user.removeLikes(post);
+                    await post.update({ likes : post.likes - 1 })
+                    return false;
+
+                } else {
+                    // else if this is the first like for this user to this post 
+                    // thel add the post to thes like
+                    // and increase the likes in the post  
+
+                    await user.addLikes(post);
+                    await post.update({ likes : post.likes + 1 })
+                    return true;
+                }
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+
+        },
+
+        favorite: async (_, { postId }, { db, user }) => {
+
+            try {
+                // get the post and check if it's exists 
+                const post = await db.Post.findByPk(postId);
+                if (!post)
+                    throw new Error("Post not found");
+
+                // check if this post is allready favorites or not 
+                const favorites = await user.getFavorites({
+                    where: {
+                        id: postId
+                    }
+                });
+
+                console.log(favorites.length )
+
+                // if the post allready liked remove the favorites
+                if (favorites && favorites.length >  0  ) {
+                    await user.removeFavorites(post);
+                    return false;
+
+                } else {
+                    // else if this is the first fav for this user to this post 
+                    // then add the post to the favorites
+                    await user.addFavorites(post);
+
+                    return true;
+                }
 
             } catch (error) {
                 return new ApolloError(error.message);

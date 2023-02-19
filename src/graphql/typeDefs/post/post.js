@@ -5,7 +5,10 @@ export default gql`
 
     extend type Mutation { 
         createPost(postInput : PostInput!) : Post @userAuth 
-        deletePost(postId : ID!) : ID!  @userAuth
+        deletePost(postId : ID!) : ID!  @userAuth   
+        like ( postId : ID! ) : Boolean! @userAuth
+        favorite ( postId : ID! ) : Boolean! @userAuth
+        
     }
     input PostInput { 
         title : String  
