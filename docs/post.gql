@@ -1,0 +1,6 @@
+mutation CREATE_POST($media : [Upload!]) {
+  createPost(postInput: {type: "image", title: "thisis image", media: $media}) { 
+	title 
+}
+}
+

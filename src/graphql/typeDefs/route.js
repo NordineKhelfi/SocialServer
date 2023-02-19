@@ -5,11 +5,9 @@ import { gql } from "apollo-server-express";
 export default gql`
     directive @userAuth on FIELD_DEFINITION
     scalar Upload
-        
-    type Query {
-        _ : String!  
     
-      
+    type Query {
+        _ : String!    
     }  
 
     

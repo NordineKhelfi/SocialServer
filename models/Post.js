@@ -5,13 +5,13 @@ module.exports = (Sequelize, DataTypes) => {
 
         id: {
             type: DataTypes.INTEGER,
-            allowNull: false,
-            autoIcrement: true,
-            primaryKey: true
+            autoIncrement: true,
+            primaryKey: true,
+            allowNull: false
         },
         title: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
         type: {
             type: DataTypes.ENUM(["note", "image", "reel"]),
@@ -46,8 +46,9 @@ module.exports = (Sequelize, DataTypes) => {
         }) ;
         
         Post.belongsToMany(db.Media , { 
-            through : db.PostMedia 
-        } )
+            through : "PostMedia" , 
+            as : "media"
+        })
     }
 
 

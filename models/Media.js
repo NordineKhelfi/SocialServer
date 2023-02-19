@@ -12,11 +12,17 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         }
+    } , { 
+        name  :  { 
+            singular: 'media',
+            plural: 'media',
+        }
     });
 
     Media.associate = (db) => {
         Media.belongsToMany(db.Post, {
-            through: db.PostMedia
+            through: "PostMedia" , 
+            as : "media"
         })
 
     }

@@ -6,13 +6,13 @@ module.exports = {
     return queryInterface.createTable("Posts", {
       id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
-        autoIcrement: true,
-        primaryKey: true
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false
       },
       title: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
       },
       type: {
         type: Sequelize.ENUM(["note", "image", "reel"]),
@@ -25,18 +25,18 @@ module.exports = {
         defaultValue: 0
       },
       userId: {
-        type  :Sequelize.INTEGER , 
-        allowNull : false , 
-        onDelete : "CASCADE" , 
-        references : { 
-          model : "Users" , 
-          key : "id"
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        onDelete: "CASCADE",
+        references: {
+          model: "Users",
+          key: "id"
         }
-      } , 
-      createdAt : Sequelize.DATE , 
-      updatedAt : Sequelize.DATE , 
-    } , { 
-      timestamps  : true 
+      },
+      createdAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE,
+    }, {
+      timestamps: true
     })
   },
 

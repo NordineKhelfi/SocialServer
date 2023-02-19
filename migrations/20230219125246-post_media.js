@@ -4,7 +4,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
 
-    return queryInterface.createTable("PostMedias", {
+    return queryInterface.createTable("PostMedia", {
       postId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -21,7 +21,7 @@ module.exports = {
         allowNull: false,
         onDelete: "CASCADE",
         references: {
-          model: "Medias",
+          model: "Media",
           key: "id"
         }
       }

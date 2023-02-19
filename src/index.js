@@ -4,6 +4,7 @@ import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
 import { userAuth } from "./middlewares";
+import { graphqlUploadExpress} from "graphql-upload" ; 
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
 import db from "../models";
@@ -15,9 +16,10 @@ const http = Server(app);
 
 // aplaying middlewares
 app.use(userAuth);
+app.use(graphqlUploadExpress());
+
 
 var schema = makeExecutableSchema({ typeDefs, resolvers })
-
 schema = directives.userAuthDirective()(schema);
 
 

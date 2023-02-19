@@ -101,6 +101,12 @@ module.exports = (Sequelize, DataTypes) => {
       as: "socialMedia"
     })
 
+    user.hasMany(db.Post , { 
+      foreignKey: "userId",
+      as: "posts"
+      
+    })
+
   }
 
   return user;
