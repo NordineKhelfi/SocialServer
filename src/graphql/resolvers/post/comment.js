@@ -24,7 +24,6 @@ export default {
                 commentInput.userId = user.id;
                 commentInput.user = user;
 
-
                 // cheeck if the comment have media attached to 
                 if (commentInput.media) {
                     const output = await uploadFiles([commentInput.media], UPLOAD_COMMENTS_RECORDS_DIR);
@@ -44,8 +43,6 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
-
-
         },
         likeComment: async (_, { commentId }, { db, user }) => {
 
@@ -61,8 +58,7 @@ export default {
                         id: commentId
                     }
                 });
-
-                
+               
                 if (likedComments && likedComments.length > 0 ) {
                     // unlike the comment 
                     await user.removeCommentLikes(comment);
