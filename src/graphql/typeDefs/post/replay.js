@@ -7,6 +7,8 @@ export default gql`
 
     extend type Mutation { 
         replay(replayInput : ReplayInput!) :  Replay! @userAuth 
+        likeReplay (replayId : ID!) : Boolean! @userAuth 
+  
     }
 
 

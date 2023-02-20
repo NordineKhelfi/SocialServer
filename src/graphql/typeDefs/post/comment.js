@@ -7,7 +7,7 @@ export default gql`
 
     extend type Mutation { 
         comment(commentInput : CommentInput!) :  Comment! @userAuth 
-    
+        likeComment (commentId : ID!) : Boolean! @userAuth 
     }
 
 

@@ -116,6 +116,16 @@ module.exports = (Sequelize, DataTypes) => {
       as : "favorites" 
     })
 
+    user.belongsToMany(db.Comment , { 
+      through : "CommentLikes" , 
+      as : "commentLikes" 
+    })
+
+
+    user.belongsToMany(db.Replay , { 
+      through : "ReplayLikes" , 
+      as : "replayLikes" 
+    })
   }
 
   return user;

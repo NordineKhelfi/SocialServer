@@ -58,6 +58,11 @@ module.exports = (Sequelize, DataTypes) => {
             foreignKey: "commentId",
             as: "comment"
         });
+
+        Replay.belongsToMany(db.User ,  { 
+            through : "ReplayLikes" , 
+            as : "userLikes"
+        })
     } ; 
 
     return Replay ; 

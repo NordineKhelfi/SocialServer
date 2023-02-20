@@ -62,6 +62,14 @@ module.exports = (Sequelize, DataTypes) => {
             foreignKey: "postId",
             as: "post"
         });
+        Comment.hasMany(db.Replay , { 
+            foreignKey : "commentId" , 
+            as : "replays"
+        })
+        Comment.belongsToMany(db.User , { 
+            through : "CommentLikes" , 
+            as : "userLikes"
+        })
     } ; 
 
     return Comment ; 
