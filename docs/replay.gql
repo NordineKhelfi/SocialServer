@@ -1,0 +1,18 @@
+mutation Replay($replayInput: ReplayInput!) {
+  replay(replayInput: $replayInput) {
+    id 
+  }
+}
+
+
+query GetCommentReplays($commentId: ID!) {
+  getCommentReplays(commentId: $commentId) {
+    id
+    replay
+    mediaId
+    userId
+    user {
+       name lastname
+    }
+  }
+}

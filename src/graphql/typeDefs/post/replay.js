@@ -3,7 +3,9 @@ import { gql } from "apollo-server-express";
 
 export default gql`
 
-    
+    extend type Query { 
+        getCommentReplays (commentId : ID! , offset : Int! , limit : Int!) : [Replay!]! @userAuth
+    }
 
     extend type Mutation { 
         replay(replayInput : ReplayInput!) :  Replay! @userAuth 

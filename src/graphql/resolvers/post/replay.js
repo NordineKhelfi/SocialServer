@@ -5,7 +5,36 @@ import { ReplayValidator } from "../../../validators";
 
 export default {
     Query: {
+        getCommentReplays: async (_, { commentId , offset , limit  }, { db, user }) => {
+            try {
+                // check if the comment realy exists 
+                const comment = await db.Comment.findByPk(commentId);
+                if (comment == null)
+                    throw new Error("Comment do not exists");
 
+                // get replays that belongs to the given comment between the offset and limit 
+                var replays = await comment.getReplays({ 
+                    include :  [{ 
+                        model :  db.Media , 
+                        as : "media"
+                    }, { 
+                        model : db.User , 
+                        as : "user"
+                    }],
+                    order:[
+                        ["id","DESC"]
+                    ],
+                    offset: offset,
+                    limit: limit, 
+
+                }); 
+
+                return replays ; 
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        }
     },
 
     Mutation: {
@@ -21,8 +50,10 @@ export default {
 
                 // if the comment exists and the replay input is valid 
                 // assign this replay to the comment 
-                replayInput.commentId = comment.id;
-                replayInput.comment = comment;
+                replayInput.userId = user.id;
+                replayInput.user = user;
+
+               
 
                 // cheeck if the replay have media attached to 
                 if (replayInput.media) {
@@ -37,6 +68,8 @@ export default {
 
                 // create the comment and assing it to the given post  
                 const result = await comment.createReplay(replayInput);
+                replayInput.commentId = comment.id;
+                replayInput.comment = comment;
                 replayInput.id = result.id;
 
                 return replayInput;

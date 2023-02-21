@@ -1,0 +1,10 @@
+query GetPostComments($postId: ID!) {
+  getPostComments(postId: $postId , offset : 0 , limit : 5) {
+    id 
+    comment 
+    numReplays
+    liked
+    createdAt
+    
+  }
+}

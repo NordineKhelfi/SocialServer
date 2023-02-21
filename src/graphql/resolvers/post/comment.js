@@ -5,7 +5,7 @@ import { CommentValidator } from "../../../validators";
 
 export default {
     Query: {
-        getPostComments: async (_, { postId }, { db, user }) => {
+        getPostComments: async (_, { postId , offset , limit  }, { db, user }) => {
             try {
 
                 // check if the post exists 
@@ -16,29 +16,47 @@ export default {
                 // get all the comments for the given post
                 // and includes the replays and the media
                 var comments = await post.getComments({
+
                     include: [
                         {
                             model: db.Media,
                             as: "media"
-                        } ,
+                        },
                         {
-                            model : db.Replay ,
-                            as : "replays"
+                            model: db.Replay,
+                            as: "replays"
+                        },
+                        {
+                            model: db.User,
+                            as: "user"
                         }
-                    ]
+
+                    ],
+                    order:[
+                        ["id","DESC"]
+                    ],
+                    offset: offset,
+                    limit: limit,
                 });
 
                 // count the replays and assign it to the numReplays attribute 
-                for (let index = 0 ; index < comments.length ; index++) 
-                    comments[index].numReplays = comments[index].replays.length ; 
-                    
+                // and check if this comment is allready been liked by the user or not  
+                for (let index = 0; index < comments.length; index++) {
+                    comments[index].numReplays = comments[index].replays.length;
+                    comments[index].liked = (await comments[index].getUserLikes({
+                        where: {
+                            id: user.id
+                        }
+                    })).length > 0;
+
+                }
                 return comments;
 
             } catch (error) {
                 return new ApolloError(error.message);
             }
 
-            return [];
+
         }
     },
 

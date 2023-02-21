@@ -4,7 +4,7 @@ import { gql } from "apollo-server-express";
 export default gql`
 
     extend type Query { 
-        getPostComments (postId : ID!) : [Comment!]! @userAuth
+        getPostComments (postId : ID! , offset : Int! , limit : Int!) : [Comment!]! @userAuth
     }
 
     extend type Mutation { 
@@ -29,6 +29,7 @@ export default gql`
         post : Post!
         userId : ID!
         user : User!
+        liked : Boolean!
         replays : [Replay!]! 
         numReplays : Int!
         createdAt : String! 
