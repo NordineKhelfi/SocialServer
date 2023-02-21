@@ -5,7 +5,41 @@ import { CommentValidator } from "../../../validators";
 
 export default {
     Query: {
+        getPostComments: async (_, { postId }, { db, user }) => {
+            try {
 
+                // check if the post exists 
+                const post = await db.Post.findByPk(postId);
+                if (post == null)
+                    throw new Error("Post not Found");
+
+                // get all the comments for the given post
+                // and includes the replays and the media
+                var comments = await post.getComments({
+                    include: [
+                        {
+                            model: db.Media,
+                            as: "media"
+                        } ,
+                        {
+                            model : db.Replay ,
+                            as : "replays"
+                        }
+                    ]
+                });
+
+                // count the replays and assign it to the numReplays attribute 
+                for (let index = 0 ; index < comments.length ; index++) 
+                    comments[index].numReplays = comments[index].replays.length ; 
+                    
+                return comments;
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+
+            return [];
+        }
     },
 
     Mutation: {
@@ -58,8 +92,8 @@ export default {
                         id: commentId
                     }
                 });
-               
-                if (likedComments && likedComments.length > 0 ) {
+
+                if (likedComments && likedComments.length > 0) {
                     // unlike the comment 
                     await user.removeCommentLikes(comment);
                     return false;
