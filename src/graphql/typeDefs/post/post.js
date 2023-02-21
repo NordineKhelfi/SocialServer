@@ -3,6 +3,10 @@ import { gql } from "apollo-server-express";
 
 export default gql`
 
+    extend type Query { 
+        getUserPosts ( userId : ID!, postType : String! , offset : Int! , limit : Int!) : [Post!]! @userAuth 
+    } 
+
     extend type Mutation { 
         createPost(postInput : PostInput!) : Post @userAuth 
         deletePost(postId : ID!) : ID!  @userAuth   
@@ -20,6 +24,9 @@ export default gql`
         title : String  
         type  : String! 
         media : [Media!]  
+        user : User!
+        likes : Int! 
+        liked : Boolean! 
         createdAt : String!
         updatedAt : String!
     }

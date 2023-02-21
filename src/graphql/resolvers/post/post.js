@@ -8,6 +8,50 @@ export default {
     Upload: GraphQLUpload,
     Query: {
 
+        getUserPosts: async (_, { userId, postType, offset, limit }, { db, user }) => {
+            try {
+
+                // check if the user exists 
+                const profile = await db.User.findByPk(userId);
+                if (profile == null)
+                    throw new Error("User not found !");
+
+                // get all the posts that belongs to the given user 
+                var posts = await profile.getPosts({
+                    include: [
+                        {
+                            model: db.Media,
+                            as: "media"
+                        } , 
+
+                    ], 
+                    where : { 
+                        type : postType 
+                    } , 
+                    order : [["id" , "DESC"]] , 
+                    offset : offset , 
+                    limit : limit 
+                }) ; 
+
+                // asign the profile to the user attribute 
+                // check if this posts liked by the requesting user or not 
+                for ( let index = 0 ; index < posts.length ; index++) { 
+                    posts[index].user = profile ; 
+                    posts[index].liked = (await profile.getLikes({ 
+                        where : { 
+                            id : posts[index].id 
+                        }
+                    })).length > 0 ; 
+                }
+
+
+                return posts
+
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        }
     },
 
     Mutation: {
@@ -102,9 +146,9 @@ export default {
 
                 // if the post allready liked remove the likes 
                 // and decreese the number of likes in the post 
-                if (likes && likes.length >  0  ) {
+                if (likes && likes.length > 0) {
                     await user.removeLikes(post);
-                    await post.update({ likes : post.likes - 1 })
+                    await post.update({ likes: post.likes - 1 })
                     return false;
 
                 } else {
@@ -113,7 +157,7 @@ export default {
                     // and increase the likes in the post  
 
                     await user.addLikes(post);
-                    await post.update({ likes : post.likes + 1 })
+                    await post.update({ likes: post.likes + 1 })
                     return true;
                 }
 
@@ -138,10 +182,10 @@ export default {
                     }
                 });
 
-                console.log(favorites.length )
+                console.log(favorites.length)
 
                 // if the post allready liked remove the favorites
-                if (favorites && favorites.length >  0  ) {
+                if (favorites && favorites.length > 0) {
                     await user.removeFavorites(post);
                     return false;
 

@@ -9,3 +9,16 @@ mutation CREATE_POST($media: [Upload!]) {
     }
   }
 }
+
+
+query GetUserPosts($userId: ID!, $offset: Int!, $limit: Int!, $postType: String!) {
+  getUserPosts(userId: $userId, offset: $offset, limit: $limit, postType: $postType) {
+    id  
+    type 
+    likes
+    liked
+    media {
+        id path 
+    }
+  }
+}

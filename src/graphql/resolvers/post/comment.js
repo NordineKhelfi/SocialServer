@@ -5,7 +5,7 @@ import { CommentValidator } from "../../../validators";
 
 export default {
     Query: {
-        getPostComments: async (_, { postId , offset , limit  }, { db, user }) => {
+        getPostComments: async (_, { postId, offset, limit }, { db, user }) => {
             try {
 
                 // check if the post exists 
@@ -32,8 +32,8 @@ export default {
                         }
 
                     ],
-                    order:[
-                        ["id","DESC"]
+                    order: [
+                        ["id", "DESC"]
                     ],
                     offset: offset,
                     limit: limit,
@@ -43,11 +43,19 @@ export default {
                 // and check if this comment is allready been liked by the user or not  
                 for (let index = 0; index < comments.length; index++) {
                     comments[index].numReplays = comments[index].replays.length;
+                    comments[index].liked = (await user.getCommentLikes({
+                        where: {
+                            id: comments[index].id
+                        }
+                    })).length > 0;
+
+                    /*
                     comments[index].liked = (await comments[index].getUserLikes({
                         where: {
                             id: user.id
                         }
                     })).length > 0;
+                    */
 
                 }
                 return comments;

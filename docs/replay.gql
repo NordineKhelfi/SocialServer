@@ -4,9 +4,8 @@ mutation Replay($replayInput: ReplayInput!) {
   }
 }
 
-
-query GetCommentReplays($commentId: ID!) {
-  getCommentReplays(commentId: $commentId) {
+query GetCommentReplays($commentId: ID!, $offset: Int!, $limit: Int!) {
+  getCommentReplays(commentId: $commentId , offset: $offset , limit: $limit) {
     id
     replay
     mediaId
