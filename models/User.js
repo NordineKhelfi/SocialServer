@@ -126,6 +126,25 @@ module.exports = (Sequelize, DataTypes) => {
       through : "ReplayLikes" , 
       as : "replayLikes" 
     })
+
+    user.belongsToMany(db.User , { 
+      through : "FollowedUsers" , 
+      as : "following" , 
+      foreignKey : "userId"
+    }) ; 
+
+    user.belongsToMany(db.User , { 
+      through : "FollowedUsers" , 
+      as : "followers" , 
+      foreignKey : "followedId"
+    }) ; 
+
+    user.belongsToMany(db.User , { 
+      through : "BlockedUsers" , 
+      as : "blockedUsers" ,
+      foreignKey : "userId"
+    }) ; 
+
   }
 
   return user;
