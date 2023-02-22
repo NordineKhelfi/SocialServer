@@ -1,3 +1,5 @@
+import { ApolloError } from "apollo-server-express";
+
 export default { 
 
 
@@ -13,6 +15,45 @@ export default {
 
     Mutation : { 
         toggleFollow : async ( _  , { userId} , { db , user }) => { 
+
+            try { 
+
+                // check the user id 
+                if (userId== user.id) 
+                    throw new Error("You can't block your self asshole") ; 
+                
+                const target = await  db.User.findByPk(userId) ;
+                if (target == null) 
+                    throw new Error("User not found") ; 
+
+     
+
+                // check if the user is allready followed
+                const following = await user.getFollowing({ 
+                    where: { 
+                        id : userId 
+                    }
+                }) ; 
+
+                console.log(following) ; 
+
+
+                if ( following && following.length ==0 ) { 
+                    // the user is not blocked 
+                    await user.addFollowing(target) ; 
+                    return true  ; 
+                } else { 
+                    // the user is blocked 
+                    // then unblock him / her 
+                    
+                    await user.removeFollowing(target) ; 
+                    return false ; 
+                }
+
+
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
+            }
 
             return user ; 
         }

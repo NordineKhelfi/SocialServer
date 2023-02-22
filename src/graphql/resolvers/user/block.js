@@ -6,6 +6,11 @@ export default {
     Query : { 
 
         getBlockedUsers : async( _ , { offset , limit } , { db  , user }) =>  {  
+            // get blocked users by offset and limit 
+            return await user.getBlockedUsers({                
+                offset : offset , 
+                limit : limit 
+            }) ; 
 
         } 
     } , 
@@ -50,10 +55,7 @@ export default {
             }catch(error) { 
                 return new ApolloError(error.message) ; 
             }
-
-
-
-            return user ; 
+ 
         }
     }
 
