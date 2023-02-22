@@ -20,13 +20,13 @@ module.exports = (Sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
- 
-    username : { 
+
+    username: {
       type: DataTypes.STRING,
-      allowNull: false , 
-      unique : true 
-    
-    } , 
+      allowNull: false,
+      unique: true
+
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -53,24 +53,24 @@ module.exports = (Sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       allowNull: false
     },
-    
-    
-    bio: { 
-      type : DataTypes.STRING , 
-      allowNull : true 
-    } , 
-    private : { 
-      type : DataTypes.BOOLEAN , 
-      allowNull : false , 
-      defaultValue : false 
-    }  , 
 
-    disabled : { 
-      type : DataTypes.BOOLEAN , 
-      allowNull : false , 
-      defaultValue : false 
-    }  , 
-    
+
+    bio: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    private: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+
+    disabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+
 
     countryId: {
       type: DataTypes.INTEGER,
@@ -94,64 +94,68 @@ module.exports = (Sequelize, DataTypes) => {
     user.belongsTo(db.Country, {
       foreignKey: "countryId",
       as: "country"
-    }) ; 
+    });
 
-    user.hasOne(db.SocialMedia , { 
+    user.hasOne(db.SocialMedia, {
       foreignKey: "userId",
       as: "socialMedia"
     })
-    
-    user.hasMany(db.Post , { 
+
+    user.hasMany(db.Post, {
       foreignKey: "userId",
       as: "posts"
-    }) 
-
-    user.belongsToMany(db.Post, { 
-      through : "Likes" , 
-      as : "likes"
-    }) ; 
-
-    user.belongsToMany(db.Post , { 
-      through : "Favorites" , 
-      as : "favorites" 
     })
 
-    user.belongsToMany(db.Comment , { 
-      through : "CommentLikes" , 
-      as : "commentLikes" 
+    user.belongsToMany(db.Post, {
+      through: "Likes",
+      as: "likes"
+    });
+
+    user.belongsToMany(db.Post, {
+      through: "Favorites",
+      as: "favorites"
+    })
+
+    user.belongsToMany(db.Comment, {
+      through: "CommentLikes",
+      as: "commentLikes"
     })
 
 
-    user.belongsToMany(db.Replay , { 
-      through : "ReplayLikes" , 
-      as : "replayLikes" 
+    user.belongsToMany(db.Replay, {
+      through: "ReplayLikes",
+      as: "replayLikes"
     })
 
-    user.belongsToMany(db.User , { 
-      through : "FollowedUsers" , 
-      as : "following" , 
-      foreignKey : "userId"
-    }) ; 
+    user.belongsToMany(db.User, {
+      through: "FollowedUsers",
+      as: "following",
+      foreignKey: "userId"
+    });
 
-    user.belongsToMany(db.User , { 
-      through : "FollowedUsers" , 
-      as : "followers" , 
-      foreignKey : "followedId"
-    }) ; 
+    user.belongsToMany(db.User, {
+      through: "FollowedUsers",
+      as: "followers",
+      foreignKey: "followedId"
+    });
 
-    user.belongsToMany(db.User , { 
-      through : "BlockedUsers" , 
-      as : "blockedUsers" ,
-      foreignKey : "userId"
-    }) ; 
+    user.belongsToMany(db.User, {
+      through: "BlockedUsers",
+      as: "blockedUsers",
+      foreignKey: "userId"
+    });
 
-    user.hasMany(db.Story , { 
-      foreignKey : "userId" , 
-      as : "stories"
+    user.hasMany(db.Story, {
+      foreignKey: "userId",
+      as: "stories"
     })
-    user.belongsToMany(db.Story , { 
-      through : "StoryLikes" , 
-      as : "storyLikes" 
+    user.belongsToMany(db.Story, {
+      through: "StoryLikes",
+      as: "storyLikes"
+    })
+    user.hasMany(db.StoryComment, {
+      foreignKey: "userId",
+      as: "storyComments"
     })
 
   }

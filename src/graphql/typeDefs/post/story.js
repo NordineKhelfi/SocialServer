@@ -29,7 +29,7 @@ export default gql`
 
     input StoryCommentInput { 
         comment : String! 
-        storyid : ID! 
+        storyId : ID! 
     } 
 
     type StoryComment { 
