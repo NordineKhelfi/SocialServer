@@ -4,9 +4,9 @@ import { gql } from "apollo-server-express";
 export default gql`
 
     extend type Query { 
-        getStories : [Story!]! @userAuth 
+        getStories (offset : Int! , limit : Int!) : [User!]! @userAuth 
     }
-    
+
     extend type Mutation { 
         createStory(storyInput : StoryInput!) : Story! @userAuth 
         toggleLikeStory(storyId : ID!) : Boolean! @userAuth  
@@ -18,6 +18,7 @@ export default gql`
         id : ID! 
         media : Media! 
         user : User! 
+        liked : Boolean!
         createdAt : String!
         expiredAt : String! 
         updatedAt : String!

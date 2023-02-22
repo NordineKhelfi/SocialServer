@@ -12,3 +12,21 @@ mutation ($media: Upload!) {
     }
   }
   
+
+
+  query GetStories {
+  getStories {
+    id 
+    name
+    lastname
+    stories {
+      id
+      media {
+        id
+        path
+      }
+    liked
+      createdAt
+    }
+  }
+}

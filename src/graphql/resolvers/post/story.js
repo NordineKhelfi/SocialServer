@@ -4,7 +4,43 @@ import { getStoryExpirationDate, uploadFiles } from "../../../providers";
 
 export default {
     Query: {
+        getStories: async (_, { offset , limit}, { db, user }) => {
 
+            try {
+                // get all folllowers with their stories 
+                var following = await user.getFollowing({
+                    include: [{
+                        model: db.Story,
+                        as: "stories",
+                        include: [{
+                            model: db.Media,
+                            as: "media"
+                        }]
+                    }],
+                    offset , 
+                    limit 
+                });
+
+                // check wich story is liked 
+                for ( let fIndex = 0 ; fIndex < following.length ; fIndex ++) { 
+                    for (var index = 0 ; index < following[fIndex].stories.length ; index++ ) { 
+                        
+                        following[fIndex].stories[index].liked = (await user.getStoryLikes({ 
+                            where : { 
+                                id : following[fIndex].stories[index].id 
+                            }
+                        })).length > 0 ; 
+
+                    }
+                }
+
+                return following
+            } catch (error) {
+                return new ApolloError(error.message)
+            }
+
+            return [];
+        }
     },
     Mutation: {
         createStory: async (_, { storyInput }, { db, user }) => {
@@ -24,7 +60,7 @@ export default {
                 // and object
                 storyInput.userId = user.id;
                 storyInput.user = user;
-                
+
                 const story = await db.Story.create(storyInput);
                 storyInput.id = story.id;
 
@@ -82,8 +118,8 @@ export default {
                 storyCommentInput.user = user;
 
                 const result = await user.createStoryComment(storyCommentInput)
-                storyCommentInput.id = result.id ; 
-                return storyCommentInput ; 
+                storyCommentInput.id = result.id;
+                return storyCommentInput;
 
             } catch (error) {
                 return new ApolloError(error.message);

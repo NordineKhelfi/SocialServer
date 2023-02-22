@@ -53,7 +53,7 @@ export default gql`
         countryId : ID! 
         phone : String 
         country : Country!
-        
+        stories : [Story!] 
         bio : String 
         private : Boolean! 
         disabled : Boolean!
