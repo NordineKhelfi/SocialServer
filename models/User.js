@@ -145,6 +145,15 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey : "userId"
     }) ; 
 
+    user.hasMany(db.Story , { 
+      foreignKey : "userId" , 
+      as : "stories"
+    })
+    user.belongsToMany(db.Story , { 
+      through : "StoryLikes" , 
+      as : "storyLikes" 
+    })
+
   }
 
   return user;

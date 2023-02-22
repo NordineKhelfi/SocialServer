@@ -1,0 +1,14 @@
+mutation ($media: Upload!) {
+    createStory(storyInput: {media: $media}) {
+      id
+      user {
+        id
+        name
+        lastname
+      }
+      media {
+        path
+      }
+    }
+  }
+  
