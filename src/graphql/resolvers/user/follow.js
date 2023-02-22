@@ -5,10 +5,29 @@ export default {
 
     Query : { 
 
-        getFollowers : async( _ , { offset , limit } , { db  , user }) =>  {  
+        getFollowers : async( _ , { offset , limit } , { db  , user }) =>  {
+            
+            // get the follwing users by offset and limit 
+            return await user.getFollowers({ 
+                offset , 
+                limit 
+            }) ; 
+
+            
+
         }  , 
 
         getFollowing : async( _ , { offset , limit } , { db  , user }) =>  {  
+        
+        
+            // get the follwing users by offset and limit 
+            return await user.getFollowing({ 
+                offset , 
+                limit 
+            }) ; 
+
+
+        
         } 
     } , 
 
