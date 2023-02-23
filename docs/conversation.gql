@@ -1,0 +1,25 @@
+mutation CreateConversation($members: [ID!]!) {
+  createConversation(members: $members) {
+    id
+    type
+    members {
+       id
+       name
+       lastname
+    }
+  }
+}
+
+
+mutation CreateGroup($members: [ID!]!) {
+  createGroup(members: $members) {
+    id 
+    type 
+    members {
+       id name lastname
+    }
+    messages {
+       id  
+    }
+  }
+}

@@ -158,6 +158,11 @@ module.exports = (Sequelize, DataTypes) => {
       as: "storyComments"
     })
 
+    user.belongsToMany(db.Conversation , { 
+      through : "ConversationMembers" , 
+      as : "conversations"
+    })
+
   }
 
   return user;

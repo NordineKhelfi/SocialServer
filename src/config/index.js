@@ -1,14 +1,18 @@
-import { config } from "dotenv" 
+import { config } from "dotenv"
 
 
-const { parsed }  = config() ;
+const { parsed } = config();
 
-export const { 
-    PORT  , 
-    JWT_SECRET , 
-    UPLOAD_POST_IMAGES_DIR , 
-    UPLOAD_POST_VIDEOS_DIR , 
-    UPLOAD_COMMENTS_RECORDS_DIR , 
-    UPLOAD_REPLAYS_RECORDS_DIR , 
-    UPLOAD_STORIES_DIR
+export const {
+    PORT,
+    JWT_SECRET,
+    UPLOAD_POST_IMAGES_DIR,
+    UPLOAD_POST_VIDEOS_DIR,
+    UPLOAD_COMMENTS_RECORDS_DIR,
+    UPLOAD_REPLAYS_RECORDS_DIR,
+    UPLOAD_STORIES_DIR,
+    
+    UPLOAD_MESSAGE_IMAGES_DIR,
+    UPLOAD_MESSAGE_VIDEOS_DIR,
+    UPLOAD_MESSAGE_RECORDS_DIR,
 } = parsed

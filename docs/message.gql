@@ -1,0 +1,13 @@
+mutation ($media: Upload!) {
+  sendMessage(messageInput: {type: "image", conversationId: "2", media: $media}) {
+    id
+    media {
+      path
+    }
+    type
+    conversation {
+      id
+      type
+    }
+  }
+}
