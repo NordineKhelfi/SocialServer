@@ -11,6 +11,35 @@ import { uploadFiles } from "../../../providers";
 
 export default {
     Query: {
+        getMessages: async (_, { conversationId, offset, limit }, { db, user }) => {
+            try {
+                // check if the user is a aprticipant in this given conversation 
+                const conversation = (await user.getConversations({
+                    where: {
+                        id: conversationId
+                    }
+                })).pop();
+                if (conversation == null)
+                    throw new Error("Conversation not found");
+                // get all the messages that belongs to this conversation between offset and limit 
+                // and include the sender and the media content 
+                return await conversation.getMessages({
+                    include: [{
+                        model: db.Media,
+                        as: "media",
+
+                    }, {
+                        model : db.User , 
+                        as : "sender"
+                    }] , 
+                    offset , 
+                    limit 
+                }) ; 
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        }
 
     },
     Mutation: {
@@ -34,8 +63,8 @@ export default {
                 messageInput.user = user;
 
 
-     
-                
+
+
 
                 // upload the media based on it type 
                 // and save the path in output 
@@ -44,25 +73,25 @@ export default {
                     output = (await uploadFiles([messageInput.media], UPLOAD_MESSAGE_IMAGES_DIR)).pop();
 
                 if (messageInput.type == "video")
-                    output = (await uploadFiles([messageInput.media], UPLOAD_MESSAGE_VIDEO_DIR)).pop();
+                    output = (await uploadFiles([messageInput.media], UPLOAD_MESSAGE_VIDEOS_DIR)).pop();
 
                 if (messageInput.type == "record")
-                    output = (await uploadFiles([messageInput.media], UPLOAD_MESSAGE_RECORD_DIR)).pop();
+                    output = (await uploadFiles([messageInput.media], UPLOAD_MESSAGE_RECORDS_DIR)).pop();
 
                 if (output) {
                     // save the media to the database 
                     // and assign it's attributes to the message 
-                    const media = await db.Media.create({ 
-                        path : output
-                    }) ; 
+                    const media = await db.Media.create({
+                        path: output
+                    });
 
-                    messageInput.media = media ; 
-                    messageInput.mediaId = media.id ;  
+                    messageInput.media = media;
+                    messageInput.mediaId = media.id;
                 }
 
                 // save the message 
-                const message = await db.Message.create(messageInput) ; 
-                messageInput.id = message.id  ; 
+                const message = await db.Message.create(messageInput);
+                messageInput.id = message.id;
                 return messageInput
 
             } catch (error) {

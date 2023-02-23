@@ -23,3 +23,19 @@ mutation CreateGroup($members: [ID!]!) {
     }
   }
 }
+
+query Query($offset: Int!, $limit: Int!) {
+  getConversations(offset: $offset, limit: $limit) {
+    id 
+    type 
+    members {
+      id
+       name lastname
+    }
+    messages {
+       id content type sender {
+         id 
+       }
+    }
+  }
+}
