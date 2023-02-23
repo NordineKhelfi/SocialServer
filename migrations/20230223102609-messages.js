@@ -3,12 +3,22 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+    return queryInterface.createTable("Messages" , { 
+      id : { 
+        type :  Sequelize.INETEGR , 
+        autoIncrement : true , 
+        primaryKey : true , 
+        allowNull : false 
+        
+      } , 
+      content : { 
+        type : Sequelize.STTRING  , 
+        allowNull : false, 
+      } , 
+      type : { 
+        
+      }
+    })
   },
 
   async down (queryInterface, Sequelize) {

@@ -3,20 +3,22 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+    return queryInterface.createTable("Conversations" , { 
+      id : { 
+        type : Sequelize.INTEGER , 
+        autoIncrement : true , 
+        primaryKey : true , 
+        allowNull : false 
+      } , 
+      type : { 
+        type : Sequelize.ENUM(["individual" , "group"]) ,  
+        allowNull : false , 
+        defaultValue  : "individual"
+      }
+    })
   },
 
   async down (queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
+    return queryInterface.dropTable("Conversations") ; 
   }
 };
