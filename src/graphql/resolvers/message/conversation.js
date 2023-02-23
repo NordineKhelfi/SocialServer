@@ -4,7 +4,26 @@ export default {
 
     Query: {
         getConversations: async (_, { offset, limit }, { db, user }) => {
-            return [];
+            // get all the conversations that the given user is member on 
+            // and include in each one the members 
+            // the last message send and his sender 
+            return await user.getConversations({
+                include : [{ 
+                    model : db.User , 
+                    as :  "members"
+                }, { 
+                    model : db.Message , 
+                    as : "messages" , 
+                    include : [{
+                        model : db.User , 
+                        as : "sender"
+                    }] , 
+                    offset : 0 , 
+                    limit : 1 
+                }] , 
+                offset , 
+                limit 
+            }) ; 
         }
     },
 
