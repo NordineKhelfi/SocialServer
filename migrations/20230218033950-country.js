@@ -19,7 +19,6 @@ module.exports = {
       timestamps: true,
       charset: 'utf8',
       collate: 'utf8_unicode_ci'
-
     }).then(async () => {
 
       const countries = require("../assets/countries.json");

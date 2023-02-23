@@ -4,3 +4,4 @@ export * from "./post" ;
 export * from "./comment" ; 
 export * from "./replay" ; 
 export * from "./message" ; 
+export * from "./validationRequest" ; 
