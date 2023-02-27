@@ -3,8 +3,26 @@ import { hash, compare } from "bcryptjs";
 import { createToken } from "../../../providers/jwt";
 import { Op } from "sequelize";
 import { SocialMediaValidator, SignUpValidator, LoginValidator } from "../../../validators";
+import { deleteFiles, uploadFiles } from "../../../providers";
+import { UPLOAD_PICTURES_DIR } from "../../../config";
+
 export default {
     Query: {
+
+        checkUsername: async (_, { username }, { db, user }) => {
+            // chek the username is taken 
+            const existsUser = await db.User.findOne({
+                subQuery: true,
+                where: {
+                    username: username.trim(),
+                    id: {
+                        [Op.not]: (user) ? (user.id) : (null)
+                    }
+                }
+            });
+            return existsUser == null;
+
+        },
 
         Login: async (_, { identifier, password }, { db }) => {
 
@@ -47,18 +65,22 @@ export default {
         getUserById: async (_, { userId }, { db }) => {
             // find user by the given id 
             // and add associations 
-            return db.User.findOne({
-                where: {
-                    id: userId
-                },
-                include:[ {
+            const user = await db.User.findByPk(userId, {
+
+                include: [{
                     model: db.Country,
                     as: "country"
-                } , { 
-                    model : db.SocialMedia , 
-                    as : "socialMedia"
-                }] 
+                }, {
+                    model: db.SocialMedia,
+
+                    as: "socialMedia"
+                }, {
+                    model: db.Media,
+                    as: "profilePicture"
+                }]
             });
+
+            return user
         }
     },
 
@@ -88,7 +110,7 @@ export default {
             }
         },
 
-        EditProfile: async (_, { userInput }, { user }) => {
+        EditProfile: async (_, { userInput }, { user, db }) => {
 
             try {
 
@@ -108,6 +130,37 @@ export default {
                         await previousSocialMedia.update(userInput.socialMedia);
                     }
                 }
+
+
+                // check if the user upload new profile picture 
+                if (userInput.profilePicture) {
+                    // check if the user have a previous profile picture 
+                    const picture = await user.getProfilePicture();
+                    if (picture) {
+                        // if so delete it from the server storage 
+                        // and delete it from the database 
+                        await deleteFiles([picture.path]);
+
+                        await picture.destroy();
+                    }
+                    // if the user upload new picture 
+                    // save it in the pictures directory and assign it to the given user
+                    const output = (await uploadFiles([userInput.profilePicture], UPLOAD_PICTURES_DIR)).pop();
+                    const media = await db.Media.create({
+                        path: output
+                    });
+                    userInput.pictureId = media.id;
+                }
+                else if (!userInput.pictureId) { 
+                    const picture = await user.getProfilePicture();
+                    if (picture) {
+                        // if so delete it from the server storage 
+                        // and delete it from the database 
+                        await deleteFiles([picture.path]);
+
+                        await picture.destroy();
+                    }
+                }
                 return await user.update(userInput);;
 
             } catch (error) {
@@ -119,10 +172,10 @@ export default {
         },
         togglePrivate: async (_, { }, { db, user }) => {
             return await user.update({ private: !user.private });
-        
+
         },
         deleteAccount: async (_, { }, { db, user }) => {
-            return await user.destroy() ; 
+            return await user.destroy();
         }
 
 

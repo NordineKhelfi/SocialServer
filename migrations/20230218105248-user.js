@@ -4,7 +4,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     return queryInterface.createTable("Users", {
-      
+
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -21,12 +21,49 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      username : { 
+      username: {
         type: Sequelize.STRING,
-        allowNull: false , 
-        unique : true 
-      
+        allowNull: false,
+        unique: true
+      },
+      pictureId : { 
+        type : Sequelize.INTEGER , 
+        allowNull : true , 
+        onDelete : "SET NULL" , 
+        references : { 
+          model : "Media" , 
+          key : "id"
+        }
       } , 
+
+      numFollowers: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+      },
+
+      numFollowing: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+      },
+      numPosts: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+      },
+
+      numVisits: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+      },
+
+      validated: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
 
       email: {
         type: Sequelize.STRING,
@@ -55,36 +92,38 @@ module.exports = {
         allowNull: false
       },
 
-      bio: { 
-        type : Sequelize.STRING , 
-        allowNull : true 
-      } , 
-      private : { 
-        type : Sequelize.BOOLEAN , 
-        allowNull : false , 
-        defaultValue : false 
-      }  , 
+      bio: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      private: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
 
-      disabled : { 
-        type : Sequelize.BOOLEAN , 
-        allowNull : false , 
-        defaultValue : false 
-      }  , 
-      
-      countryId : { 
-        type : Sequelize.INTEGER , 
-        allowNull :  true  , 
-        onDelete : "SET NULL" , 
-        references : { 
-          model : "Countries" , 
-          key : "id"
+      disabled: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+
+      countryId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        onDelete: "SET NULL",
+        references: {
+          model: "Countries",
+          key: "id"
         }
-      } , 
+      },
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE
 
     }, {
-      timestamps: true
+      timestamps: true,
+      charset: "utf8",
+      collate: "utf8_general_ci"
     })
   },
 

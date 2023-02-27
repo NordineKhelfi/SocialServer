@@ -6,6 +6,7 @@ export default gql`
     extend type Query {
         Login (identifier : String ! , password : String!) : UserToken! 
         getUserById(userId : ID!) : User 
+        checkUsername(username : String!) : Boolean! 
     }
 
     extend type Mutation { 
@@ -36,6 +37,9 @@ export default gql`
         lastname : String! 
         username : String! 
         countryId : ID! , 
+        profilePicture : Upload 
+        pictureId : ID 
+        
         bio : String 
         socialMedia : SocialMediaInput 
     }
@@ -45,6 +49,9 @@ export default gql`
         name : String! 
         lastname : String! 
         email : String! 
+        profilePicture : Media 
+        pictureId : ID 
+
         username : String! 
         password : String! 
         confirmPassword : String! 
@@ -57,7 +64,11 @@ export default gql`
         bio : String 
         private : Boolean! 
         disabled : Boolean!
-        
+        numFollowers : Int! 
+        numPosts : Int! 
+        numFollowing : Int! 
+        numVisits : Int! 
+        validated : Boolean! 
         socialMedia : SocialMedia 
     }
 

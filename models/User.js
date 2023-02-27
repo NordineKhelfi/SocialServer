@@ -16,10 +16,51 @@ module.exports = (Sequelize, DataTypes) => {
       allowNull: false,
     },
 
+    pictureId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      onDelete: "SET NULL",
+      references: {
+        model: "Media",
+        key: "id"
+      }
+    },
+
     lastname: {
       type: DataTypes.STRING,
       allowNull: false
     },
+
+    numFollowers: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+
+    numFollowing: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+    numPosts: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+
+    numVisits: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+
+
+    validated: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+
 
     username: {
       type: DataTypes.STRING,
@@ -90,6 +131,10 @@ module.exports = (Sequelize, DataTypes) => {
   });
 
   user.associate = (db) => {
+    user.belongsTo(db.Media, {
+      foreignKey: "pictureId",
+      as: "profilePicture"
+    })
 
     user.belongsTo(db.Country, {
       foreignKey: "countryId",
@@ -158,9 +203,9 @@ module.exports = (Sequelize, DataTypes) => {
       as: "storyComments"
     })
 
-    user.belongsToMany(db.Conversation , { 
-      through : "ConversationMembers" , 
-      as : "conversations"
+    user.belongsToMany(db.Conversation, {
+      through: "ConversationMembers",
+      as: "conversations"
     })
 
   }

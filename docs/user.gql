@@ -3,6 +3,7 @@ mutation SignUp($user: UserInput) {
     user { 
       id 
     }
+    token 
   }
 }
 

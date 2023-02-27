@@ -21,8 +21,6 @@ export default {
                     path : output 
                 }) ; 
 
-
-
                 // assign needed attributes 
                 validationRequestInput.mediaId = media.id ; 
                 validationRequestInput.media = media ; 
