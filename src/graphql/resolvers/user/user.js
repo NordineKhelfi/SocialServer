@@ -37,7 +37,11 @@ export default {
                             { email: identifier },
                             { phone: identifier }
                         ]
-                    }
+                    } , 
+                    include : [{ 
+                        model : db.Media , 
+                        as  :"profilePicture"
+                    }]
                 });
                 // there is no user with the given identifier 
                 if (user == null)
