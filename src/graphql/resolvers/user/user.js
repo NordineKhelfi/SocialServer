@@ -111,12 +111,14 @@ export default {
         },
 
         EditProfile: async (_, { userInput }, { user, db }) => {
+          
 
             try {
 
                 // check if the social media need to be updated 
                 if (userInput.socialMedia) {
                     // apply a validation for the input
+                 
                     await SocialMediaValidator.validate(userInput.socialMedia, { abortEarly: true })
 
                     // whene we reach this point we are sure that social media is set and validated 

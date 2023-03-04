@@ -1,0 +1,8 @@
+File from: [uploads/posts/images/2-1677592510178.jpg]
+
+File to: [uploads/pictures2-1677592510178.webp]
+
+Compression algorithm: [webp]
+
+Description: Error: Command failed: /home/tamanikarim/Desktop/SocialServer/node_modules/cwebp-bin/vendor/cwebp -quality 60 uploads/posts/images/2-1677592510178.jpg -o uploads/pictures2-1677592510178.webp
+Error! Unknown option '-quality'

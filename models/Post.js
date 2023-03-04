@@ -35,28 +35,34 @@ module.exports = (Sequelize, DataTypes) => {
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,
     }, {
-        timestamps: true
-    }) ; 
+        timestamps: true,
+        charset: "utf8",
+        collate: "utf8_general_ci"
+    });
 
 
     Post.associate = (db) => {
-        Post.belongsTo(db.User , { 
-            foreignKey : "userId" , 
-            as : "user"
-        }) ;
-        
-        Post.belongsToMany(db.Media , { 
-            through : "PostMedia" , 
-            as : "media"
-        }) ; 
+        Post.belongsTo(db.User, {
+            foreignKey: "userId",
+            as: "user"
+        });
 
-        Post.hasMany(db.Comment  , { 
-            foreignKey : "postId" , 
-            as : "comments" 
+        Post.belongsToMany(db.Media, {
+            through: "PostMedia",
+            as: "media"
+        });
+
+        Post.hasMany(db.Comment, {
+            foreignKey: "postId",
+            as: "comments"
+        }); 
+        Post.hasOne(db.Reel , { 
+            foreignKey: "postId",
+            as: "reel"
         })
     }
 
 
-    return Post ; 
+    return Post;
 
 }

@@ -54,17 +54,27 @@ export default {
                     }
                 }) ; 
 
-                console.log(following) ; 
 
 
                 if ( following && following.length ==0 ) { 
                     // the user is not blocked 
                     await user.addFollowing(target) ; 
+                    await user.update({ 
+                        numFollowing : user.numFollowing +1 
+                    })
+                    await target.update({ 
+                        numFollowers : target.numFollowers + 1 
+                    }) ; 
                     return true  ; 
                 } else { 
                     // the user is blocked 
                     // then unblock him / her 
-                    
+                    await user.update({ 
+                        numFollowing : user.numFollowing -1 
+                    })
+                    await target.update({ 
+                        numFollowers : target.numFollowers - 1 
+                    }) ; 
                     await user.removeFollowing(target) ; 
                     return false ; 
                 }

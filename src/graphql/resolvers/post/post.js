@@ -1,5 +1,5 @@
 import { deleteFiles, uploadFiles } from "../../../providers";
-import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_VIDEOS_DIR } from "../../../config";
+import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR } from "../../../config";
 import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
 import { PostValidator } from "../../../validators/post";
@@ -12,7 +12,14 @@ export default {
             try {
 
                 // check if the user exists 
-                const profile = await db.User.findByPk(userId);
+                const profile = await db.User.findByPk(userId, {
+                    include: [
+                        {
+                            model: db.Media,
+                            as: "profilePicture"
+                        }
+                    ]
+                });
                 if (profile == null)
                     throw new Error("User not found !");
 
@@ -22,26 +29,34 @@ export default {
                         {
                             model: db.Media,
                             as: "media"
-                        } , 
+                        },
+                        { 
+                            model : db.Reel , 
+                            as : "reel" , 
+                            include : [{ 
+                                model : db.Media , 
+                                as : "thumbnail"
+                            }]
+                        }
 
-                    ], 
-                    where : { 
-                        type : postType 
-                    } , 
-                    order : [["id" , "DESC"]] , 
-                    offset : offset , 
-                    limit : limit 
-                }) ; 
+                    ],
+                    where: {
+                        type: postType
+                    },
+                    order: [["id", "DESC"]],
+                    offset: offset,
+                    limit: limit
+                });
 
                 // asign the profile to the user attribute 
                 // check if this posts liked by the requesting user or not 
-                for ( let index = 0 ; index < posts.length ; index++) { 
-                    posts[index].user = profile ; 
-                    posts[index].liked = (await profile.getLikes({ 
-                        where : { 
-                            id : posts[index].id 
+                for (let index = 0; index < posts.length; index++) {
+                    posts[index].user = profile;
+                    posts[index].liked = (await profile.getLikes({
+                        where: {
+                            id: posts[index].id
                         }
-                    })).length > 0 ; 
+                    })).length > 0;
                 }
 
 
@@ -60,6 +75,10 @@ export default {
             try {
                 // vdaliate post input 
                 await PostValidator.validate(postInput, { abortEarly: true });
+
+                if (postInput.type == "reel" && !postInput.reel && !postInput.reel.thumbnail)
+                    throw new Error("Thumbnail required for reels");
+
                 // create the post and assign it to the given user 
                 const post = await user.createPost(postInput);
                 // if the post is media for upload the media and assign it to the post 
@@ -71,9 +90,27 @@ export default {
                 if (post.type == "image")
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR);
 
-                if (post.type == "reel")
-                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
+                if (post.type == "reel") {
 
+                    console.log(postInput.media) ; 
+                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
+                    // upload thumbnail to the given directory 
+                    // and associate it to the reel 
+                    // and associate the reel to the post 
+                    var thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop(); 
+                    
+                    if (thumbnail) { 
+                        const media = await db.Media.create({ 
+                            path : thumbnail 
+                        })  ; 
+                        const reel = await db.Reel.create({ 
+                            thumbnailId : media.id , 
+                            postId : post.id , 
+                        }) ; 
+                        reel.thumbnail = media ; 
+                        post.reel = reel  ; 
+                    } 
+                }
 
                 for (let index = 0; index < outputs.length; index++) {
                     // insert media into database 
@@ -85,8 +122,13 @@ export default {
                     await post.addMedia(media);
                     medium.splice(0, 0, media);
                 }
+
+
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
+                await user.update({ 
+                    numPosts : user.numPosts + 1 
+                })
                 return post;
 
             } catch (error) {

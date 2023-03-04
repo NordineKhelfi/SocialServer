@@ -17,7 +17,8 @@ export default gql`
     input PostInput { 
         title : String  
         type : String! 
-        media : [Upload!]
+        media : [Upload!] 
+        reel : ReelInput 
     }
     type Post  { 
         id : ID! 
@@ -27,6 +28,7 @@ export default gql`
         user : User!
         likes : Int! 
         liked : Boolean! 
+        reel : Reel 
         createdAt : String!
         updatedAt : String!
     }

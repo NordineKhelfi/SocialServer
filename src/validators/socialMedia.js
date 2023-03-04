@@ -2,6 +2,8 @@ import * as yup from "yup";
 
 const SocialMediaValidator = yup.object().test("not-valid", (socialMedia) => {
 
+
+    
     const oneSet = (
         socialMedia.facebook
         || socialMedia.twitter
@@ -10,7 +12,7 @@ const SocialMediaValidator = yup.object().test("not-valid", (socialMedia) => {
     );
 
     if (!oneSet)
-        return false;
+        return false; 
 
     if (socialMedia.facebook && !socialMedia.facebook.startsWith("http"))
         return false;

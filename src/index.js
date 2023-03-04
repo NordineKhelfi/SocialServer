@@ -1,5 +1,5 @@
 import express from "express";
-import { PORT } from "./config";
+import { PORT, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR } from "./config";
 import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
@@ -8,6 +8,7 @@ import { graphqlUploadExpress} from "graphql-upload" ;
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
 import db from "../models";
+ 
 
 // initialize our express server 
 // init the Server 
@@ -17,6 +18,13 @@ const http = Server(app);
 // aplaying middlewares
 app.use(userAuth);
 app.use(graphqlUploadExpress());
+
+
+app.use("/" + UPLOAD_PICTURES_DIR, express.static(UPLOAD_PICTURES_DIR));
+app.use("/" + UPLOAD_POST_IMAGES_DIR, express.static(UPLOAD_POST_IMAGES_DIR));
+app.use("/" + UPLOAD_POST_VIDEOS_DIR, express.static(UPLOAD_POST_VIDEOS_DIR));
+app.use("/" + UPLOAD_POST_THUMBNAILS_DIR , express.static(UPLOAD_POST_THUMBNAILS_DIR));
+
 
 
 var schema = makeExecutableSchema({ typeDefs, resolvers })

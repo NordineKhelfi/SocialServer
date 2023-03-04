@@ -36,7 +36,9 @@ module.exports = {
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
     }, {
-      timestamps: true
+      timestamps: true , 
+      charset: "utf8",
+      collate: "utf8_general_ci"
     })
   },
 

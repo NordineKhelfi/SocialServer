@@ -1,7 +1,7 @@
 
 import path from "path";
-import { createWriteStream , unlink} from "fs";
-
+import { createWriteStream, unlink } from "fs";
+ 
 const uploadFiles = async (mediaFiles, directory) => {
 
     var paths = [];
@@ -14,7 +14,8 @@ const uploadFiles = async (mediaFiles, directory) => {
 
         // create the read stream and generate new unique name for the file
         var readStream = createReadStream();
-        var newFilename = `${index}-${new Date().getTime().toString()}${path.parse(filename).ext}`;
+        var newFilename = `${index}-${new Date().getTime().toString()}${path.parse(filename).ext}`
+        
 
         // create the distination path 
         // and open a write stream to it so we can copy the image 
@@ -29,6 +30,8 @@ const uploadFiles = async (mediaFiles, directory) => {
                 resolve();
             });
         });
+
+
         paths.push(distPath)
     }
     return paths;
@@ -36,25 +39,23 @@ const uploadFiles = async (mediaFiles, directory) => {
 
 
 const deleteFiles = async (files) => {
-    
-    
-    for(let index = 0 ; index < files.length ; index++) { 
-        await new Promise((resolve , reject) => { 
 
-           
-            unlink(files[index] , (error) => {
-                
-                resolve() ; 
+
+    for (let index = 0; index < files.length; index++) {
+        await new Promise((resolve, reject) => {
+
+
+            unlink(files[index], (error) => {
+
+                resolve();
             })
-        }) 
-    } ; 
-
-
-
+        })
+    };
 }
-
+ 
 
 export {
-    uploadFiles , 
-    deleteFiles
+    uploadFiles,
+    deleteFiles,
+    
 }
