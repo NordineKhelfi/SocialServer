@@ -5,6 +5,7 @@ export default gql`
 
     extend type Query { 
         getUserPosts ( userId : ID!, postType : String! , offset : Int! , limit : Int!) : [Post!]! @userAuth 
+        getPosts (time : String , limit : Int!) : [Post!]! 
     } 
 
     extend type Mutation { 

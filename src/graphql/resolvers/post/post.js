@@ -3,6 +3,7 @@ import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_
 import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
 import { PostValidator } from "../../../validators/post";
+import { Op } from "sequelize";
 
 export default {
     Upload: GraphQLUpload,
@@ -30,12 +31,12 @@ export default {
                             model: db.Media,
                             as: "media"
                         },
-                        { 
-                            model : db.Reel , 
-                            as : "reel" , 
-                            include : [{ 
-                                model : db.Media , 
-                                as : "thumbnail"
+                        {
+                            model: db.Reel,
+                            as: "reel",
+                            include: [{
+                                model: db.Media,
+                                as: "thumbnail"
                             }]
                         }
 
@@ -52,11 +53,12 @@ export default {
                 // check if this posts liked by the requesting user or not 
                 for (let index = 0; index < posts.length; index++) {
                     posts[index].user = profile;
-                    posts[index].liked = (await profile.getLikes({
-                        where: {
-                            id: posts[index].id
-                        }
-                    })).length > 0;
+                    if (user)
+                        posts[index].liked = (await user.getLikes({
+                            where: {
+                                id: posts[index].id
+                            }
+                        })).length > 0;
                 }
 
 
@@ -65,6 +67,54 @@ export default {
 
             } catch (error) {
                 return new ApolloError(error.message);
+            }
+        },
+        getPosts: async (_, { time , limit }, { db, user }) => {
+
+            try {
+                if (!time) 
+                    time = new Date().toISOString() ; 
+                else 
+                    time = new Date( parseInt(time) ).toISOString() ; 
+
+                var posts = await db.Post.findAll({
+                    include: [{
+                        model: db.User,
+                        as: "user",
+                        include: [{
+                            model: db.Media,
+                            as: "profilePicture"
+                        }]
+                    }, { 
+                        model : db.Media, 
+                        as : "media"
+                    }],
+                    where: {
+                        type: {
+                            [Op.not]: "reel"
+                        },
+                        createdAt : { 
+                            [Op.lt] :time  
+                        }
+                    },
+                    order: [["createdAt", "DESC"]],
+               
+                    limit
+                });
+                // if the user logged in check if he allready liked on of this posts 
+                if (user) {
+                    for (let index = 0; index < posts.length; index++) {
+                        posts[index].liked = (await user.getLikes({
+                            where: {
+                                id: posts[index].id
+                            }
+                        })).length > 0;
+                    }
+                }
+                return posts;
+
+            } catch (error) {
+                return new ApolloError(error.message)
             }
         }
     },
@@ -92,24 +142,24 @@ export default {
 
                 if (post.type == "reel") {
 
-                    console.log(postInput.media) ; 
+                    console.log(postInput.media);
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
                     // and associate the reel to the post 
-                    var thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop(); 
-                    
-                    if (thumbnail) { 
-                        const media = await db.Media.create({ 
-                            path : thumbnail 
-                        })  ; 
-                        const reel = await db.Reel.create({ 
-                            thumbnailId : media.id , 
-                            postId : post.id , 
-                        }) ; 
-                        reel.thumbnail = media ; 
-                        post.reel = reel  ; 
-                    } 
+                    var thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
+
+                    if (thumbnail) {
+                        const media = await db.Media.create({
+                            path: thumbnail
+                        });
+                        const reel = await db.Reel.create({
+                            thumbnailId: media.id,
+                            postId: post.id,
+                        });
+                        reel.thumbnail = media;
+                        post.reel = reel;
+                    }
                 }
 
                 for (let index = 0; index < outputs.length; index++) {
@@ -126,8 +176,8 @@ export default {
 
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
-                await user.update({ 
-                    numPosts : user.numPosts + 1 
+                await user.update({
+                    numPosts: user.numPosts + 1
                 })
                 return post;
 
