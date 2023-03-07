@@ -29,6 +29,7 @@ export default gql`
         user : User!
         likes : Int! 
         liked : Boolean! 
+        isFavorite : Boolean! 
         reel : Reel 
         createdAt : String!
         updatedAt : String!

@@ -53,12 +53,20 @@ export default {
                 // check if this posts liked by the requesting user or not 
                 for (let index = 0; index < posts.length; index++) {
                     posts[index].user = profile;
-                    if (user)
+                    if (user) { 
                         posts[index].liked = (await user.getLikes({
                             where: {
                                 id: posts[index].id
                             }
                         })).length > 0;
+                    
+                        posts[index].isFavorite = (await user.getFavorites({ 
+                            where : { 
+                                id : posts[index].id
+                            }
+                        })).length > 0; 
+                    }
+
                 }
 
 
@@ -107,6 +115,12 @@ export default {
                         posts[index].liked = (await user.getLikes({
                             where: {
                                 id: posts[index].id
+                            }
+                        })).length > 0;
+
+                        posts[index].isFavorite = (await user.getFavorites({ 
+                            where : { 
+                                id : posts[index].id
                             }
                         })).length > 0;
                     }
