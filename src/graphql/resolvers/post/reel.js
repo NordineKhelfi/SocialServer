@@ -43,6 +43,7 @@ export default {
                     order: [["createdAt", "DESC"]],
                     limit
                 });
+
                 // if the user logged in check if he allready liked on of this posts 
                 if (user) {
                     for (let index = 0; index < posts.length; index++) {
@@ -53,9 +54,15 @@ export default {
                         })).length > 0;
                     }
                 }
-
+                else { 
+                    for (let index = 0; index < posts.length; index++) {
+                        posts[index].liked = false ; 
+                    }
+                    
+                }
+            
                 return posts;
-                return [];
+              
 
             } catch (error) {
                 return new ApolloError(error.message)

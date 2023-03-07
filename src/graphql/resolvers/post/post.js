@@ -53,18 +53,23 @@ export default {
                 // check if this posts liked by the requesting user or not 
                 for (let index = 0; index < posts.length; index++) {
                     posts[index].user = profile;
-                    if (user) { 
+                    if (user) {
                         posts[index].liked = (await user.getLikes({
                             where: {
                                 id: posts[index].id
                             }
                         })).length > 0;
-                    
-                        posts[index].isFavorite = (await user.getFavorites({ 
-                            where : { 
-                                id : posts[index].id
+
+                        posts[index].isFavorite = (await user.getFavorites({
+                            where: {
+                                id: posts[index].id
                             }
-                        })).length > 0; 
+                        })).length > 0;
+                    }
+                    else {
+                        post[index].liked = false;
+                        post[index].isFavorite = false;
+
                     }
 
                 }
@@ -77,13 +82,13 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        getPosts: async (_, { time , limit }, { db, user }) => {
+        getPosts: async (_, { time, limit }, { db, user }) => {
 
             try {
-                if (!time) 
-                    time = new Date().toISOString() ; 
-                else 
-                    time = new Date( parseInt(time) ).toISOString() ; 
+                if (!time)
+                    time = new Date().toISOString();
+                else
+                    time = new Date(parseInt(time)).toISOString();
 
                 var posts = await db.Post.findAll({
                     include: [{
@@ -93,20 +98,20 @@ export default {
                             model: db.Media,
                             as: "profilePicture"
                         }]
-                    }, { 
-                        model : db.Media, 
-                        as : "media"
+                    }, {
+                        model: db.Media,
+                        as: "media"
                     }],
                     where: {
                         type: {
                             [Op.not]: "reel"
                         },
-                        createdAt : { 
-                            [Op.lt] :time  
+                        createdAt: {
+                            [Op.lt]: time
                         }
                     },
                     order: [["createdAt", "DESC"]],
-               
+
                     limit
                 });
                 // if the user logged in check if he allready liked on of this posts 
@@ -118,12 +123,20 @@ export default {
                             }
                         })).length > 0;
 
-                        posts[index].isFavorite = (await user.getFavorites({ 
-                            where : { 
-                                id : posts[index].id
+                        posts[index].isFavorite = (await user.getFavorites({
+                            where: {
+                                id: posts[index].id
                             }
                         })).length > 0;
                     }
+                }
+                else {
+                    for (let index = 0; index < posts.length; index++) {
+
+                        posts[index].liked = false;
+                        posts[index].isFavorite = false;
+                    }
+
                 }
                 return posts;
 
