@@ -5,6 +5,7 @@ export default gql`
 
     extend type Query { 
         getReels(time : String  , limit : Int!) : [Post!]! 
+        getFollowersReels(time : String  , limit : Int!) : [Post!]! @userAuth 
     }
     
 

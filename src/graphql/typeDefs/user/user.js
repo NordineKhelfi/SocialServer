@@ -51,6 +51,7 @@ export default gql`
         email : String! 
         profilePicture : Media 
         pictureId : ID 
+        isFollowed : Boolean 
 
         username : String! 
         password : String! 

@@ -21,11 +21,8 @@ export default {
                 }
             });
             return existsUser == null;
-
         },
-
         Login: async (_, { identifier, password }, { db }) => {
-
             try {
 
                 await LoginValidator.validate({ identifier, password }, { abortEarly: true });
@@ -37,10 +34,10 @@ export default {
                             { email: identifier },
                             { phone: identifier }
                         ]
-                    } , 
-                    include : [{ 
-                        model : db.Media , 
-                        as  :"profilePicture"
+                    },
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
                     }]
                 });
                 // there is no user with the given identifier 
@@ -66,10 +63,10 @@ export default {
             }
 
         },
-        getUserById: async (_, { userId }, { db }) => {
+        getUserById: async (_, { userId }, { db, user }) => {
             // find user by the given id 
             // and add associations 
-            const user = await db.User.findByPk(userId, {
+            const profile = await db.User.findByPk(userId, {
 
                 include: [{
                     model: db.Country,
@@ -84,7 +81,20 @@ export default {
                 }]
             });
 
-            return user
+
+            if (user) {
+
+                profile.isFollowed = (await user.getFollowing({
+                    where: {
+                        id: profile.id
+                    }
+                })).length > 0;
+                
+            }else {
+                profile.isFollowed = false ; 
+            }
+
+            return profile
         }
     },
 
@@ -115,14 +125,14 @@ export default {
         },
 
         EditProfile: async (_, { userInput }, { user, db }) => {
-          
+
 
             try {
 
                 // check if the social media need to be updated 
                 if (userInput.socialMedia) {
                     // apply a validation for the input
-                 
+
                     await SocialMediaValidator.validate(userInput.socialMedia, { abortEarly: true })
 
                     // whene we reach this point we are sure that social media is set and validated 
@@ -157,7 +167,7 @@ export default {
                     });
                     userInput.pictureId = media.id;
                 }
-                else if (!userInput.pictureId) { 
+                else if (!userInput.pictureId) {
                     const picture = await user.getProfilePicture();
                     if (picture) {
                         // if so delete it from the server storage 
