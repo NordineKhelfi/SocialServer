@@ -28,7 +28,11 @@ export default {
                         },
                         {
                             model: db.User,
-                            as: "user"
+                            as: "user" , 
+                            include : [{
+                                model : db.Media , 
+                                as : "profilePicture"
+                            }]
                         }
 
                     ],

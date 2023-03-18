@@ -24,13 +24,13 @@ export default {
                     }, {
                         model: db.Media,
                         as: "media"
-                    }, { 
-                        model : db.Reel , 
-                        as : "reel" , 
-                        include : [ 
-                            { 
-                                model : db.Media , 
-                                as : "thumbnail"
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+                        include: [
+                            {
+                                model: db.Media,
+                                as: "thumbnail"
                             }
                         ]
                     }],
@@ -52,7 +52,7 @@ export default {
                                 id: posts[index].id
                             }
                         })).length > 0;
-                        
+
                         posts[index].isFavorite = (await user.getFavorites({
                             where: {
                                 id: posts[index].id
@@ -62,27 +62,27 @@ export default {
                     }
 
                 }
-                else { 
+                else {
                     for (let index = 0; index < posts.length; index++) {
-                        posts[index].liked = false ; 
-                        posts[index].isFavorite =  false ; 
+                        posts[index].liked = false;
+                        posts[index].isFavorite = false;
                     }
-                    
+
                 }
-            
+
                 return posts;
-              
+
 
             } catch (error) {
                 return new ApolloError(error.message)
             }
-        }, 
-        getFollowersReels : async ( _ , { time , limit } , {db , user }) => {
-            try { 
+        },
+        getFollowersReels: async (_, { time, limit }, { db, user }) => {
+            try {
 
-                var followings = await user.getFollowing() ; 
-                followings = followings.map(following => following .id ) ;                  
-                
+                var followings = await user.getFollowing();
+                followings = followings.map(following => following.id);
+
                 if (!time)
                     time = new Date().toISOString();
                 else
@@ -99,13 +99,13 @@ export default {
                     }, {
                         model: db.Media,
                         as: "media"
-                    }, { 
-                        model : db.Reel , 
-                        as : "reel" , 
-                        include : [ 
-                            { 
-                                model : db.Media , 
-                                as : "thumbnail"
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+                        include: [
+                            {
+                                model: db.Media,
+                                as: "thumbnail"
                             }
                         ]
                     }],
@@ -113,21 +113,36 @@ export default {
                         type: "reel",
                         createdAt: {
                             [Op.lt]: time
-                        } , 
+                        },
 
-                        userId : {
-                            [Op.in] : followings
+                        userId: {
+                            [Op.in]: followings
                         }
-                        
+
                     },
                     order: [["createdAt", "DESC"]],
                     limit
                 });
+                
+                for (let index = 0; index < posts.length; index++) {
+                    posts[index].liked = (await user.getLikes({
+                        where: {
+                            id: posts[index].id
+                        }
+                    })).length > 0;
 
-                return posts ; 
+                    posts[index].isFavorite = (await user.getFavorites({
+                        where: {
+                            id: posts[index].id
+                        }
+                    })).length > 0;
 
-            }catch( error ) {
-                return new ApolloError(error.message) ; 
+                }
+
+                return posts;
+
+            } catch (error) {
+                return new ApolloError(error.message);
             }
         }
     }

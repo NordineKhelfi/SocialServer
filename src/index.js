@@ -1,5 +1,5 @@
 import express from "express";
-import { PORT, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR } from "./config";
+import { PORT, UPLOAD_COMMENTS_RECORDS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR } from "./config";
 import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
@@ -24,6 +24,7 @@ app.use("/" + UPLOAD_PICTURES_DIR, express.static(UPLOAD_PICTURES_DIR));
 app.use("/" + UPLOAD_POST_IMAGES_DIR, express.static(UPLOAD_POST_IMAGES_DIR));
 app.use("/" + UPLOAD_POST_VIDEOS_DIR, express.static(UPLOAD_POST_VIDEOS_DIR));
 app.use("/" + UPLOAD_POST_THUMBNAILS_DIR , express.static(UPLOAD_POST_THUMBNAILS_DIR));
+app.use("/" + UPLOAD_COMMENTS_RECORDS_DIR , express.static(UPLOAD_COMMENTS_RECORDS_DIR));
 
 
 
