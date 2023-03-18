@@ -5,7 +5,7 @@ import { ReplayValidator } from "../../../validators";
 
 export default {
     Query: {
-        getCommentReplays: async (_, { commentId , offset , limit  }, { db, user }) => {
+        getCommentReplays: async (_, { commentId, offset, limit }, { db, user }) => {
             try {
                 // check if the comment realy exists 
                 const comment = await db.Comment.findByPk(commentId);
@@ -13,23 +13,29 @@ export default {
                     throw new Error("Comment do not exists");
 
                 // get replays that belongs to the given comment between the offset and limit 
-                var replays = await comment.getReplays({ 
-                    include :  [{ 
-                        model :  db.Media , 
-                        as : "media"
-                    }, { 
-                        model : db.User , 
-                        as : "user"
+                var replays = await comment.getReplays({
+                    include: [{
+                        model: db.Media,
+                        as: "media"
+                    }, {
+                        model: db.User,
+                        as: "user",
+                        include: [
+                            {
+                                model: db.Media,
+                                as: "profilePicture"
+                            }
+                        ]
                     }],
-                    order:[
-                        ["id","DESC"]
+                    order: [
+                        ["id", "DESC"]
                     ],
                     offset: offset,
-                    limit: limit, 
+                    limit: limit,
 
-                }); 
+                });
 
-                return replays ; 
+                return replays;
 
             } catch (error) {
                 return new ApolloError(error.message);
@@ -53,7 +59,7 @@ export default {
                 replayInput.userId = user.id;
                 replayInput.user = user;
 
-               
+
 
                 // cheeck if the replay have media attached to 
                 if (replayInput.media) {

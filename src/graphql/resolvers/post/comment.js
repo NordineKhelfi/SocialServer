@@ -24,7 +24,8 @@ export default {
                         },
                         {
                             model: db.Replay,
-                            as: "replays"
+                            as: "replays" , 
+                         
                         },
                         {
                             model: db.User,
@@ -52,15 +53,6 @@ export default {
                             id: comments[index].id
                         }
                     })).length > 0;
-
-                    /*
-                    comments[index].liked = (await comments[index].getUserLikes({
-                        where: {
-                            id: user.id
-                        }
-                    })).length > 0;
-                    */
-
                 }
                 return comments;
 
