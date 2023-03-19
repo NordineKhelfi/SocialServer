@@ -30,6 +30,7 @@ export default gql`
         comment : Comment!
         userId : ID!
         user : User!
+        liked : Boolean 
     }
 
 `

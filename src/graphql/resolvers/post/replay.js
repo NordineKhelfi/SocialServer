@@ -35,6 +35,16 @@ export default {
 
                 });
 
+                // and check if this replays is allready been liked by the user or not  
+                for (let index = 0; index < replays.length; index++) {
+                   
+                    replays[index].liked = (await user.getReplayLikes({
+                        where: {
+                            id: replays[index].id
+                        }
+                    })).length > 0;
+                }
+
                 return replays;
 
             } catch (error) {
