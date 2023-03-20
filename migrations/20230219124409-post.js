@@ -24,6 +24,11 @@ module.exports = {
         allowNull: false,
         defaultValue: 0
       },
+      numComments : { 
+        type : Sequelize.INTEGER , 
+        allowNull : false, 
+        defaultValue : 0 
+      } , 
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,

@@ -8,22 +8,48 @@ export default {
             // and include in each one the members 
             // the last message send and his sender 
             return await user.getConversations({
-                include : [{ 
-                    model : db.User , 
-                    as :  "members"
-                }, { 
-                    model : db.Message , 
-                    as : "messages" , 
+                include: [{
+                    model: db.User,
+                    as: "members"
+                }, {
+                    model: db.Message,
+                    as: "messages",
+                    include: [{
+                        model: db.User,
+                        as: "sender"
+                    }],
+                    offset: 0,
+                    limit: 1
+                }],
+                offset,
+                limit
+            });
+        },
+
+        getConversation: async (_, { userId , type  }, { db, user }) => {
+            try { 
+                // if there is no type set 
+                // then make it a indivitual conversation 
+                if ( ! type ) { 
+                    type = "individual" ; 
+                }
+                // get the conversation between the user and the user by the given id 
+                return (await user.getConversations({
                     include : [{
-                        model : db.User , 
-                        as : "sender"
+                        model :db.User , 
+                        as : "members" , 
+                        where: {
+                            id : userId 
+                        }
                     }] , 
-                    offset : 0 , 
-                    limit : 1 
-                }] , 
-                offset , 
-                limit 
-            }) ; 
+                    where: {
+                        type : type 
+                    }
+                })).pop()
+
+            }catch( error) { 
+                return new ApolloError(error.message) ; 
+            }
         }
     },
 
@@ -80,14 +106,14 @@ export default {
                 });
 
                 // add the creator of the group 
-                await conversation.addMember(user) ; 
+                await conversation.addMember(user);
                 // add the members 
-                for (let index = 0 ; index < users.length ; index ++) 
-                    await conversation.addMember(users[index]) ; 
-                
-                conversation.members = [ user , ...users ] ; 
-                conversation.messages = [] ; 
-                return conversation ; 
+                for (let index = 0; index < users.length; index++)
+                    await conversation.addMember(users[index]);
+
+                conversation.members = [user, ...users];
+                conversation.messages = [];
+                return conversation;
             } catch (error) {
                 return new ApolloError(error.message)
             }

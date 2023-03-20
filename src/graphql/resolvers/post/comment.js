@@ -24,15 +24,15 @@ export default {
                         },
                         {
                             model: db.Replay,
-                            as: "replays" , 
-                         
+                            as: "replays",
+
                         },
                         {
                             model: db.User,
-                            as: "user" , 
-                            include : [{
-                                model : db.Media , 
-                                as : "profilePicture"
+                            as: "user",
+                            include: [{
+                                model: db.Media,
+                                as: "profilePicture"
                             }]
                         }
 
@@ -94,6 +94,13 @@ export default {
                 const result = await post.createComment(commentInput);
                 commentInput.id = result.id;
                 commentInput.post = post;
+
+
+                await post.update({
+                    numComments: post.numComments + 1
+                })
+
+
                 return commentInput;
 
             } catch (error) {

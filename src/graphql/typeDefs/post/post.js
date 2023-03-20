@@ -31,6 +31,7 @@ export default gql`
         liked : Boolean! 
         isFavorite : Boolean! 
         reel : Reel 
+        numComments : Int! 
         createdAt : String!
         updatedAt : String!
     }

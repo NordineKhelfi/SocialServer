@@ -23,6 +23,11 @@ module.exports = (Sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 0
         },
+        numComments : { 
+            type : DataTypes.INTEGER , 
+            allowNull : false, 
+            defaultValue : 0 
+          } , 
         userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
