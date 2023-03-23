@@ -33,7 +33,8 @@ export default {
                         as : "sender"
                     }] , 
                     offset , 
-                    limit 
+                    limit , 
+                    order : [["createdAt" , "DESC"]]
                 }) ; 
 
             } catch (error) {

@@ -26,7 +26,7 @@ export default gql`
     input MessageInput { 
         type : String! 
         content : String 
-        media : Upload 
+        media : Upload
         conversationId : ID!   
     }
     
