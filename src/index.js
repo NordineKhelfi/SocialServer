@@ -1,6 +1,6 @@
 import express from "express";
 import { PORT, UPLOAD_COMMENTS_RECORDS_DIR, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR } from "./config";
-import { ApolloServer } from "apollo-server-express";
+import { ApolloError, ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
 import { userAuth } from "./middlewares";
@@ -9,6 +9,8 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import db from "../models";
 import { SubscriptionServer} from "subscriptions-transport-ws";
 import { execute , subscribe } from "graphql";
+import { SubscriptionUserAuth } from "./middlewares/userAuth";
+import { PubSub } from "graphql-subscriptions";
 
 // initialize our express server 
 // init the Server 
@@ -22,7 +24,8 @@ app.use(graphqlUploadExpress());
 
 
 
-
+const pubSub = new PubSub() ; 
+ 
 app.use("/" + UPLOAD_PICTURES_DIR, express.static(UPLOAD_PICTURES_DIR));
 app.use("/" + UPLOAD_POST_IMAGES_DIR, express.static(UPLOAD_POST_IMAGES_DIR));
 app.use("/" + UPLOAD_POST_VIDEOS_DIR, express.static(UPLOAD_POST_VIDEOS_DIR));
@@ -44,9 +47,22 @@ async function startServer() {
     
 
     const subscriptionServer = SubscriptionServer.create({
-        schema , execute , subscribe 
+        schema , execute , subscribe , 
+        onConnect : async  (connectionParams, webSocket, context ) => {
+           
+            const {user , isUserAuth } = await  SubscriptionUserAuth(connectionParams) ; 
+            
+            
+            return {
+                db , 
+                user , 
+                isUserAuth , 
+                pubSub
+            } ; 
+        }
     } , {
-        server : http , path : "/graphql"
+        server : http , path : "/graphql" , 
+        
     })
  
 
@@ -60,9 +76,11 @@ async function startServer() {
                 db,
                 isUserAuth,
                 user,
+                pubSub
        
             }
         },
+      
         plugins : [
             {
                 async serverWillStart() {

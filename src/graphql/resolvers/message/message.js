@@ -8,10 +8,8 @@ import {
 
 import { uploadFiles } from "../../../providers";
 import { subscribe } from "graphql";
-import { PubSub } from "graphql-subscriptions";
+import { Op } from "sequelize";
 
-
-const pubSub = new PubSub();
 
 export default {
     Query: {
@@ -48,15 +46,10 @@ export default {
 
     },
     Mutation: {
-        sendMessage: async (_, { messageInput }, { db, user }) => {
-
-            console.log(messageInput);
+        sendMessage: async (_, { messageInput }, { db, user, pubSub }) => {
 
 
-            pubSub.publish("NEW_MESSAGE" , {
-                newMessage : messageInput
-            })
-            /*
+
             try {
                 // validate the conversation input 
                 await MessageValidator.validate(messageInput, { abortEarly: true })
@@ -71,9 +64,10 @@ export default {
 
                 // assign the conversation and user as a sender to this message 
                 messageInput.conversation = conversation;
+                messageInput.conversationId = conversation.id ; 
                 messageInput.userId = user.id;
-                messageInput.user = user;
-
+                messageInput.sender = user ; 
+                messageInput.sender.profilePicture = await user.getProfilePicture() ; 
                 // upload the media based on it type 
                 // and save the path in output 
                 var output;
@@ -100,21 +94,40 @@ export default {
                 // save the message 
                 const message = await db.Message.create(messageInput);
                 messageInput.id = message.id;
+                messageInput.createdAt = new Date()  ;
+                
+
+                const members = await conversation.getMembers({
+                    where: {
+                        id: {
+                            [Op.not]: user.id
+                        }
+                    }
+                });
+
+                members.forEach(member => {
+                    const userId = member.id;
+                    pubSub.publish(`NEW_MESSAGE_${userId}`, {
+                        newMessage: messageInput
+                    });
+                })
                 return messageInput
 
             } catch (error) {
                 return new ApolloError(error.message);
             }
-            */
 
-            return messageInput;
         }
     },
     Subscription: {
         newMessage: {
-            subscribe: (_, { }, { }) => {
+            subscribe: (_, { }, {  isUserAuth, user, pubSub }) => {
+               
+                if (!isUserAuth)
+                    return new ApolloError("Unauthorized");
 
-                return pubSub.asyncIterator("NEW_MESSAGE")
+                const userId = user.id; 
+                return pubSub.asyncIterator(`NEW_MESSAGE_${userId}`)
             }
         }
     }

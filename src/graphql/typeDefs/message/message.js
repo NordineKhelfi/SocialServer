@@ -8,11 +8,11 @@ export default gql`
     
     }
     extend type Mutation { 
-        sendMessage( messageInput : MessageInput!) : Message!  
+        sendMessage( messageInput : MessageInput!) : Message!   @userAuth 
     }
 
     extend type Subscription  {
-        newMessage : Message! 
+        newMessage : Message 
     }
     type Message { 
         id : ID! 
