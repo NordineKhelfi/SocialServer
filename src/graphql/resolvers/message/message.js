@@ -7,7 +7,11 @@ import {
 } from "../../../config";
 
 import { uploadFiles } from "../../../providers";
+import { subscribe } from "graphql";
+import { PubSub } from "graphql-subscriptions";
 
+
+const pubSub = new PubSub();
 
 export default {
     Query: {
@@ -29,13 +33,13 @@ export default {
                         as: "media",
 
                     }, {
-                        model : db.User , 
-                        as : "sender"
-                    }] , 
-                    offset , 
-                    limit , 
-                    order : [["createdAt" , "DESC"]]
-                }) ; 
+                        model: db.User,
+                        as: "sender"
+                    }],
+                    offset,
+                    limit,
+                    order: [["createdAt", "DESC"]]
+                });
 
             } catch (error) {
                 return new ApolloError(error.message);
@@ -46,6 +50,13 @@ export default {
     Mutation: {
         sendMessage: async (_, { messageInput }, { db, user }) => {
 
+            console.log(messageInput);
+
+
+            pubSub.publish("NEW_MESSAGE" , {
+                newMessage : messageInput
+            })
+            /*
             try {
                 // validate the conversation input 
                 await MessageValidator.validate(messageInput, { abortEarly: true })
@@ -62,10 +73,6 @@ export default {
                 messageInput.conversation = conversation;
                 messageInput.userId = user.id;
                 messageInput.user = user;
-
-
-
-
 
                 // upload the media based on it type 
                 // and save the path in output 
@@ -97,6 +104,17 @@ export default {
 
             } catch (error) {
                 return new ApolloError(error.message);
+            }
+            */
+
+            return messageInput;
+        }
+    },
+    Subscription: {
+        newMessage: {
+            subscribe: (_, { }, { }) => {
+
+                return pubSub.asyncIterator("NEW_MESSAGE")
             }
         }
     }

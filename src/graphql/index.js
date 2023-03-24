@@ -5,5 +5,6 @@ import * as directives from "./directives" ;
 export  { 
     typeDefs  , 
     resolvers , 
-    directives 
+    directives  ,
+    
 }
