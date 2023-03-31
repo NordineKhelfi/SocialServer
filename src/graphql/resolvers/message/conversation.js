@@ -1,4 +1,5 @@
 import { ApolloError } from "apollo-server-express";
+import { Op } from "sequelize";
 
 export default {
 
@@ -10,19 +11,34 @@ export default {
             return await user.getConversations({
                 include: [{
                     model: db.User,
-                    as: "members"
+                    as: "members" , 
+                    where : {
+                        id : {
+                            [Op.not] : user.id 
+                        }
+                    } , 
+                    include : [{
+                        model : db.Media , 
+                        as : "profilePicture"
+                    }]
+                  
                 }, {
                     model: db.Message,
                     as: "messages",
                     include: [{
                         model: db.User,
-                        as: "sender"
+                        as: "sender" , 
+                       
+
                     }],
                     offset: 0,
-                    limit: 1
+                    limit: 1 , 
+                    order: [["id", "DESC"]]
+                    
                 }],
                 offset,
-                limit
+                limit , 
+                order: [["id", "DESC"]]
             });
         },
 

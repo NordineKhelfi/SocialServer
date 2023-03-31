@@ -5,7 +5,7 @@ import { Op } from "sequelize";
 import { SocialMediaValidator, SignUpValidator, LoginValidator } from "../../../validators";
 import { deleteFiles, uploadFiles } from "../../../providers";
 import { UPLOAD_PICTURES_DIR } from "../../../config";
-
+import Sequelize from "sequelize";
 export default {
     Query: {
 
@@ -89,12 +89,55 @@ export default {
                         id: profile.id
                     }
                 })).length > 0;
-                
-            }else {
-                profile.isFollowed = false ; 
+
+            } else {
+                profile.isFollowed = false;
             }
 
             return profile
+        },
+
+        suggestUsers: async (_, { offset, limit }, { db, user }) => {
+            const users = await db.User.findAll({
+                subQuery: false,
+                include: [{
+                    model: db.Media,
+                    as: "profilePicture"
+                }, {
+                    model: db.User,
+                    as: "followers",
+
+
+
+                }],
+
+
+                where: {
+                    [Op.or]: [
+
+                        Sequelize.where(Sequelize.col("followers.id"), {
+                            [Op.is]: null
+                        }),
+
+                        Sequelize.where(Sequelize.col("followers.id"), {
+                            [Op.not]: user.id
+                        }),
+
+                    ],
+                    id: {
+                        [Op.not]: user.id
+                    }
+                },
+                limit: [offset, limit],
+                order: [
+                    ["createdAt", "DESC"]
+                ]
+
+            });
+
+            console.log(JSON.parse(JSON.stringify(users)));
+
+            return users;
         }
     },
 

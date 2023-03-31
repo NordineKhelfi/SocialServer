@@ -127,6 +127,9 @@ export default {
                     return new ApolloError("Unauthorized");
 
                 const userId = user.id; 
+                console.log("subscription from user : " , userId) ; 
+                console.log(pubSub) ; 
+
                 return pubSub.asyncIterator(`NEW_MESSAGE_${userId}`)
             }
         }

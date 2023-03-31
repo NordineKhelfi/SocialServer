@@ -1,7 +1,0 @@
-File from: [uploads/pictures/2-1677592510178.jpg]
-
-File to: [uploads/pictures2-1677592510178.webp]
-
-Compression algorithm: [-]
-
-Description: File does not exist!

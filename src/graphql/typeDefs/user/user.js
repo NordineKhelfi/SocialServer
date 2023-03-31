@@ -7,6 +7,7 @@ export default gql`
         Login (identifier : String ! , password : String!) : UserToken! 
         getUserById(userId : ID!) : User 
         checkUsername(username : String!) : Boolean! 
+        suggestUsers( offset : Int! , limit : Int!) : [User!]! @userAuth
     }
 
     extend type Mutation { 
@@ -52,7 +53,7 @@ export default gql`
         profilePicture : Media 
         pictureId : ID 
         isFollowed : Boolean 
-
+        followers : [User!]
         username : String! 
         password : String! 
         confirmPassword : String! 
