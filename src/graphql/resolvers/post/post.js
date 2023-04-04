@@ -56,7 +56,7 @@ export default {
                     if (user) {
                         posts[index].liked = (await user.getLikes({
                             where: {
-                                id: posts[index].id
+                                postId: posts[index].id
                             }
                         })).length > 0;
 
@@ -119,7 +119,7 @@ export default {
                     for (let index = 0; index < posts.length; index++) {
                         posts[index].liked = (await user.getLikes({
                             where: {
-                                id: posts[index].id
+                                postId: posts[index].id
                             }
                         })).length > 0;
 
@@ -257,17 +257,20 @@ export default {
                     throw new Error("Post not found");
 
                 // check if this post is allready likes or not 
-                const likes = await user.getLikes({
+                const likes = (await user.getLikes({
                     where: {
-                        id: postId
+                        postId : postId
                     }
-                });
+                })).pop();
 
+            
                 // if the post allready liked remove the likes 
                 // and decreese the number of likes in the post 
-                if (likes && likes.length > 0) {
-                    await user.removeLikes(post);
+                if (likes) {
+                    await likes.destroy()
+                   
                     await post.update({ likes: post.likes - 1 })
+                   
                     return false;
 
                 } else {
@@ -275,7 +278,11 @@ export default {
                     // thel add the post to thes like
                     // and increase the likes in the post  
 
-                    await user.addLikes(post);
+                    await db.Like.create({
+                        userId : user.id  , 
+                        postId : post.id 
+                    })
+                    
                     await post.update({ likes: post.likes + 1 })
                     return true;
                 }

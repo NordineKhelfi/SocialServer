@@ -1,14 +1,18 @@
-mutation CreateConversation($members: [ID!]!) {
+mutation Mutation($members: [ID!]!) {
   createConversation(members: $members) {
     id
-    type
     members {
-       id
-       name
-       lastname
+      id 
+      lastSeenAt 
+      user {
+          id 
+          name lastname 
+      }
+     
     }
   }
 }
+
 
 
 mutation CreateGroup($members: [ID!]!) {

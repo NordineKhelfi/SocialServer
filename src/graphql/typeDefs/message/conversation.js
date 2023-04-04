@@ -10,12 +10,23 @@ export default gql`
     extend type Mutation { 
         createConversation ( members : [ID!]! ) : Conversation! @userAuth 
         createGroup ( members : [ID!]! ) : Conversation! @userAuth
+        seeConversation(conversationId : ID!) :  String! @userAuth 
     } 
 
     type Conversation { 
         id : ID! 
         type : String! 
-        members : [User!]!
-        messages : [Message!]!
+        members : [ConversationMember!]!
+        messages : [Message!]! 
+        unseenMessages : Int 
     } 
+
+    type ConversationMember {
+        id : ID! 
+        conversationId : ID! 
+        userId: ID! 
+        user : User! 
+        lastSeenAt : String 
+       
+    }
 `

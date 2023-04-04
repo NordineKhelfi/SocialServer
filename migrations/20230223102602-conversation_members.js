@@ -4,6 +4,12 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     return queryInterface.createTable("ConversationMembers", {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false
+    },
       conversationId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -22,6 +28,10 @@ module.exports = {
           key: "id"
         },
         onDelete: "CASCADE"
+      }, 
+      lastSeenAt : {
+        type : Sequelize.DATE , 
+        allowNull : true  , 
         
       }
     })

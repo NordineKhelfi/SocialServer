@@ -108,6 +108,12 @@ module.exports = {
         defaultValue: false
       },
 
+      isActive : {
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : false , 
+      } , 
+
       countryId: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -117,6 +123,12 @@ module.exports = {
           key: "id"
         }
       },
+
+      lastActiveAt : {
+        type : Sequelize.DATE , 
+        allowNull : true , 
+        defaultValue : Sequelize.literal('CURRENT_TIMESTAMP')
+      } , 
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE
 

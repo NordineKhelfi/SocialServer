@@ -39,7 +39,12 @@ module.exports = (Sequelize, DataTypes) => {
                 model: "Users",
                 key: "id"
             }
-        }
+        } , 
+        createdAt  : {
+            type : DataTypes.DATE , 
+            allowNull : false , 
+            defaultValue : Sequelize.literal('CURRENT_TIMESTAMP') 
+          }
     });
 
 

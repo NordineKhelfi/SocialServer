@@ -111,7 +111,16 @@ module.exports = (Sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false
     },
-
+    isActive : {
+      type : DataTypes.BOOLEAN , 
+      allowNull : false , 
+      defaultValue : false , 
+    } , 
+    lastActiveAt : {
+      type : DataTypes.DATE , 
+      allowNull : true , 
+      defaultValue : Sequelize.literal('CURRENT_TIMESTAMP')
+    } , 
 
     countryId: {
       type: DataTypes.INTEGER,
@@ -144,6 +153,11 @@ module.exports = (Sequelize, DataTypes) => {
     user.hasOne(db.SocialMedia, {
       foreignKey: "userId",
       as: "socialMedia"
+    }); 
+
+    user.hasMany(db.ConversationMember , {
+      foreignKey : "userId" , 
+      as : "conversationMember"
     })
 
     user.hasMany(db.Post, {
@@ -151,8 +165,8 @@ module.exports = (Sequelize, DataTypes) => {
       as: "posts"
     })
 
-    user.belongsToMany(db.Post, {
-      through: "Likes",
+    user.hasMany(db.Like, {
+      foreignKey: "userId",
       as: "likes"
     });
 
@@ -172,16 +186,15 @@ module.exports = (Sequelize, DataTypes) => {
       as: "replayLikes"
     })
 
-    user.belongsToMany(db.User, {
-      through: "FollowedUsers",
+    user.hasMany(db.Follow, {
       as: "following",
       foreignKey: "userId"
     });
 
-    user.belongsToMany(db.User, {
-      through: "FollowedUsers",
+    user.hasMany(db.Follow, {
+      
       as: "followers",
-      foreignKey: "followedId"
+      foreignKey: "followingId"
     });
 
     user.belongsToMany(db.User, {
@@ -203,10 +216,7 @@ module.exports = (Sequelize, DataTypes) => {
       as: "storyComments"
     })
 
-    user.belongsToMany(db.Conversation, {
-      through: "ConversationMembers",
-      as: "conversations"
-    })
+   
 
   }
 

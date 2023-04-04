@@ -16,13 +16,17 @@ export default {
         getMessages: async (_, { conversationId, offset, limit }, { db, user }) => {
             try {
                 // check if the user is a aprticipant in this given conversation 
-                const conversation = (await user.getConversations({
+                const conversationMember = (await user.getConversationMember({
                     where: {
-                        id: conversationId
+                        conversationId: conversationId
                     }
                 })).pop();
-                if (conversation == null)
-                    throw new Error("Conversation not found");
+                if (conversationMember == null)
+                    throw new Error("Not Member of this Conversation");
+
+
+                const conversation = await conversationMember.getConversation();
+
                 // get all the messages that belongs to this conversation between offset and limit 
                 // and include the sender and the media content 
                 return await conversation.getMessages({
@@ -54,20 +58,22 @@ export default {
                 // validate the conversation input 
                 await MessageValidator.validate(messageInput, { abortEarly: true })
                 // check if the user belongs to the given conversation 
-                const conversation = (await user.getConversations({
+                const conversationMember = (await user.getConversationMember({
                     where: {
-                        id: messageInput.conversationId
+                        conversationId: messageInput.conversationId
                     }
                 })).pop();
-                if (!conversation)
+                if (!conversationMember)
                     throw new Error("Forbidden : you don't belong to this conversation");
+
+                const conversation = await conversationMember.getConversation();
 
                 // assign the conversation and user as a sender to this message 
                 messageInput.conversation = conversation;
-                messageInput.conversationId = conversation.id ; 
+                messageInput.conversationId = conversation.id;
                 messageInput.userId = user.id;
-                messageInput.sender = user ; 
-                messageInput.sender.profilePicture = await user.getProfilePicture() ; 
+                messageInput.sender = user;
+                messageInput.sender.profilePicture = await user.getProfilePicture();
                 // upload the media based on it type 
                 // and save the path in output 
                 var output;
@@ -94,8 +100,8 @@ export default {
                 // save the message 
                 const message = await db.Message.create(messageInput);
                 messageInput.id = message.id;
-                messageInput.createdAt = new Date()  ;
-                
+                messageInput.createdAt = new Date();
+
 
                 const members = await conversation.getMembers({
                     where: {
@@ -121,14 +127,13 @@ export default {
     },
     Subscription: {
         newMessage: {
-            subscribe: (_, { }, {  isUserAuth, user, pubSub }) => {
-               
+            subscribe: (_, { }, { isUserAuth, user, pubSub }) => {
+
                 if (!isUserAuth)
                     return new ApolloError("Unauthorized");
 
-                const userId = user.id; 
-                console.log("subscription from user : " , userId) ; 
-                console.log(pubSub) ; 
+                const userId = user.id;
+
 
                 return pubSub.asyncIterator(`NEW_MESSAGE_${userId}`)
             }

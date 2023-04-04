@@ -23,11 +23,11 @@ module.exports = (Sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 0
         },
-        numComments : { 
-            type : DataTypes.INTEGER , 
-            allowNull : false, 
-            defaultValue : 0 
-          } , 
+        numComments: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
         userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -41,9 +41,9 @@ module.exports = (Sequelize, DataTypes) => {
         updatedAt: DataTypes.DATE,
     }, {
         timestamps: true,
-        
-      charset: "utf8mb4",
-      collate: "utf8mb4_general_ci"
+
+        charset: "utf8mb4",
+        collate: "utf8mb4_general_ci"
     });
 
 
@@ -61,8 +61,8 @@ module.exports = (Sequelize, DataTypes) => {
         Post.hasMany(db.Comment, {
             foreignKey: "postId",
             as: "comments"
-        }); 
-        Post.hasOne(db.Reel , { 
+        });
+        Post.hasOne(db.Reel, {
             foreignKey: "postId",
             as: "reel"
         })

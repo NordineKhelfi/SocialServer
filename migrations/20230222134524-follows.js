@@ -4,7 +4,13 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
 
-    return queryInterface.createTable("FollowedUsers", {
+    return queryInterface.createTable("Follows", {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false
+    },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -14,7 +20,7 @@ module.exports = {
           key: "id"
         }
       },
-      followedId: {
+      followingId : {
         type: Sequelize.INTEGER,
         allowNull: false,
         onDelete: "CASCADE",
@@ -22,11 +28,16 @@ module.exports = {
           model: "Users",
           key: "id"
         }
+      } , 
+      createdAt  : {
+        type : Sequelize.DATE , 
+        allowNull : false , 
+        defaultValue : Sequelize.literal('CURRENT_TIMESTAMP') 
       }
     })
   },
 
   async down(queryInterface, Sequelize) {
-    return queryInterface.dropTable("FollowedUsers") ; 
+    return queryInterface.dropTable("Follows") ; 
   }
 };

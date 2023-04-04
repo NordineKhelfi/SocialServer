@@ -8,63 +8,110 @@ export default {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
-            return await user.getConversations({
-                include: [{
-                    model: db.User,
-                    as: "members" , 
-                    where : {
-                        id : {
-                            [Op.not] : user.id 
-                        }
-                    } , 
-                    include : [{
-                        model : db.Media , 
-                        as : "profilePicture"
-                    }]
-                  
-                }, {
-                    model: db.Message,
-                    as: "messages",
-                    include: [{
-                        model: db.User,
-                        as: "sender" , 
-                       
 
-                    }],
-                    offset: 0,
-                    limit: 1 , 
-                    order: [["id", "DESC"]]
-                    
-                }],
+
+            var conversationMembers = await user.getConversationMember({
+                include : [{
+                    model : db.Conversation , 
+                    as : "conversation" , 
+                    include: [{
+                        model: db.ConversationMember,
+                        as: "members",
+                        include: [{
+                            model: db.User,
+                            as: "user",
+                            where: {
+                                id: {
+                                    [Op.not]: user.id
+                                }
+                            },
+                            include: [{
+                                model: db.Media,
+                                as: "profilePicture"
+                            }]
+                        }]
+    
+                    }, {
+                        model: db.Message,
+                        as: "messages",
+                        include : [{
+                            model : db.User , 
+                            as : "sender" , 
+                        }]  ,
+                        offset: 0,
+                        limit: 1,
+                        order: [["id", "DESC"]]
+                    }],    
+                }] , 
                 offset,
-                limit , 
+                limit,
                 order: [["id", "DESC"]]
-            });
+            }) ; 
+
+            
+            for (var  index = 0 ; index < conversationMembers.length ; index ++) {
+                var conversation = conversationMembers[index].conversation ; 
+                var lastSeenAt = conversationMembers[index].lastSeenAt ; 
+                conversation.unseenMessages =  0 ;  
+
+                var  filterQuery = {} ; 
+                if ( lastSeenAt)  { 
+                    filterQuery = { 
+                        where : { 
+                            createdAt : {
+                                [Op.gt]  : lastSeenAt
+                            }
+                        }
+                    }
+                } 
+
+                console.log(lastSeenAt) 
+
+                
+                if (conversation.messages && conversation.messages.length > 0 ) { 
+                    var sender = conversation.messages[0].sender  ; 
+                    if (sender.id != user.id) {
+                        const unseenMessages = await conversation.getMessages(filterQuery) ; 
+                        conversation.unseenMessages = unseenMessages.length ;  
+                    } 
+                }
+            }
+            
+
+
+            var conversations = conversationMembers.map(conversationMember => conversationMember.conversation) ; 
+          
+            return conversations ; 
         },
 
-        getConversation: async (_, { userId , type  }, { db, user }) => {
-            try { 
+        getConversation: async (_, { userId, type }, { db, user }) => {
+            try {
                 // if there is no type set 
                 // then make it a indivitual conversation 
-                if ( ! type ) { 
-                    type = "individual" ; 
+                if (!type) {
+                    type = "individual";
                 }
                 // get the conversation between the user and the user by the given id 
-                return (await user.getConversations({
-                    include : [{
-                        model :db.User , 
-                        as : "members" , 
-                        where: {
-                            id : userId 
-                        }
-                    }] , 
-                    where: {
-                        type : type 
-                    }
-                })).pop()
 
-            }catch( error) { 
-                return new ApolloError(error.message) ; 
+                return await db.Conversation.findOne({
+                    include: [{
+                        model: db.ConversationMember,
+                        as: "members",
+                        include: [{
+                            model: db.User,
+                            as: "user",
+                            where: {
+                                id: userId
+                            }
+                        }]
+                    }],
+                    where: {
+                        type: type
+                    }
+                })
+
+            } catch (error) {
+                return new ApolloError(error.message);
             }
         }
     },
@@ -87,10 +134,25 @@ export default {
 
                 // add the creator of the conversation 
                 // and add the target user to communicate with  
-                await conversation.addMember(user);
-                await conversation.addMember(userMember);
 
-                conversation.members = [user, userMember];
+                conversation.members = [
+
+                    await db.ConversationMember.create({
+                        conversationId: conversation.id,
+                        userId: user.id
+                    }),
+                    await db.ConversationMember.create({
+                        conversationId: conversation.id,
+                        userId: userMember.id,
+
+                    }),
+
+                ]
+
+                conversation.members[0].user = user;
+                conversation.members[1].user = userMember;
+
+
                 conversation.messages = [];
                 return conversation
 
@@ -132,6 +194,26 @@ export default {
                 return conversation;
             } catch (error) {
                 return new ApolloError(error.message)
+            }
+        } , 
+        seeConversation : async ( _ , {conversationId } , {db , user }) => { 
+            try { 
+
+                const conversationMember = (await user.getConversationMember({
+                    where: {
+                        conversationId : conversationId , 
+                    }
+                })).pop() ; 
+
+                if ( conversationMember == null) 
+                    throw new Error("You are not allowed to access this conversation .") ; 
+                
+                const currentTimeTamps = new Date() ; 
+                await conversationMember.update( {lastSeenAt : currentTimeTamps } ) ; 
+                return currentTimeTamps ; 
+
+            }catch(error ) {
+                return new ApolloError(error.message) ; 
             }
         }
     }

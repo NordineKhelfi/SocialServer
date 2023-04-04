@@ -39,26 +39,25 @@ export default {
 
                 // check the user id 
                 if (userId== user.id) 
-                    throw new Error("You can't block your self asshole") ; 
+                    throw new Error("You can't follow your self asshole") ; 
                 
                 const target = await  db.User.findByPk(userId) ;
                 if (target == null) 
-                    throw new Error("User not found") ; 
-
-     
+                    throw new Error("User not found") ;      
 
                 // check if the user is allready followed
-                const following = await user.getFollowing({ 
+                const following = (await user.getFollowing({ 
                     where: { 
-                        id : userId 
+                        followingId : userId 
                     }
-                }) ; 
-
-
-
-                if ( following && following.length ==0 ) { 
+                })).pop() ; 
+            
+                if ( !following  ) { 
                     // the user is not blocked 
-                    await user.addFollowing(target) ; 
+                    await db.Follow.create({
+                        userId : user.id , 
+                        followingId : target.id  
+                    }) ; 
                     await user.update({ 
                         numFollowing : user.numFollowing +1 
                     })
@@ -66,6 +65,7 @@ export default {
                         numFollowers : target.numFollowers + 1 
                     }) ; 
                     return true  ; 
+
                 } else { 
                     // the user is blocked 
                     // then unblock him / her 
@@ -75,7 +75,9 @@ export default {
                     await target.update({ 
                         numFollowers : target.numFollowers - 1 
                     }) ; 
-                    await user.removeFollowing(target) ; 
+
+                    await following.destroy() ; 
+                    
                     return false ; 
                 }
 
@@ -83,8 +85,6 @@ export default {
             }catch(error) { 
                 return new ApolloError(error.message) ; 
             }
-
-            return user ; 
         }
     }
 

@@ -16,17 +16,16 @@ module.exports = (Sequelize, DataTypes) => {
     });
 
     Conversation.associate = (db) => {
+        
         Conversation.hasMany(db.Message, {
             foreignKey: "conversationId",
             as: "messages"
         });
-        Conversation.belongsToMany(db.User, {
-            through: "ConversationMembers",
+
+        Conversation.hasMany(db.ConversationMember, {
+            foreignKey: "conversationId",
             as: "members"
-        }); 
-        
+        });    
     }
-
-
     return Conversation;
 }

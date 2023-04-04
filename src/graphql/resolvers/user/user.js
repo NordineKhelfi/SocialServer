@@ -82,11 +82,11 @@ export default {
             });
 
 
-            if (user) {
 
+            if (user) {
                 profile.isFollowed = (await user.getFollowing({
                     where: {
-                        id: profile.id
+                        followingId: profile.id
                     }
                 })).length > 0;
 
@@ -104,22 +104,19 @@ export default {
                     model: db.Media,
                     as: "profilePicture"
                 }, {
-                    model: db.User,
+                    model: db.Follow,
                     as: "followers",
-
-
-
                 }],
 
 
                 where: {
                     [Op.or]: [
 
-                        Sequelize.where(Sequelize.col("followers.id"), {
+                        Sequelize.where(Sequelize.col("followers.userId"), {
                             [Op.is]: null
                         }),
 
-                        Sequelize.where(Sequelize.col("followers.id"), {
+                        Sequelize.where(Sequelize.col("followers.userId"), {
                             [Op.not]: user.id
                         }),
 
@@ -135,7 +132,7 @@ export default {
 
             });
 
-            console.log(JSON.parse(JSON.stringify(users)));
+
 
             return users;
         }
