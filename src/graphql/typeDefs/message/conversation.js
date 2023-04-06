@@ -13,6 +13,10 @@ export default gql`
         seeConversation(conversationId : ID!) :  String! @userAuth 
     } 
 
+    extend type Subscription {
+        conversationSaw : ConversationMember! @userAuth 
+    }
+
     type Conversation { 
         id : ID! 
         type : String! 
@@ -27,6 +31,7 @@ export default gql`
         userId: ID! 
         user : User! 
         lastSeenAt : String 
+        conversation : Conversation 
        
     }
 `

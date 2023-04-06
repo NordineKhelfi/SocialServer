@@ -9,6 +9,7 @@ import {
 import { uploadFiles } from "../../../providers";
 import { subscribe } from "graphql";
 import { Op } from "sequelize";
+import { withFilter } from "graphql-subscriptions";
 
 
 export default {
@@ -104,19 +105,22 @@ export default {
 
 
                 const members = await conversation.getMembers({
+
                     where: {
-                        id: {
+                        userId: {
                             [Op.not]: user.id
                         }
                     }
                 });
 
-                members.forEach(member => {
-                    const userId = member.id;
-                    pubSub.publish(`NEW_MESSAGE_${userId}`, {
-                        newMessage: messageInput
-                    });
-                })
+                messageInput.conversation.members = members;
+
+                pubSub.publish("NEW_MESSAGE", {
+                    newMessage: messageInput
+                });
+
+
+
                 return messageInput
 
             } catch (error) {
@@ -127,16 +131,18 @@ export default {
     },
     Subscription: {
         newMessage: {
-            subscribe: (_, { }, { isUserAuth, user, pubSub }) => {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_MESSAGE`),
+                ({ newMessage }, { }, { isUserAuth, user }) => {
+                    
+                    if (!isUserAuth) 
+                        return false ; 
+                    
+                    const index = newMessage.conversation.members.findIndex(member => member.userId == user.id) ; 
+                    return index >= 0 ; 
+                    
+                })
 
-                if (!isUserAuth)
-                    return new ApolloError("Unauthorized");
-
-                const userId = user.id;
-
-
-                return pubSub.asyncIterator(`NEW_MESSAGE_${userId}`)
-            }
         }
     }
 }

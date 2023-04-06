@@ -1,4 +1,5 @@
 import { ApolloError } from "apollo-server-express";
+import { withFilter } from "graphql-subscriptions";
 import { Op } from "sequelize";
 
 export default {
@@ -11,9 +12,9 @@ export default {
 
 
             var conversationMembers = await user.getConversationMember({
-                include : [{
-                    model : db.Conversation , 
-                    as : "conversation" , 
+                include: [{
+                    model: db.Conversation,
+                    as: "conversation",
                     include: [{
                         model: db.ConversationMember,
                         as: "members",
@@ -30,58 +31,64 @@ export default {
                                 as: "profilePicture"
                             }]
                         }]
-    
+
                     }, {
                         model: db.Message,
                         as: "messages",
-                        include : [{
-                            model : db.User , 
-                            as : "sender" , 
-                        }]  ,
+                        include: [{
+                            model: db.User,
+                            as: "sender",
+                        }],
                         offset: 0,
                         limit: 1,
                         order: [["id", "DESC"]]
-                    }],    
-                }] , 
+                    }],
+                }],
                 offset,
                 limit,
                 order: [["id", "DESC"]]
-            }) ; 
+            });
 
-            
-            for (var  index = 0 ; index < conversationMembers.length ; index ++) {
-                var conversation = conversationMembers[index].conversation ; 
-                var lastSeenAt = conversationMembers[index].lastSeenAt ; 
-                conversation.unseenMessages =  0 ;  
 
-                var  filterQuery = {} ; 
-                if ( lastSeenAt)  { 
-                    filterQuery = { 
-                        where : { 
-                            createdAt : {
-                                [Op.gt]  : lastSeenAt
-                            }
+            for (var index = 0; index < conversationMembers.length; index++) {
+                var conversation = conversationMembers[index].conversation;
+                var lastSeenAt = conversationMembers[index].lastSeenAt;
+                conversation.unseenMessages = 0;
+
+                var filterQuery = {};
+                if (lastSeenAt) {
+                    filterQuery = {
+
+                        createdAt: {
+                            [Op.gt]: lastSeenAt
                         }
+
                     }
-                } 
+                }
 
-                console.log(lastSeenAt) 
 
-                
-                if (conversation.messages && conversation.messages.length > 0 ) { 
-                    var sender = conversation.messages[0].sender  ; 
+
+
+                if (conversation.messages && conversation.messages.length > 0) {
+                    var sender = conversation.messages[0].sender;
                     if (sender.id != user.id) {
-                        const unseenMessages = await conversation.getMessages(filterQuery) ; 
-                        conversation.unseenMessages = unseenMessages.length ;  
-                    } 
+                        const unseenMessages = await conversation.getMessages({
+                            where: {
+                                userId: sender.id , 
+                                ...filterQuery 
+                            }
+                        });
+
+                        conversation.unseenMessages = unseenMessages.length;
+                    }
                 }
             }
-            
 
 
-            var conversations = conversationMembers.map(conversationMember => conversationMember.conversation) ; 
-          
-            return conversations ; 
+
+            var conversations = conversationMembers.map(conversationMember => conversationMember.conversation);
+
+            return conversations;
         },
 
         getConversation: async (_, { userId, type }, { db, user }) => {
@@ -195,26 +202,63 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message)
             }
-        } , 
-        seeConversation : async ( _ , {conversationId } , {db , user }) => { 
-            try { 
+        },
+        seeConversation: async (_, { conversationId }, { db, user , pubSub }) => {
+            try {
 
-                const conversationMember = (await user.getConversationMember({
+                var  conversationMember = (await user.getConversationMember({
+                    include : [{
+                        model : db.Conversation , 
+                        as : "conversation" , 
+                        include : [{
+                            model : db.ConversationMember , 
+                            as : "members" , 
+                            where : {
+                                userId : {
+                                    [Op.not] : user.id 
+                                }
+                            }
+                        }]
+                    }] , 
                     where: {
-                        conversationId : conversationId , 
+                        conversationId: conversationId,
                     }
-                })).pop() ; 
+                })).pop();
 
-                if ( conversationMember == null) 
-                    throw new Error("You are not allowed to access this conversation .") ; 
+                if (conversationMember == null)
+                    throw new Error("You are not allowed to access this conversation .");
+
+                const currentTimeTamps = new Date();
+                conversationMember = await conversationMember.update({ lastSeenAt: currentTimeTamps });
+
                 
-                const currentTimeTamps = new Date() ; 
-                await conversationMember.update( {lastSeenAt : currentTimeTamps } ) ; 
-                return currentTimeTamps ; 
+                pubSub.publish("CONVERSATION_SAW" , {
+                    conversationSaw : conversationMember
+                })
 
-            }catch(error ) {
-                return new ApolloError(error.message) ; 
+                return currentTimeTamps;
+
+            } catch (error) {
+                return new ApolloError(error.message);
             }
+        }
+    } , 
+    Subscription : {
+        conversationSaw : {
+            subscribe : withFilter(
+                ( _ , { } , {pubSub}) => pubSub.asyncIterator(`CONVERSATION_SAW`)  , 
+                ( {conversationSaw} , { } , { isUserAuth , user}) => {
+
+                    if ( ! isUserAuth) 
+                        return false ; 
+                    
+                    const index = conversationSaw.conversation.members.findIndex(member => member.userId == user.id) ; 
+
+                    return index >= 0 ; 
+                    
+                
+                }
+            )
         }
     }
 }
