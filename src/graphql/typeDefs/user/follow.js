@@ -12,4 +12,11 @@ export default gql`
         toggleFollow(userId: ID!) : Boolean! @userAuth     
     }
 
+
+    type Follow {
+        user : User! 
+        following : User! 
+        createdAt : String! 
+    }
+
 `

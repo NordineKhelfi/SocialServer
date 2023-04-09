@@ -114,12 +114,9 @@ export default {
                 });
 
                 messageInput.conversation.members = members;
-
                 pubSub.publish("NEW_MESSAGE", {
                     newMessage: messageInput
                 });
-
-
 
                 return messageInput
 

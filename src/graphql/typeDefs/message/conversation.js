@@ -5,7 +5,6 @@ export default gql`
     extend type Query { 
         getConversations(offset : Int! , limit : Int!) : [Conversation!]! @userAuth 
         getConversation(userId : ID! , type  : String) :  Conversation @userAuth 
-
     } 
     extend type Mutation { 
         createConversation ( members : [ID!]! ) : Conversation! @userAuth 

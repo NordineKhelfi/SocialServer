@@ -1,35 +1,88 @@
 import { ApolloError } from "apollo-server-express"
 import { UPLOAD_STORIES_DIR } from "../../../config";
 import { getStoryExpirationDate, uploadFiles } from "../../../providers";
+import { Op } from "sequelize";
 
 export default {
     Query: {
-        getStories: async (_, { offset , limit}, { db, user }) => {
+        getUserStories: async (_, { userId }, { db, user }) => {
+            try {
+                const storyUser = await db.User.findByPk(userId);
+                if (storyUser == null)
+                    throw new Error("User not found");
+
+                var stories =await db.Story.findAll({
+                    where: {
+                        userId: storyUser.id
+                    },
+                    include: [
+                        {
+                            model: db.Media,
+                            as: "media"
+                        }
+                    ]
+                }) ;
+                for (var index = 0 ; index < stories.length ; index ++) {
+                    stories[index].liked  =( await  user.getStoryLikes({
+                        where : {
+                            id : stories[index].id 
+                        }
+                    })).length > 0 ; 
+                }
+
+                return stories;
+
+            } catch (error) {
+                return new ApolloError(error.message)
+            }
+        },
+
+
+        getStories: async (_, { offset, limit }, { db, user }) => {
+
 
             try {
+
                 // get all folllowers with their stories 
                 var following = await user.getFollowing({
                     include: [{
-                        model: db.Story,
-                        as: "stories",
+                        model: db.User,
+                        as: "following",
+
+
                         include: [{
+                            model: db.Story,
+                            as: "stories",
+
+                            where: {
+                                id: {
+                                    [Op.not]: null
+                                }
+                            },
+                            include: [{
+                                model: db.Media,
+                                as: "media"
+                            }]
+                        }, {
                             model: db.Media,
-                            as: "media"
-                        }]
+                            as: "profilePicture"
+                        }],
                     }],
-                    offset , 
-                    limit 
+                    offset,
+                    limit
                 });
 
+
+                console.log(following);
+
                 // check wich story is liked 
-                for ( let fIndex = 0 ; fIndex < following.length ; fIndex ++) { 
-                    for (var index = 0 ; index < following[fIndex].stories.length ; index++ ) { 
-                        
-                        following[fIndex].stories[index].liked = (await user.getStoryLikes({ 
-                            where : { 
-                                id : following[fIndex].stories[index].id 
+                for (let fIndex = 0; fIndex < following.length; fIndex++) {
+                    for (var index = 0; index < following[fIndex].following.stories.length; index++) {
+                        following[fIndex].following.stories[index].liked = (await user.getStoryLikes({
+                            where: {
+                                id: following[fIndex].following.stories[index].id
                             }
-                        })).length > 0 ; 
+                        })).length > 0;
 
                     }
                 }
@@ -39,7 +92,7 @@ export default {
                 return new ApolloError(error.message)
             }
 
-            return [];
+
         }
     },
     Mutation: {
@@ -47,6 +100,7 @@ export default {
             try {
                 // get the expiration date 
                 storyInput.expiredAt = getStoryExpirationDate();
+                console.log(storyInput.expiredAt);
                 // upload the story media to the given directory 
                 // and create medaia in the database 
                 const outputs = await uploadFiles([storyInput.media], UPLOAD_STORIES_DIR);
@@ -63,11 +117,13 @@ export default {
 
                 const story = await db.Story.create(storyInput);
                 storyInput.id = story.id;
+                storyInput.createdAt = story.createdAt;
 
                 return storyInput;
 
 
             } catch (error) {
+                console.log(error.message)
                 return new ApolloError(error.message);
             }
         },
