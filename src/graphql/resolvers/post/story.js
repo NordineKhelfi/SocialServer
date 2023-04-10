@@ -11,7 +11,7 @@ export default {
                 if (storyUser == null)
                     throw new Error("User not found");
 
-                var stories =await db.Story.findAll({
+                var stories = await db.Story.findAll({
                     where: {
                         userId: storyUser.id
                     },
@@ -20,14 +20,21 @@ export default {
                             model: db.Media,
                             as: "media"
                         }
-                    ]
-                }) ;
-                for (var index = 0 ; index < stories.length ; index ++) {
-                    stories[index].liked  =( await  user.getStoryLikes({
-                        where : {
-                            id : stories[index].id 
+                    ],
+                    order: [["createdAt", "DESC"]]
+                });
+                for (var index = 0; index < stories.length; index++) {
+                    stories[index].liked = (await user.getStoryLikes({
+                        where: {
+                            id: stories[index].id
                         }
-                    })).length > 0 ; 
+                    })).length > 0;
+
+                    stories[index].seen = (await user.getStoriesSeen({
+                        where: {
+                            id: stories[index].id
+                        }
+                    })).length > 0;
                 }
 
                 return stories;
@@ -45,6 +52,8 @@ export default {
 
                 // get all folllowers with their stories 
                 var following = await user.getFollowing({
+
+
                     include: [{
                         model: db.User,
                         as: "following",
@@ -53,12 +62,12 @@ export default {
                         include: [{
                             model: db.Story,
                             as: "stories",
-
                             where: {
                                 id: {
                                     [Op.not]: null
                                 }
                             },
+
                             include: [{
                                 model: db.Media,
                                 as: "media"
@@ -73,26 +82,29 @@ export default {
                 });
 
 
-                console.log(following);
 
                 // check wich story is liked 
                 for (let fIndex = 0; fIndex < following.length; fIndex++) {
                     for (var index = 0; index < following[fIndex].following.stories.length; index++) {
+
+                        // checking likes 
                         following[fIndex].following.stories[index].liked = (await user.getStoryLikes({
                             where: {
                                 id: following[fIndex].following.stories[index].id
                             }
                         })).length > 0;
-
+                        // checking views 
+                        following[fIndex].following.stories[index].seen = (await user.getStoriesSeen({
+                            where: {
+                                id: following[fIndex].following.stories[index].id
+                            }
+                        })).length > 0
                     }
                 }
-
                 return following
             } catch (error) {
                 return new ApolloError(error.message)
             }
-
-
         }
     },
     Mutation: {
@@ -100,7 +112,7 @@ export default {
             try {
                 // get the expiration date 
                 storyInput.expiredAt = getStoryExpirationDate();
-                console.log(storyInput.expiredAt);
+
                 // upload the story media to the given directory 
                 // and create medaia in the database 
                 const outputs = await uploadFiles([storyInput.media], UPLOAD_STORIES_DIR);
@@ -123,7 +135,7 @@ export default {
 
 
             } catch (error) {
-                console.log(error.message)
+
                 return new ApolloError(error.message);
             }
         },
@@ -181,5 +193,36 @@ export default {
                 return new ApolloError(error.message);
             }
         },
+
+
+        seeStory: async (_, { storyId }, { db, user }) => {
+
+            try {
+
+
+                const story = await db.Story.findByPk(storyId);
+                if (!story)
+                    throw new Error("Story not found");
+
+                var viewers = (await story.getViewers({
+                    where: {
+                        id: user.id
+                    }
+                })).pop();
+
+
+
+                if (!viewers) {
+                    await story.addViewers(user);
+                }
+
+                return true;
+
+
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        }
     }
 }

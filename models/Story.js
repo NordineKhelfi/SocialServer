@@ -54,7 +54,12 @@ module.exports = (Sequelize, DataTypes) => {
         Story.hasMany(db.StoryComment , { 
             as : "storyComments" , 
             foreignKey : "sotyrId"
-        })
+        }) ; 
+
+        Story.belongsToMany(db.User ,  {
+            as : "viewers" , 
+            through : "StorySeen"  ,
+        }) 
     } ; 
 
 

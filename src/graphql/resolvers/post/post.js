@@ -168,8 +168,7 @@ export default {
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR);
 
                 if (post.type == "reel") {
-
-                    console.log(postInput.media);
+ 
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
@@ -307,8 +306,7 @@ export default {
                         id: postId
                     }
                 });
-
-                console.log(favorites.length)
+ 
 
                 // if the post allready liked remove the favorites
                 if (favorites && favorites.length > 0) {

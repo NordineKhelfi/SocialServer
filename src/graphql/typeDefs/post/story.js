@@ -10,7 +10,8 @@ export default gql`
     extend type Mutation { 
         createStory(storyInput : StoryInput!) : Story! @userAuth 
         toggleLikeStory(storyId : ID!) : Boolean! @userAuth  
-        commentStory (storyCommentInput : StoryCommentInput!) : StoryComment! @userAuth  
+        commentStory (storyCommentInput : StoryCommentInput!) : StoryComment! @userAuth
+        seeStory(storyId : ID!) : Boolean @userAuth   
     }
 
 
@@ -19,6 +20,7 @@ export default gql`
         media : Media! 
         user : User! 
         liked : Boolean!
+        seen : Boolean 
         createdAt : String!
         expiredAt : String! 
         updatedAt : String!
