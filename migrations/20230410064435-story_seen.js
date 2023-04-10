@@ -30,8 +30,7 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    
-
+  
     return queryInterface.dropTable("StorySeen") ; 
   }
 };

@@ -98,31 +98,36 @@ export default {
         },
 
         suggestUsers: async (_, { offset, limit }, { db, user }) => {
-            const users = await db.User.findAll({
-                subQuery: false,
+
+
+            var followingsIds = (await user.getFollowing()).map((following) => following.followingId);
+            followingsIds.push(user.id);
+
+
+
+
+            var users = await db.User.findAll({
+
+
+
                 include: [{
                     model: db.Media,
                     as: "profilePicture"
                 }, {
                     model: db.Follow,
                     as: "followers",
+
+                    include: [{
+                        model: db.User,
+                        as: "user",
+                    }],
+
                 }],
 
 
                 where: {
-                    [Op.or]: [
-
-                        Sequelize.where(Sequelize.col("followers.userId"), {
-                            [Op.is]: null
-                        }),
-
-                        Sequelize.where(Sequelize.col("followers.userId"), {
-                            [Op.not]: user.id
-                        }),
-
-                    ],
                     id: {
-                        [Op.not]: user.id
+                        [Op.notIn]: followingsIds
                     }
                 },
                 limit: [offset, limit],
@@ -131,6 +136,8 @@ export default {
                 ]
 
             });
+
+
 
 
 

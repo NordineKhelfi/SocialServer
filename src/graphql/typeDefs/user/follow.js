@@ -4,8 +4,8 @@ import { gql } from "apollo-server-express";
 export default gql`
 
     extend type Query { 
-        getFollowers(offset : Int! , limit : Int!) : [User!]! @userAuth 
-        getFollowing(offset : Int! , limit : Int!) : [User!]! @userAuth
+        getFollowers(offset : Int! , limit : Int!) : [Follow!]! @userAuth 
+        getFollowing(offset : Int! , limit : Int!) : [Follow!]! @userAuth
     } 
 
     extend type Mutation { 
@@ -14,6 +14,8 @@ export default gql`
 
 
     type Follow {
+        userId : ID! 
+        followingId : ID!  
         user : User! 
         following : User! 
         createdAt : String! 

@@ -9,6 +9,10 @@ export default {
             
             // get the follwing users by offset and limit 
             return await user.getFollowers({ 
+                include : [{
+                    model : db.User ,
+                    as : "user"
+                }] , 
                 offset , 
                 limit 
             }) ; 
@@ -22,6 +26,10 @@ export default {
         
             // get the follwing users by offset and limit 
             return await user.getFollowing({ 
+                include : [{
+                    model : db.User ,
+                    as : "following"
+                }] , 
                 offset , 
                 limit 
             }) ; 

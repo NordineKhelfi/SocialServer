@@ -53,7 +53,7 @@ export default gql`
         profilePicture : Media 
         pictureId : ID 
         isFollowed : Boolean 
-        followers : [User!]
+        followers : [Follow!]
         username : String! 
         password : String! 
         confirmPassword : String! 
