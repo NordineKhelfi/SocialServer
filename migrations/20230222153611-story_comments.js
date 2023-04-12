@@ -31,7 +31,11 @@ module.exports = {
       comment : { 
         type : Sequelize.STRING , 
         allowNull : false ,
-
+      } , 
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     })
   },

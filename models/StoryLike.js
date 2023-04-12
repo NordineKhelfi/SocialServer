@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require("sequelize");
 
 module.exports = (Sequelize, DataTypes) => {
-    const StoryComment = Sequelize.define("StoryComment", {
+    const StoryLike = Sequelize.define("StoryLike", {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
@@ -26,28 +26,23 @@ module.exports = (Sequelize, DataTypes) => {
                 key: "id"
             }
         },
-        comment: {
-            type: DataTypes.STRING,
-            allowNull: false,
-
-        } , 
         createdAt: {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
         }
-    }); 
-    StoryComment.associate = ( db ) => { 
-        StoryComment.belongsTo(db.Story , { 
-            as : "story" , 
-            foreignKey : "storyId"
-        });
-        StoryComment.belongsTo(db.User , { 
-            as : "user" , 
-            foreignKey : "userId"
-        }); 
-    } ; 
+    });
 
 
-    return StoryComment ; 
+    StoryLike.associate = (db) => {
+        StoryLike.belongsTo(db.Story, {
+            as: "story",
+            foreignKey: "storyId"
+        })
+        StoryLike.belongsTo(db.User, {
+            as: "user",
+            foreignKey: "userId"
+        })
+    }
+    return StoryLike;
 }

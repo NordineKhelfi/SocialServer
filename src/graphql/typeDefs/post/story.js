@@ -6,6 +6,7 @@ export default gql`
     extend type Query { 
         getStories (offset : Int! , limit : Int!) : [Follow!]! @userAuth 
         getUserStories ( userId : ID!) : [Story!]! @userAuth 
+        getStoryComments (storyId : ID! , mine : Boolean , offset : Int! , limit : Int!) : [StoryComment!]! @userAuth
     }
     extend type Mutation { 
         createStory(storyInput : StoryInput!) : Story! @userAuth 
@@ -39,6 +40,10 @@ export default gql`
         id : ID! 
         comment : String! 
         storyId : ID! 
+        story : Story! 
+        userId : ID! 
+        user : User! 
+        createdAt : String!
     }
 
 `

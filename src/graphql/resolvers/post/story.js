@@ -26,7 +26,7 @@ export default {
                 for (var index = 0; index < stories.length; index++) {
                     stories[index].liked = (await user.getStoryLikes({
                         where: {
-                            id: stories[index].id
+                            storyId : stories[index].id
                         }
                     })).length > 0;
 
@@ -90,7 +90,7 @@ export default {
                         // checking likes 
                         following[fIndex].following.stories[index].liked = (await user.getStoryLikes({
                             where: {
-                                id: following[fIndex].following.stories[index].id
+                                storyId : following[fIndex].following.stories[index].id
                             }
                         })).length > 0;
                         // checking views 
@@ -104,6 +104,39 @@ export default {
                 return following
             } catch (error) {
                 return new ApolloError(error.message)
+            }
+        } , 
+        getStoryComments : async ( _ , {storyId  , mine , offset , limit} , {db , user}) => {
+            try {
+
+                const story = await db.Story.findByPk(storyId) ; 
+                if (story == null) 
+                    throw new Error("Story Not found") ;
+
+                var filter = { } ; 
+                if (mine) { 
+                    filter.where = { 
+                        id : {
+                            [Op.not] : user.id 
+                        }
+                    } 
+                }
+                return await  story.getStoryComments({
+                    include : [{
+                        model : db.User ,
+                        as : "user" ,
+                        ...filter , 
+                        include : [{
+                            model : db.Media , 
+                            as : "profilePicture"
+                        }] 
+                    }]   ,
+                    limit  : [offset , limit] , 
+                    order: [["createdAt", "DESC"]]
+                }) ;
+                
+            }catch(error) {
+                return new ApolloError(error.message) ; 
             }
         }
     },
@@ -129,11 +162,11 @@ export default {
 
                 const story = await db.Story.create(storyInput);
                 storyInput.id = story.id;
-                storyInput.createdAt = story.createdAt;
+                storyInput.createdAt = new Date(); 
+
+                
 
                 return storyInput;
-
-
             } catch (error) {
 
                 return new ApolloError(error.message);
@@ -149,20 +182,26 @@ export default {
                     throw new Error("Story Not found");
 
                 // check if the story is allready been liked 
-                const storyLikes = await user.getStoryLikes({
+                const storyLike = (await user.getStoryLikes({
                     where: {
-                        id: storyId
+                        storyId: storyId
                     }
 
-                });
+                })).pop();
 
-                if (storyLikes && storyLikes.length == 0) {
+                if (!storyLike) {
                     // like the story 
-                    await user.addStoryLikes(story);
+
+                    //await user.addStoryLikes(story);
+
+                    await db.StoryLike.create({
+                        storyId : story.id  , 
+                        userId : user.id 
+                    }) ; 
                     return true;
                 } else {
                     // unlike the story 
-                    await user.removeStoryLikes(story);
+                    await storyLike.destroy();
                     return false;
 
                 }
@@ -187,6 +226,7 @@ export default {
 
                 const result = await user.createStoryComment(storyCommentInput)
                 storyCommentInput.id = result.id;
+                storyCommentInput.createdAt = new Date( );
                 return storyCommentInput;
 
             } catch (error) {

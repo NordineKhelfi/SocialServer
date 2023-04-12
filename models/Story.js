@@ -46,14 +46,14 @@ module.exports = (Sequelize, DataTypes) => {
             foreignKey : "mediaId" , 
             as : "media" 
         }) ; 
-        Story.belongsToMany(db.User , { 
-            through : "StoryLikes" , 
+        Story.hasMany(db.StoryLike , { 
+            foreignKey : "storyId" , 
             as : "likes" 
         }) ; 
 
         Story.hasMany(db.StoryComment , { 
             as : "storyComments" , 
-            foreignKey : "sotyrId"
+            foreignKey : "storyId"
         }) ; 
 
         Story.belongsToMany(db.User ,  {

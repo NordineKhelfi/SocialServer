@@ -104,6 +104,7 @@ export default {
                 messageInput.createdAt = new Date();
 
 
+                
                 const members = await conversation.getMembers({
 
                     where: {
