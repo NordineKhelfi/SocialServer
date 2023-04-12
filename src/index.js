@@ -11,6 +11,7 @@ import { SubscriptionServer} from "subscriptions-transport-ws";
 import { execute , subscribe } from "graphql";
 import { SubscriptionUserAuth } from "./middlewares/userAuth";
 import { PubSub } from "graphql-subscriptions";
+import { handleStoriesExpirations } from "./providers";
 
 // initialize our express server 
 // init the Server 
@@ -105,7 +106,7 @@ async function startServer() {
             apolloServer.applyMiddleware({ app });
             // listen 
 
-
+            handleStoriesExpirations(db) ; 
             console.log(`Server is runing on port ${PORT}`)
         } catch (error) {
             console.log("Error : ", error)

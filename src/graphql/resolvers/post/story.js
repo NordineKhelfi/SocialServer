@@ -1,6 +1,6 @@
 import { ApolloError } from "apollo-server-express"
 import { UPLOAD_STORIES_DIR } from "../../../config";
-import { getStoryExpirationDate, uploadFiles } from "../../../providers";
+import { destroyStory, getStoryExpirationDate, uploadFiles , DAY } from "../../../providers";
 import { Op } from "sequelize";
 
 export default {
@@ -116,9 +116,7 @@ export default {
                 var filter = { } ; 
                 if (mine) { 
                     filter.where = { 
-                        id : {
-                            [Op.not] : user.id 
-                        }
+                        id : user.id 
                     } 
                 }
                 return await  story.getStoryComments({
@@ -160,10 +158,13 @@ export default {
                 storyInput.userId = user.id;
                 storyInput.user = user;
 
-                const story = await db.Story.create(storyInput);
+                var  story = await db.Story.create(storyInput);
+                story.media = media ;  
                 storyInput.id = story.id;
                 storyInput.createdAt = new Date(); 
 
+
+                setTimeout(destroyStory , DAY , story) ;
                 
 
                 return storyInput;
