@@ -1,0 +1,142 @@
+query GetFollowersNotifications($offset: Int!, $limit: Int!) {
+  getFollowersNotifications(offset: $offset, limit: $limit) {
+    
+    follow {
+      id
+      userId
+      createdAt
+      user {
+        id name lastname username 
+        profilePicture {
+          id 
+          path
+        }
+      }
+    }
+  }
+}
+
+
+query GetLikePostNotification($offset: Int!, $limit: Int!) {
+  getLikePostNotification(offset: $offset, limit: $limit) {
+    like {
+      createdAt
+      id
+      user {
+        id name lastname 
+        profilePicture {
+          id path 
+        }
+      }
+      post {
+        createdAt
+        id
+        likes
+        userId 
+        media {
+          id
+          path
+        }
+        reel {
+          thumbnail {
+            id
+            path
+          }
+        }
+        type
+        title
+      }
+    }
+  }
+}
+
+query Query($offset: Int!, $limit: Int!) {
+  getStoryCommentNotification(offset: $offset, limit: $limit) {
+    storyComment {
+      comment
+      createdAt
+      id
+      story {
+        userId
+        media {
+          id
+          path
+        }
+      }
+      user {
+        id
+        lastname
+        name
+        profilePicture {
+          id
+          path
+        }
+      }
+    }
+  }
+}
+
+
+
+query GetCommentPostNotification($offset: Int!, $limit: Int!) {
+  getCommentPostNotification(offset: $offset, limit: $limit) {
+    comment {
+      comment
+      createdAt
+      id
+      media {
+        id
+        path
+      }
+      user {
+        id
+        lastname
+        name
+        profilePicture {
+          id
+          path
+        }
+      }
+      post {
+        media {
+          id
+          path
+        }
+        reel {
+          thumbnail {
+            id
+            path
+          }
+        }
+        type
+      }
+    }
+  }
+}
+
+
+query GetReplayCommentNotification($offset: Int!, $limit: Int!) {
+  getReplayCommentNotification(offset: $offset, limit: $limit) {
+    replay {
+      comment {
+        comment
+      }
+      id
+      createdAt
+      media {
+        path
+        id
+      }
+      replay
+      user {
+        id
+        name
+        lastname
+        profilePicture {
+          id
+          path
+        }
+      }
+    }
+  }
+}

@@ -31,6 +31,7 @@ export default gql`
         userId : ID!
         user : User!
         liked : Boolean 
+        createdAt : String! 
     }
 
 `

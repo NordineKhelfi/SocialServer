@@ -34,6 +34,7 @@ export default gql`
         numComments : Int! 
         createdAt : String!
         updatedAt : String!
+        userId : ID! 
     }
     
 

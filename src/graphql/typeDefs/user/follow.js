@@ -14,6 +14,7 @@ export default gql`
 
 
     type Follow {
+        id : ID! 
         userId : ID! 
         followingId : ID!  
         user : User! 

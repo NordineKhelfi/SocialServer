@@ -22,6 +22,7 @@ export default gql`
         user : User! 
         liked : Boolean!
         seen : Boolean 
+        userId : ID!
         createdAt : String!
         expiredAt : String! 
         updatedAt : String!
