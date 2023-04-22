@@ -7,8 +7,8 @@ import { userAuth } from "./middlewares";
 import { graphqlUploadExpress } from "graphql-upload";
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import db from "../models";
-import { SubscriptionServer} from "subscriptions-transport-ws";
-import { execute , subscribe } from "graphql";
+import { SubscriptionServer } from "subscriptions-transport-ws";
+import { execute, subscribe } from "graphql";
 import { SubscriptionUserAuth } from "./middlewares/userAuth";
 import { PubSub } from "graphql-subscriptions";
 import { handleStoriesExpirations } from "./providers";
@@ -25,8 +25,8 @@ app.use(graphqlUploadExpress());
 
 
 
-const pubSub = new PubSub() ; 
- 
+const pubSub = new PubSub();
+
 app.use("/" + UPLOAD_PICTURES_DIR, express.static(UPLOAD_PICTURES_DIR));
 app.use("/" + UPLOAD_POST_IMAGES_DIR, express.static(UPLOAD_POST_IMAGES_DIR));
 app.use("/" + UPLOAD_POST_VIDEOS_DIR, express.static(UPLOAD_POST_VIDEOS_DIR));
@@ -48,27 +48,43 @@ schema = directives.userAuthDirective()(schema);
 
 async function startServer() {
 
-    
+
 
     const subscriptionServer = SubscriptionServer.create({
-        schema , execute , subscribe , 
-        onConnect : async  (connectionParams, webSocket, context ) => {
-           
-            const {user , isUserAuth } = await  SubscriptionUserAuth(connectionParams) ; 
-            
-            
+        schema, execute, subscribe,
+        onConnect: async (connectionParams, webSocket, context) => {
+
+
+            const { user, isUserAuth } = await SubscriptionUserAuth(connectionParams);
+
+            user.update({
+                isActive : true , 
+            }).then() ; 
+
+
             return {
-                db , 
-                user , 
-                isUserAuth , 
+                db,
+                user,
+                isUserAuth,
                 pubSub
-            } ; 
-        }
-    } , {
-        server : http , path : "/graphql" , 
+            };
+        },
+        onDisconnect: async (_, context) => {
+          
+            const initPromise = await context.initPromise ;
+            const {user} =  initPromise ; 
+            user.update({
+                isActive : false , 
+                lastActiveAt : new Date()
+            }).then() ;  
+
         
+        }
+    }, {
+        server: http, path: "/graphql",
+
     })
- 
+
 
     const apolloServer = new ApolloServer({
         csrfPrevention: false,
@@ -81,16 +97,16 @@ async function startServer() {
                 isUserAuth,
                 user,
                 pubSub
-       
+
             }
         },
-      
-        plugins : [
+
+        plugins: [
             {
                 async serverWillStart() {
                     return {
                         async drainServer() {
-                            subscriptionServer.close() ; 
+                            subscriptionServer.close();
                         }
                     }
                 }
@@ -106,13 +122,13 @@ async function startServer() {
             apolloServer.applyMiddleware({ app });
             // listen 
 
-            handleStoriesExpirations(db) ; 
+            handleStoriesExpirations(db);
             console.log(`Server is runing on port ${PORT}`)
         } catch (error) {
             console.log("Error : ", error)
         }
     })
-   
+
 
 
 }

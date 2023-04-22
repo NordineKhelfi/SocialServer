@@ -9,86 +9,89 @@ export default {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
+            try {
 
-
-            var conversationMembers = await user.getConversationMember({
-                include: [{
-                    model: db.Conversation,
-                    as: "conversation",
+                var conversationMembers = await user.getConversationMember({
+               
                     include: [{
-                        model: db.ConversationMember,
-                        as: "members",
+                        model: db.Conversation,
+                        as: "conversation",
                         include: [{
-                            model: db.User,
-                            as: "user",
-                            where: {
-                                id: {
-                                    [Op.not]: user.id
-                                }
-                            },
+                            model: db.ConversationMember,
+                            as: "members",
                             include: [{
-                                model: db.Media,
-                                as: "profilePicture"
+                                model: db.User,
+                                as: "user",
+                                where: {
+                                    id: {
+                                        [Op.not]: user.id
+                                    }
+                                },
+                                include: [{
+                                    model: db.Media,
+                                    as: "profilePicture"
+                                }]
                             }]
-                        }]
 
-                    }, {
-                        model: db.Message,
-                        as: "messages",
-                        include: [{
-                            model: db.User,
-                            as: "sender",
+                        }, {
+                            model: db.Message,
+                            as: "messages",
+                            include: [{
+                                model: db.User,
+                                as: "sender",
+                            }],
+                            offset: 0,
+                            limit: 1,
+                            order: [["id", "DESC"]]
                         }],
-                        offset: 0,
-                        limit: 1,
-                        order: [["id", "DESC"]]
                     }],
-                }],
-                offset,
-                limit,
-                order: [["id", "DESC"]]
-            });
+                    offset,
+                    limit,
+                    order: [["id", "DESC"]]
+                });
+              
+                
+                for (var index = 0; index < conversationMembers.length; index++) {
+                    var conversation = conversationMembers[index].conversation;
+                    var lastSeenAt = conversationMembers[index].lastSeenAt;
+                    conversation.unseenMessages = 0;
 
-
-            for (var index = 0; index < conversationMembers.length; index++) {
-                var conversation = conversationMembers[index].conversation;
-                var lastSeenAt = conversationMembers[index].lastSeenAt;
-                conversation.unseenMessages = 0;
-
-                var filterQuery = {};
-                if (lastSeenAt) {
-                    filterQuery = {
-
-                        createdAt: {
-                            [Op.gt]: lastSeenAt
-                        }
-
-                    }
-                }
-
-
-
-
-                if (conversation.messages && conversation.messages.length > 0) {
-                    var sender = conversation.messages[0].sender;
-                    if (sender.id != user.id) {
-                        const unseenMessages = await conversation.getMessages({
-                            where: {
-                                userId: sender.id,
-                                ...filterQuery
+                    var filterQuery = {};
+                    if (lastSeenAt) {
+                        filterQuery = {
+                            createdAt: {
+                                [Op.gt]: lastSeenAt
                             }
-                        });
 
-                        conversation.unseenMessages = unseenMessages.length;
+                        }
+                    }
+
+
+
+
+                    if (conversation.messages && conversation.messages.length > 0) {
+                        var sender = conversation.messages[0].sender;
+                        if (sender.id != user.id) {
+                            const unseenMessages = await conversation.getMessages({
+                                where: {
+                                    userId: sender.id,
+                                    ...filterQuery
+                                }
+                            });
+
+                            conversation.unseenMessages = unseenMessages.length;
+                        }
                     }
                 }
+
+
+
+                var conversations = conversationMembers.map(conversationMember => conversationMember.conversation);
+
+                return conversations;
+            } catch (error) {
+                console.log(error.message)
             }
-
-
-
-            var conversations = conversationMembers.map(conversationMember => conversationMember.conversation);
-
-            return conversations;
         },
 
         getConversation: async (_, { userId, type }, { db, user }) => {
@@ -99,35 +102,35 @@ export default {
                     type = "individual";
                 }
 
-              
 
-                var memberShip  = (await user.getConversationMember({
-                    include : [{
-                        model : db.Conversation , 
-                        as : "conversation" , 
-                        include : [{
+
+                var memberShip = (await user.getConversationMember({
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation",
+                        include: [{
                             model: db.ConversationMember,
                             as: "members",
                             where: {
-                                userId: userId 
+                                userId: userId
                             },
                             include: [{
                                 model: db.User,
                                 as: "user",
-    
+
                             }]
-                        }] , 
+                        }],
                         where: {
                             type: type
                         }
                     }]
-                })).pop() ; 
+                })).pop();
 
-                
-                if (memberShip) 
-                    return memberShip.conversation 
-                else 
-                    return null ; 
+
+                if (memberShip)
+                    return memberShip.conversation
+                else
+                    return null;
 
 
                 /*
@@ -154,19 +157,19 @@ export default {
                     }
                 })
 
-                var conversation = null 
-                
+                var conversation = null
+
                 for (let index = 0; index < conversations.length; index++) {
                     const fIndex = conversations[index].members.findIndex(member => member.userId == userId)
-                    if (fIndex >= 0)  {
-                        conversation = conversations[index] ;
-                        break ; 
-                    } 
+                    if (fIndex >= 0) {
+                        conversation = conversations[index];
+                        break;
+                    }
                 }
-                
-                return conversation ;
-            
-                return null  ;
+
+                return conversation;
+
+                return null;
             } catch (error) {
                 return new ApolloError(error.message);
             }

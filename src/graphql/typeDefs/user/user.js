@@ -71,6 +71,8 @@ export default gql`
         numFollowing : Int! 
         numVisits : Int! 
         validated : Boolean! 
+        lastActiveAt : String 
+        isActive : Boolean 
         socialMedia : SocialMedia 
     }
 

@@ -131,6 +131,8 @@ export default {
         newMessage: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_MESSAGE`),
+                
+                
                 ({ newMessage }, { }, { isUserAuth, user }) => {
                     
                     if (!isUserAuth) 
