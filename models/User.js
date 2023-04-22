@@ -221,6 +221,11 @@ module.exports = (Sequelize, DataTypes) => {
       through: "StorySeen"
     });
 
+    user.hasMany(db.Message , {
+      as : "messages" , 
+      foeignKey : "userId"
+    })
+
 
 
   }

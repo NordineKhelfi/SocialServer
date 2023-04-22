@@ -74,8 +74,8 @@ export default {
                     if (sender.id != user.id) {
                         const unseenMessages = await conversation.getMessages({
                             where: {
-                                userId: sender.id , 
-                                ...filterQuery 
+                                userId: sender.id,
+                                ...filterQuery
                             }
                         });
 
@@ -98,18 +98,55 @@ export default {
                 if (!type) {
                     type = "individual";
                 }
-                // get the conversation between the user and the user by the given id 
 
-                return await db.Conversation.findOne({
+              
+
+                var memberShip  = (await user.getConversationMember({
+                    include : [{
+                        model : db.Conversation , 
+                        as : "conversation" , 
+                        include : [{
+                            model: db.ConversationMember,
+                            as: "members",
+                            where: {
+                                userId: userId 
+                            },
+                            include: [{
+                                model: db.User,
+                                as: "user",
+    
+                            }]
+                        }] , 
+                        where: {
+                            type: type
+                        }
+                    }]
+                })).pop() ; 
+
+                
+                if (memberShip) 
+                    return memberShip.conversation 
+                else 
+                    return null ; 
+
+
+                /*
+                if (conversation && conversation.length )
+                return conversation && conversation
+                */
+
+                // get the conversation between the user and the user by the given id 
+                var conversations = await db.Conversation.findAll({
                     include: [{
                         model: db.ConversationMember,
                         as: "members",
+                        where: {
+                            userId: user.id
+                        },
                         include: [{
                             model: db.User,
                             as: "user",
-                            where: {
-                                id: userId
-                            }
+
                         }]
                     }],
                     where: {
@@ -117,6 +154,19 @@ export default {
                     }
                 })
 
+                var conversation = null 
+                
+                for (let index = 0; index < conversations.length; index++) {
+                    const fIndex = conversations[index].members.findIndex(member => member.userId == userId)
+                    if (fIndex >= 0)  {
+                        conversation = conversations[index] ;
+                        break ; 
+                    } 
+                }
+                
+                return conversation ;
+            
+                return null  ;
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -203,23 +253,23 @@ export default {
                 return new ApolloError(error.message)
             }
         },
-        seeConversation: async (_, { conversationId }, { db, user , pubSub }) => {
+        seeConversation: async (_, { conversationId }, { db, user, pubSub }) => {
             try {
 
-                var  conversationMember = (await user.getConversationMember({
-                    include : [{
-                        model : db.Conversation , 
-                        as : "conversation" , 
-                        include : [{
-                            model : db.ConversationMember , 
-                            as : "members" , 
-                            where : {
-                                userId : {
-                                    [Op.not] : user.id 
+                var conversationMember = (await user.getConversationMember({
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation",
+                        include: [{
+                            model: db.ConversationMember,
+                            as: "members",
+                            where: {
+                                userId: {
+                                    [Op.not]: user.id
                                 }
                             }
                         }]
-                    }] , 
+                    }],
                     where: {
                         conversationId: conversationId,
                     }
@@ -231,9 +281,9 @@ export default {
                 const currentTimeTamps = new Date();
                 conversationMember = await conversationMember.update({ lastSeenAt: currentTimeTamps });
 
-                
-                pubSub.publish("CONVERSATION_SAW" , {
-                    conversationSaw : conversationMember
+
+                pubSub.publish("CONVERSATION_SAW", {
+                    conversationSaw: conversationMember
                 })
 
                 return currentTimeTamps;
@@ -242,21 +292,21 @@ export default {
                 return new ApolloError(error.message);
             }
         }
-    } , 
-    Subscription : {
-        conversationSaw : {
-            subscribe : withFilter(
-                ( _ , { } , {pubSub}) => pubSub.asyncIterator(`CONVERSATION_SAW`)  , 
-                ( {conversationSaw} , { } , { isUserAuth , user}) => {
+    },
+    Subscription: {
+        conversationSaw: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`CONVERSATION_SAW`),
+                ({ conversationSaw }, { }, { isUserAuth, user }) => {
 
-                    if ( ! isUserAuth) 
-                        return false ; 
-                    
-                    const index = conversationSaw.conversation.members.findIndex(member => member.userId == user.id) ; 
+                    if (!isUserAuth)
+                        return false;
 
-                    return index >= 0 ; 
-                    
-                
+                    const index = conversationSaw.conversation.members.findIndex(member => member.userId == user.id);
+
+                    return index >= 0;
+
+
                 }
             )
         }
