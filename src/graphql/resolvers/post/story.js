@@ -1,6 +1,6 @@
 import { ApolloError } from "apollo-server-express"
 import { UPLOAD_STORIES_DIR } from "../../../config";
-import { destroyStory, getStoryExpirationDate, uploadFiles , DAY } from "../../../providers";
+import { destroyStory, getStoryExpirationDate, uploadFiles, DAY } from "../../../providers";
 import { Op } from "sequelize";
 
 export default {
@@ -26,7 +26,7 @@ export default {
                 for (var index = 0; index < stories.length; index++) {
                     stories[index].liked = (await user.getStoryLikes({
                         where: {
-                            storyId : stories[index].id
+                            storyId: stories[index].id
                         }
                     })).length > 0;
 
@@ -90,7 +90,7 @@ export default {
                         // checking likes 
                         following[fIndex].following.stories[index].liked = (await user.getStoryLikes({
                             where: {
-                                storyId : following[fIndex].following.stories[index].id
+                                storyId: following[fIndex].following.stories[index].id
                             }
                         })).length > 0;
                         // checking views 
@@ -105,36 +105,36 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message)
             }
-        } , 
-        getStoryComments : async ( _ , {storyId  , mine , offset , limit} , {db , user}) => {
+        },
+        getStoryComments: async (_, { storyId, mine, offset, limit }, { db, user }) => {
             try {
 
-                const story = await db.Story.findByPk(storyId) ; 
-                if (story == null) 
-                    throw new Error("Story Not found") ;
+                const story = await db.Story.findByPk(storyId);
+                if (story == null)
+                    throw new Error("Story Not found");
 
-                var filter = { } ; 
-                if (mine) { 
-                    filter.where = { 
-                        id : user.id 
-                    } 
+                var filter = {};
+                if (mine) {
+                    filter.where = {
+                        id: user.id
+                    }
                 }
-                return await  story.getStoryComments({
-                    include : [{
-                        model : db.User ,
-                        as : "user" ,
-                        ...filter , 
-                        include : [{
-                            model : db.Media , 
-                            as : "profilePicture"
-                        }] 
-                    }]   ,
-                    limit  : [offset , limit] , 
+                return await story.getStoryComments({
+                    include: [{
+                        model: db.User,
+                        as: "user",
+                        ...filter,
+                        include: [{
+                            model: db.Media,
+                            as: "profilePicture"
+                        }]
+                    }],
+                    limit: [offset, limit],
                     order: [["createdAt", "DESC"]]
-                }) ;
-                
-            }catch(error) {
-                return new ApolloError(error.message) ; 
+                });
+
+            } catch (error) {
+                return new ApolloError(error.message);
             }
         }
     },
@@ -158,14 +158,14 @@ export default {
                 storyInput.userId = user.id;
                 storyInput.user = user;
 
-                var  story = await db.Story.create(storyInput);
-                story.media = media ;  
+                var story = await db.Story.create(storyInput);
+                story.media = media;
                 storyInput.id = story.id;
-                storyInput.createdAt = new Date(); 
+                storyInput.createdAt = new Date();
 
 
-                setTimeout(destroyStory , DAY , story) ;
-                
+                setTimeout(destroyStory, DAY, story);
+
 
                 return storyInput;
             } catch (error) {
@@ -196,9 +196,9 @@ export default {
                     //await user.addStoryLikes(story);
 
                     await db.StoryLike.create({
-                        storyId : story.id  , 
-                        userId : user.id 
-                    }) ; 
+                        storyId: story.id,
+                        userId: user.id
+                    });
                     return true;
                 } else {
                     // unlike the story 
@@ -213,7 +213,7 @@ export default {
             }
         },
 
-        commentStory: async (_, { storyCommentInput }, { db, user }) => {
+        commentStory: async (_, { storyCommentInput }, { db, user, sendPushNotification }) => {
             try {
                 // check if the story exists 
                 const story = await db.Story.findByPk(storyCommentInput.storyId);
@@ -227,8 +227,27 @@ export default {
 
                 const result = await user.createStoryComment(storyCommentInput)
                 storyCommentInput.id = result.id;
-                storyCommentInput.createdAt = new Date( );
-                return storyCommentInput;
+                storyCommentInput.createdAt = new Date();
+
+                if (story.userId != user.id) { 
+                    sendPushNotification(
+                        await story.getUser() , 
+                        {
+                            type : "story-comment" , 
+                            user : { 
+                                name : user.name , 
+                                lastname : user.lastname , 
+                                profilePicture : await user.getProfilePicture() 
+                            } , 
+                            storyComment : { 
+                                id :  storyCommentInput.id , 
+                                comment :  storyCommentInput.comment , 
+                            }
+                        }
+                    )
+                }
+
+                    return storyCommentInput;
 
             } catch (error) {
                 return new ApolloError(error.message);

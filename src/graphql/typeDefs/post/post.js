@@ -35,6 +35,7 @@ export default gql`
         createdAt : String!
         updatedAt : String!
         userId : ID! 
+        postLikes : [Like!]
     }
     
 

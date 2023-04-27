@@ -81,8 +81,6 @@ export default {
                 }]
             });
 
-
-
             if (user) {
                 profile.isFollowed = (await user.getFollowing({
                     where: {
@@ -102,14 +100,7 @@ export default {
 
             var followingsIds = (await user.getFollowing()).map((following) => following.followingId);
             followingsIds.push(user.id);
-
-
-
-
             var users = await db.User.findAll({
-
-
-
                 include: [{
                     model: db.Media,
                     as: "profilePicture"
@@ -121,10 +112,7 @@ export default {
                         model: db.User,
                         as: "user",
                     }],
-
                 }],
-
-
                 where: {
                     id: {
                         [Op.notIn]: followingsIds
@@ -134,13 +122,7 @@ export default {
                 order: [
                     ["createdAt", "DESC"]
                 ]
-
             });
-
-
-
-
-
             return users;
         }
     },
@@ -239,6 +221,37 @@ export default {
         },
         deleteAccount: async (_, { }, { db, user }) => {
             return await user.destroy();
+        } , 
+
+        updateToken : async ( _ , {token } , {db , user}) => {
+            
+            try { 
+
+                await user.update({
+                    token : token 
+                })
+
+                return token 
+            }catch(error) {
+                return new ApolloError(error.message) ; 
+            }
+
+
+        } , 
+        logOut : async ( _  , {} , {db, user}) => {
+            try { 
+
+                await user.update( {
+                    isActive : false , 
+                    token : null 
+                }) ; 
+
+
+                return user ; 
+                
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
+            }
         }
 
 

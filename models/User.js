@@ -132,11 +132,18 @@ module.exports = (Sequelize, DataTypes) => {
       }
     },
     createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE
+    updatedAt: DataTypes.DATE ,
 
 
+    token : { 
+      type : DataTypes.STRING , 
+      allowNull : true , 
+    } , 
   }, {
-    timestamps: true
+    timestamps: true , 
+    
+    charset: "utf8mb4",
+    collate: "utf8mb4_general_ci"
   });
 
   user.associate = (db) => {

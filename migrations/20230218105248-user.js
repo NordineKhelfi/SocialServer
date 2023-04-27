@@ -129,13 +129,19 @@ module.exports = {
         allowNull : true , 
         defaultValue : Sequelize.literal('CURRENT_TIMESTAMP')
       } , 
+
+      token : { 
+        type : Sequelize.STRING , 
+        allowNull : true , 
+      } , 
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE
 
     }, {
       timestamps: true,
-      charset: "utf8",
-      collate: "utf8_general_ci"
+   
+      charset: "utf8mb4",
+      collate: "utf8mb4_general_ci"
     })
   },
 

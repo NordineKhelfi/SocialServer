@@ -132,44 +132,7 @@ export default {
                 else
                     return null;
 
-
-                /*
-                if (conversation && conversation.length )
-                return conversation && conversation
-                */
-
-                // get the conversation between the user and the user by the given id 
-                var conversations = await db.Conversation.findAll({
-                    include: [{
-                        model: db.ConversationMember,
-                        as: "members",
-                        where: {
-                            userId: user.id
-                        },
-                        include: [{
-                            model: db.User,
-                            as: "user",
-
-                        }]
-                    }],
-                    where: {
-                        type: type
-                    }
-                })
-
-                var conversation = null
-
-                for (let index = 0; index < conversations.length; index++) {
-                    const fIndex = conversations[index].members.findIndex(member => member.userId == userId)
-                    if (fIndex >= 0) {
-                        conversation = conversations[index];
-                        break;
-                    }
-                }
-
-                return conversation;
-
-                return null;
+ 
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -287,8 +250,10 @@ export default {
 
                 pubSub.publish("CONVERSATION_SAW", {
                     conversationSaw: conversationMember
-                })
+                }) ; 
 
+ 
+                
                 return currentTimeTamps;
 
             } catch (error) {

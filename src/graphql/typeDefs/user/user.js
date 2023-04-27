@@ -16,6 +16,9 @@ export default gql`
         toggleDisable : User! @userAuth 
         togglePrivate : User! @userAuth 
         deleteAccount : ID! @userAuth 
+        updateToken(token : String!) : String! @userAuth 
+        logOut : User! @userAuth 
+
     } 
 
 

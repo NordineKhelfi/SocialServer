@@ -54,7 +54,7 @@ export default {
     },
 
     Mutation: {
-        replay: async (_, { replayInput }, { db, user }) => {
+        replay: async (_, { replayInput }, { db, user , sendPushNotification }) => {
             try {
                 // vdalited the input
                 await ReplayValidator.validate(replayInput, { abortEarly: true });
@@ -87,6 +87,29 @@ export default {
                 replayInput.commentId = comment.id;
                 replayInput.comment = comment;
                 replayInput.id = result.id;
+
+
+                if (user.id != comment.userId) {
+                    sendPushNotification(
+                        await comment.getUser() , 
+                        { 
+                            type : "comment-replay" , 
+                            replay : {
+                                id : result.id , 
+                                replay : replayInput.replay , 
+                                isRecord: replayInput.media != null,
+                                user : { 
+                                    name : user.name , 
+                                    lastname : user.lastname , 
+                                    profilePicture :  await user.getProfilePicture()
+                                }
+                            } , 
+                            comment : { 
+                                id : comment.id 
+                            }   
+                        }
+                    )
+                }
 
                 return replayInput;
 

@@ -51,7 +51,7 @@ export default {
 
     },
     Mutation: {
-        sendMessage: async (_, { messageInput }, { db, user, pubSub }) => {
+        sendMessage: async (_, { messageInput }, { db, user, pubSub , sendPushNotification }) => {
 
 
 
@@ -115,9 +115,33 @@ export default {
                 });
 
                 messageInput.conversation.members = members;
+
+
+
                 pubSub.publish("NEW_MESSAGE", {
                     newMessage: messageInput
                 });
+
+                for ( let index = 0 ; index < members.length ; index++) {
+                    if (user.id == members[index].userId) 
+                        continue ; 
+                    sendPushNotification(
+                        await members[index].getUser() , 
+                        { 
+                            type : "message" , 
+                            user : {
+                                name : user.name , 
+                                lastname : user.lastname , 
+                                profilePicture : await user.getProfilePicture() 
+                            } , 
+                            message : { 
+                                conversationId : message.conversationId , 
+                                type : message.type , 
+                                content : message.content 
+                            }
+                        }
+                    )
+                } 
 
                 return messageInput
 

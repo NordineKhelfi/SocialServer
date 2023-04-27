@@ -168,7 +168,7 @@ export default {
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR);
 
                 if (post.type == "reel") {
- 
+
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
@@ -204,10 +204,12 @@ export default {
                 post.media = medium;
                 await user.update({
                     numPosts: user.numPosts + 1
-                })
+                });
+
                 return post;
 
             } catch (error) {
+                console.log(error);
                 return new ApolloError(error.message);
             }
         },
@@ -247,7 +249,7 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        like: async (_, { postId }, { db, user }) => {
+        like: async (_, { postId }, { db, user, sendPushNotification }) => {
 
             try {
                 // get the post and check if it's exists 
@@ -258,18 +260,18 @@ export default {
                 // check if this post is allready likes or not 
                 const likes = (await user.getLikes({
                     where: {
-                        postId : postId
+                        postId: postId
                     }
                 })).pop();
 
-            
+
                 // if the post allready liked remove the likes 
                 // and decreese the number of likes in the post 
                 if (likes) {
                     await likes.destroy()
-                   
+
                     await post.update({ likes: post.likes - 1 })
-                   
+
                     return false;
 
                 } else {
@@ -278,11 +280,30 @@ export default {
                     // and increase the likes in the post  
 
                     await db.Like.create({
-                        userId : user.id  , 
-                        postId : post.id 
-                    })
-                    
+                        userId: user.id,
+                        postId: post.id
+                    });
+
                     await post.update({ likes: post.likes + 1 })
+                    if (user.id != post.userId)
+                        sendPushNotification(
+                            await post.getUser(),
+                            {
+                                type: "post-like",
+                                user: {
+                                    name: user.name,
+                                    lastname: user.lastname,
+                                    profilePicture: await user.getProfilePicture()
+                                },
+                                post: {
+                                    title: post.title,
+                                    type: post.type,
+                                    likes: post.likes,
+
+                                }
+                            }
+                        )
+                 
                     return true;
                 }
 
@@ -306,7 +327,7 @@ export default {
                         id: postId
                     }
                 });
- 
+
 
                 // if the post allready liked remove the favorites
                 if (favorites && favorites.length > 0) {

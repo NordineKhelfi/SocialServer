@@ -53,6 +53,12 @@ module.exports = (Sequelize, DataTypes) => {
             as: "user"
         });
 
+     
+        Post.hasMany(db.Like , { 
+            foreignKey : "postId" , 
+            as : "postLikes"
+        })
+
         Post.belongsToMany(db.Media, {
             through: "PostMedia",
             as: "media"

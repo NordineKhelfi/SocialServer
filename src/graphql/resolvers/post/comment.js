@@ -65,7 +65,7 @@ export default {
     },
 
     Mutation: {
-        comment: async (_, { commentInput }, { db, user }) => {
+        comment: async (_, { commentInput }, { db, user, sendPushNotification }) => {
 
             try {
                 //* validate comment input 
@@ -96,9 +96,34 @@ export default {
                 commentInput.post = post;
 
 
+
                 await post.update({
                     numComments: post.numComments + 1
-                })
+                });
+
+                if (user.id != post.userId)
+                    sendPushNotification(
+                        await await post.getUser(),
+                        {
+                            type: "post-comment",
+                            post: {
+                                id : post.id , 
+                                title: post.title,
+                                type: post.type
+                            },
+                            comment: {
+                                
+                                comment: commentInput.comment,
+                                isRecord: commentInput.media != null,
+                                user: {
+                                    name: user.name,
+                                    lastname: user.lastname,
+                                    profilePicture: await user.getProfilePicture()
+                                }
+
+                            }
+                        }
+                    )
 
 
                 return commentInput;
