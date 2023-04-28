@@ -49,13 +49,13 @@ export default {
                     for (let index = 0; index < posts.length; index++) {
                         posts[index].liked = (await user.getLikes({
                             where: {
-                                id: posts[index].id
+                                postId : posts[index].id
                             }
                         })).length > 0;
 
                         posts[index].isFavorite = (await user.getFavorites({
                             where: {
-                                id: posts[index].id
+                                id : posts[index].id
                             }
                         })).length > 0;
 
@@ -81,7 +81,7 @@ export default {
             try {
 
                 var followings = await user.getFollowing();
-                followings = followings.map(following => following.id);
+                followings = followings.map(following => following.followingId);
 
                 if (!time)
                     time = new Date().toISOString();
@@ -127,7 +127,7 @@ export default {
                 for (let index = 0; index < posts.length; index++) {
                     posts[index].liked = (await user.getLikes({
                         where: {
-                            id: posts[index].id
+                            postId: posts[index].id
                         }
                     })).length > 0;
 
