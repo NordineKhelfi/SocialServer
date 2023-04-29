@@ -143,6 +143,63 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message)
             }
+        },
+        getPostById: async (_, { postId }, { db, user }) => {
+            try {
+
+                var post = await db.Post.findOne({
+                    include: [{
+                        model: db.User,
+                        as: "user",
+                        include: [{
+                            model: db.Media,
+                            as: "profilePicture"
+                        }]
+                    }, {
+                        model: db.Media,
+                        as: "media"
+                    }, {
+
+                        model: db.Reel,
+                        as: "reel",
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
+                        }]
+
+                    }],
+                    where: {
+                        id: postId
+                    }
+                });
+
+
+                if (post && user) {
+
+                    post.liked = (await user.getLikes({
+                        where: {
+                            postId: post.id
+                        }
+                    })).length > 0;
+
+                    post.isFavorite = (await user.getFavorites({
+                        where: {
+                            id: post.id
+                        }
+                    })).length > 0;
+
+                } else if (post) {
+
+                    post.liked = false;
+                    post.isFavorite = false;
+
+
+                }
+
+                return post;
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
     },
 
@@ -303,7 +360,7 @@ export default {
                                 }
                             }
                         )
-                 
+
                     return true;
                 }
 
