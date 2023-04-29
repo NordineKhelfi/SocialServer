@@ -61,6 +61,59 @@ export default {
             }
 
 
+        },
+        getCommentById: async (_, { commentId }, { db, user }) => {
+            try {
+
+                // get all the comments for the given post
+                // and includes the replays and the media
+                var comment = await db.Comment.findOne({
+
+                    include: [
+                        {
+                            model: db.Media,
+                            as: "media"
+                        },
+                        {
+                            model: db.Replay,
+                            as: "replays",
+
+                        },
+                        {
+                            model: db.Post,
+                            as: "post"
+                        },
+                        {
+                            model: db.User,
+                            as: "user",
+                            include: [{
+                                model: db.Media,
+                                as: "profilePicture"
+                            }]
+                        }
+                    ],
+                    where: {
+                        id: commentId
+                    },
+                });
+
+                // count the replays and assign it to the numReplays attribute 
+                // and check if this comment is allready been liked by the user or not  
+
+                if (comment) {
+                    comment.numReplays = comment.replays.length;
+                    comment.liked = (await user.getCommentLikes({
+                        where: {
+                            id: comment.id
+                        }
+                    })).length > 0;
+                }
+                return comment;
+
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
     },
 
@@ -107,12 +160,12 @@ export default {
                         {
                             type: "post-comment",
                             post: {
-                                id : post.id , 
+                                id: post.id,
                                 title: post.title,
                                 type: post.type
                             },
                             comment: {
-                                
+
                                 comment: commentInput.comment,
                                 isRecord: commentInput.media != null,
                                 user: {

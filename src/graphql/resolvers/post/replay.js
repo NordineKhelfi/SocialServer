@@ -37,7 +37,7 @@ export default {
 
                 // and check if this replays is allready been liked by the user or not  
                 for (let index = 0; index < replays.length; index++) {
-                   
+
                     replays[index].liked = (await user.getReplayLikes({
                         where: {
                             id: replays[index].id
@@ -50,11 +50,63 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
+        },
+
+
+        getReplayById: async (_, { replayId }, { db, user }) => {
+            try {
+                // get replays that belongs to the given comment between the offset and limit 
+                var replay = await db.Replay.findOne({
+                    include: [{
+                        model: db.Media,
+                        as: "media"
+                    }, {
+                        model: db.User,
+                        as: "user",
+                        include: [
+                            {
+                                model: db.Media,
+                                as: "profilePicture"
+                            }
+                        ]
+                    } , {
+                        model : db.Comment , 
+                        as : "comment" , 
+                        include : [{ 
+                            model : db.User , 
+                            as : "user" , 
+                            include  :[{
+                                model : db.Media , 
+                                as : "profilePicture"
+                            }]
+                        }]
+                    }], 
+                    where : { 
+                        id : replayId 
+                    }
+
+                });
+
+                // and check if this replays is allready been liked by the user or not  
+                if (replay) {
+
+                    replay.liked = (await user.getReplayLikes({
+                        where: {
+                            id: replay.id
+                        }
+                    })).length > 0;
+                }
+
+                return replay;
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
     },
 
     Mutation: {
-        replay: async (_, { replayInput }, { db, user , sendPushNotification }) => {
+        replay: async (_, { replayInput }, { db, user, sendPushNotification }) => {
             try {
                 // vdalited the input
                 await ReplayValidator.validate(replayInput, { abortEarly: true });
@@ -91,22 +143,22 @@ export default {
 
                 if (user.id != comment.userId) {
                     sendPushNotification(
-                        await comment.getUser() , 
-                        { 
-                            type : "comment-replay" , 
-                            replay : {
-                                id : result.id , 
-                                replay : replayInput.replay , 
+                        await comment.getUser(),
+                        {
+                            type: "comment-replay",
+                            replay: {
+                                id: result.id,
+                                replay: replayInput.replay,
                                 isRecord: replayInput.media != null,
-                                user : { 
-                                    name : user.name , 
-                                    lastname : user.lastname , 
-                                    profilePicture :  await user.getProfilePicture()
+                                user: {
+                                    name: user.name,
+                                    lastname: user.lastname,
+                                    profilePicture: await user.getProfilePicture()
                                 }
-                            } , 
-                            comment : { 
-                                id : comment.id 
-                            }   
+                            },
+                            comment: {
+                                id: comment.id
+                            }
                         }
                     )
                 }

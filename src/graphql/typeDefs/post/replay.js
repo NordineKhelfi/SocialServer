@@ -5,6 +5,7 @@ export default gql`
 
     extend type Query { 
         getCommentReplays (commentId : ID! , offset : Int! , limit : Int!) : [Replay!]! @userAuth
+        getReplayById(replayId : ID!) : Replay @userAuth 
     }
 
     extend type Mutation { 

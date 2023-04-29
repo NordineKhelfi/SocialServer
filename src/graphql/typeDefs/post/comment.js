@@ -5,11 +5,13 @@ export default gql`
 
     extend type Query { 
         getPostComments (postId : ID! , offset : Int! , limit : Int!) : [Comment!]! @userAuth
+        getCommentById(commentId : ID!) : Comment @userAuth 
     }
 
     extend type Mutation { 
         comment(commentInput : CommentInput!) :  Comment! @userAuth 
         likeComment (commentId : ID!) : Boolean! @userAuth 
+
     }
 
 
