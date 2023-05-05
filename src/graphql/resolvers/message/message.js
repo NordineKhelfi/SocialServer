@@ -53,7 +53,7 @@ export default {
     Mutation: {
         sendMessage: async (_, { messageInput }, { db, user, pubSub , sendPushNotification }) => {
 
-
+            
 
             try {
                 // validate the conversation input 
@@ -146,6 +146,7 @@ export default {
                 return messageInput
 
             } catch (error) {
+                console.log(error.message) ; 
                 return new ApolloError(error.message);
             }
 

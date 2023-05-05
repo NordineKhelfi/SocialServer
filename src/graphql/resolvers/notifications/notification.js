@@ -50,32 +50,32 @@ export default {
 
                 var likes = await db.Like.findAll({
                     attributes: ['postId'],
-                    group : "postId" , 
-                    include : [{
-                        model : db.Post, 
-                        as : "post" ,
-                        where : { 
-                            userId : user.id 
-                        } , 
-                        include : [{            
-                            model : db.Like ,
-                            as : "postLikes"  ,  
-                            required : true   , 
-                            where : { 
-                                userId : {
-                                    [Op.not] : user.id 
+                    group: "postId",
+                    include: [{
+                        model: db.Post,
+                        as: "post",
+                        where: {
+                            userId: user.id
+                        },
+                        include: [{
+                            model: db.Like,
+                            as: "postLikes",
+                            required: true,
+                            where: {
+                                userId: {
+                                    [Op.not]: user.id
                                 }
-                            } , 
-                            include : [{
-                                model : db.User , 
-                                as : "user" , 
-                                include : [{ 
-                                    model : db.Media , 
-                                    as : "profilePicture"
+                            },
+                            include: [{
+                                model: db.User,
+                                as: "user",
+                                include: [{
+                                    model: db.Media,
+                                    as: "profilePicture"
                                 }]
                             }]
-                         
-                        },  {
+
+                        }, {
                             model: db.Media,
                             as: "media",
                         }, {
@@ -86,92 +86,31 @@ export default {
                                 as: "thumbnail"
                             }]
                         }]
-                    } ] , 
-                    order : [["post" , "postLikes" , "createdAt" , "DESC"]] , 
-                    limit  : [offset , limit]
+                    }],
+                    order: [["post", "postLikes", "createdAt", "DESC"]],
+                    limit: [offset, limit]
                 });
 
 
 
                 return likes.map(like => {
 
-                    const {post } = like ; 
+                    const { post } = like;
 
                     //console.log( JSON.parse(JSON.stringify(post)))  ;
 
 
-                    
-                    var postLike = post.postLikes[0] ; 
-                    
-                    postLike.post = JSON.parse(JSON.stringify(post)) ;  
+
+                    var postLike = post.postLikes[0];
+
+                    postLike.post = JSON.parse(JSON.stringify(post));
 
                     return {
-                        like : postLike 
+                        like: postLike
                     }
 
-                    //return { like };
 
                 })
-
-
-                /*
-                var posts = await user.getPosts({
-
-
-
-                    include: [{
-                        model: db.Like,
-                        as: "newestLike",
-                        where : { 
-
-                        } , 
-                        order : [["id" , "DESC"]]  ,
-                        include: [{
-                            model: db.User,
-                            as: "user",
-
-                            include: [{
-                                model: db.Media,
-                                as: "profilePicture"
-                            }]
-                        }],
-
-                    },
-                    {
-                        model: db.Media,
-                        as: "media",
-                    }, {
-                        model: db.Reel,
-                        as: "reel",
-                        include: [{
-                            model: db.Media,
-                            as: "thumbnail"
-                        }]
-                    }],
-                   
-                    order: [
-                    
-                        [Sequelize.literal('`newestLike.createdAt` DESC')]
-                    ],
-                   
-                    limit: [offset, limit],
-
-
-                });
-
-                return posts.map(post => {
-
-                    var like = post.newestLike;
-                    like.post = post;
-                    return { like };
-
-                })
-
-
-                */
-
-
-                return [];
 
             } catch (error) {
                 return new ApolloError(error.message);
@@ -200,16 +139,27 @@ export default {
                             userId: user.id
                         }
                     }],
-                    
-                    where :{ 
-                        userId: { 
-                            [Op.not] : user.id 
-                        } 
-                    } , 
+
+                    where: {
+                        userId: {
+                            [Op.not]: user.id
+                        }
+                    },
                     offset, limit,
                     order: [["createdAt", "DESC"]]
                 });
 
+
+                for(let index = 0 ; index < storyComments.length ; index ++) { 
+                    storyComments[index].story.liked = (await user.getStoryLikes({
+                        where: {
+                            storyId: storyComments[index].story.id
+                        }
+                    })).length > 0;
+
+
+                
+                }
 
                 return storyComments.map(storyComment => ({
                     storyComment
@@ -222,7 +172,7 @@ export default {
         getCommentPostNotification: async (_, { offset, limit }, { db, user }) => {
             try {
                 var comments = await db.Comment.findAll({
-                    
+
 
                     include: [{
                         model: db.User,
@@ -249,20 +199,22 @@ export default {
                             userId: user.id
                         }
                     }, {
-                        model : db.Media , 
-                        as : "media"
-                    }],
+                        model: db.Media,
+                        as: "media"
+                    } ],
 
 
 
-                    where :{ 
-                        userId: { 
-                            [Op.not] : user.id 
-                        } 
-                    } , 
+                    where: {
+                        userId: {
+                            [Op.not]: user.id
+                        }
+                    },
                     order: [["createdAt", "DESC"]],
                     offset, limit
                 });
+
+             
                 return comments.map(comment => ({
                     comment
                 }));
@@ -308,15 +260,20 @@ export default {
                         model: db.Media,
                         as: "media"
                     }],
-                    
-                    where :{ 
-                        userId: { 
-                            [Op.not] : user.id 
-                        } 
-                    } , 
+
+                    where: {
+                        userId: {
+                            [Op.not]: user.id
+                        }
+                    },
                     order: [["createdAt", "DESC"]],
                     offset, limit
                 });
+
+
+        
+                // count the replays and assign it to the numReplays attribute 
+                // and check if this comment is allready been liked by the user or not  
 
                 return replays.map(replay => ({
                     replay

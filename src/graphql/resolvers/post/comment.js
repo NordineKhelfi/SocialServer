@@ -102,6 +102,7 @@ export default {
 
                 if (comment) {
                     comment.numReplays = comment.replays.length;
+                  
                     comment.liked = (await user.getCommentLikes({
                         where: {
                             id: comment.id

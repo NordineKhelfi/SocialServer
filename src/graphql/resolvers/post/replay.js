@@ -79,6 +79,9 @@ export default {
                                 model : db.Media , 
                                 as : "profilePicture"
                             }]
+                        }, { 
+                            model : db.Replay , 
+                            as : "replays"
                         }]
                     }], 
                     where : { 
@@ -93,6 +96,14 @@ export default {
                     replay.liked = (await user.getReplayLikes({
                         where: {
                             id: replay.id
+                        }
+                    })).length > 0;
+
+
+                    replay.comment.numReplays = replay.comment.replays.length;
+                    replay.comment.liked = (await user.getCommentLikes({
+                        where: {
+                            id: replay.comment.id
                         }
                     })).length > 0;
                 }
