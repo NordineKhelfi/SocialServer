@@ -228,6 +228,11 @@ module.exports = (Sequelize, DataTypes) => {
       through: "StorySeen"
     });
 
+
+    user.hasOne(db.NotificationsState , {
+      as : "notificationsState" , 
+      foreignKey : "userId"
+    })
     
 
 

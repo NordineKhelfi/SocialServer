@@ -76,6 +76,7 @@ export default {
                         target,
                         {
                             type: "follow", user: {
+                                id : user.id , 
                                 name: user.name,
                                 lastname: user.lastname,
                                 profilePicture: await user.getProfilePicture()

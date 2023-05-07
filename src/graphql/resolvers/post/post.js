@@ -353,6 +353,7 @@ export default {
                                     profilePicture: await user.getProfilePicture()
                                 },
                                 post: {
+                                    id : post.id , 
                                     title: post.title,
                                     type: post.type,
                                     likes: post.likes,

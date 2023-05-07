@@ -130,6 +130,7 @@ export default {
                         { 
                             type : "message" , 
                             user : {
+                                id : user.id , 
                                 name : user.name , 
                                 lastname : user.lastname , 
                                 profilePicture : await user.getProfilePicture() 

@@ -97,8 +97,7 @@ export default {
 
                     const { post } = like;
 
-                    //console.log( JSON.parse(JSON.stringify(post)))  ;
-
+             
 
 
                     var postLike = post.postLikes[0];

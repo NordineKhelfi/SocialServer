@@ -166,7 +166,7 @@ export default {
                                 type: post.type
                             },
                             comment: {
-
+                                id : result.id , 
                                 comment: commentInput.comment,
                                 isRecord: commentInput.media != null,
                                 user: {

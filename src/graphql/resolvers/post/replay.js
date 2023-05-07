@@ -82,6 +82,9 @@ export default {
                         }, { 
                             model : db.Replay , 
                             as : "replays"
+                        }, {
+                            model : db.Post , 
+                            as : "post"
                         }]
                     }], 
                     where : { 
