@@ -102,7 +102,7 @@ export default {
 
                 if (comment) {
                     comment.numReplays = comment.replays.length;
-                  
+
                     comment.liked = (await user.getCommentLikes({
                         where: {
                             id: comment.id
@@ -119,18 +119,32 @@ export default {
     },
 
     Mutation: {
-        comment: async (_, { commentInput }, { db, user, sendPushNotification }) => {
+        comment: async (_, { commentInput }, { db, user, sendPushNotification, pubSub }) => {
 
             try {
                 //* validate comment input 
                 await CommentValidator.validate(commentInput, { abortEarly: true });
                 // check if the post really exists 
-                const post = await db.Post.findByPk(commentInput.postId);
+                const post = await db.Post.findByPk(commentInput.postId, {
+                    include: [{
+                        model: db.Media,
+                        as: "media",
+
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
+                        }]
+                    }]
+                });
 
                 if (post == null)
                     throw new Error("post not found");
                 // if the post exists and the comment input is valid 
                 // assign this comment to the user 
+                user.profilePicture = await user.getProfilePicture();
                 commentInput.userId = user.id;
                 commentInput.user = user;
 
@@ -148,6 +162,7 @@ export default {
                 const result = await post.createComment(commentInput);
                 commentInput.id = result.id;
                 commentInput.post = post;
+                commentInput.createdAt = new Date();
 
 
 
@@ -166,18 +181,23 @@ export default {
                                 type: post.type
                             },
                             comment: {
-                                id : result.id , 
+                                id: result.id,
                                 comment: commentInput.comment,
                                 isRecord: commentInput.media != null,
                                 user: {
                                     name: user.name,
                                     lastname: user.lastname,
-                                    profilePicture: await user.getProfilePicture()
+                                    profilePicture: user.profilePicture
                                 }
 
                             }
                         }
                     )
+
+
+                pubSub.publish('NEW_COMMENT', {
+                    newComment: commentInput
+                })
 
 
                 return commentInput;

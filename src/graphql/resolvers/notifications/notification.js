@@ -318,18 +318,14 @@ export default {
         newComment: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_COMMENT`),
-                (_, { newComment }, { isUserAuth, user }) => {
+                ({newComment }, { }, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
                         return false;
 
+                    return newComment.post.userId == user.id ; 
 
-                    /*
                     
-                        put your filting code here
-                    */
-
-                    return true ; 
                      
                 }
             )
