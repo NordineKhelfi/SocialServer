@@ -333,19 +333,12 @@ export default {
         newReplay: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_REPLAY`),
-                (_, { newReplay }, { isUserAuth, user }) => {
+                ({newReplay  }, {  }, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
                         return false;
 
-
-                    /*
-                    
-                        put your filting code here
-                    */
-
-                    return true ; 
-                     
+                    return newReplay.comment.userId == user.id ;
                 }
             )
         } ,

@@ -120,18 +120,35 @@ export default {
     },
 
     Mutation: {
-        replay: async (_, { replayInput }, { db, user, sendPushNotification }) => {
+        replay: async (_, { replayInput }, { db, user, sendPushNotification , pubSub }) => {
             try {
                 // vdalited the input
                 await ReplayValidator.validate(replayInput, { abortEarly: true });
                 // check if the comment realy exists 
-                const comment = await db.Comment.findByPk(replayInput.commentId);
+                const comment = await db.Comment.findByPk(replayInput.commentId , { 
+                    include : [{
+                        model : db.Post , 
+                        as : "post" , 
+                        include : [{
+                            model : db.Reel , 
+                            as : "reel" ,
+                            include : [{
+                                model : db.Media , 
+                                as : "thumbnail"
+                            }]
+                        } , { 
+                            model : db.Media , 
+                            as : "media"
+                        }]
+                    }]
+                });
 
                 if (comment == null)
                     throw new Error("Comment not found");
 
                 // if the comment exists and the replay input is valid 
                 // assign this replay to the comment 
+                user.profilePicture = await user.getProfilePicture() ; 
                 replayInput.userId = user.id;
                 replayInput.user = user;
 
@@ -153,6 +170,7 @@ export default {
                 replayInput.commentId = comment.id;
                 replayInput.comment = comment;
                 replayInput.id = result.id;
+                replayInput.createdAt = new Date() ; 
 
 
                 if (user.id != comment.userId) {
@@ -167,7 +185,7 @@ export default {
                                 user: {
                                     name: user.name,
                                     lastname: user.lastname,
-                                    profilePicture: await user.getProfilePicture()
+                                    profilePicture: user.profilePicture
                                 }
                             },
                             comment: {
@@ -176,6 +194,11 @@ export default {
                         }
                     )
                 }
+
+
+                pubSub.publish("NEW_REPLAY" , {
+                    newReplay : replayInput 
+                })
 
                 return replayInput;
 
