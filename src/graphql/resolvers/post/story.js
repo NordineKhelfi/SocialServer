@@ -153,10 +153,13 @@ export default {
                 // assign the media id and object 
                 storyInput.mediaId = media.id;
                 storyInput.media = media;
+
                 // assign the user id 
                 // and object
                 storyInput.userId = user.id;
                 storyInput.user = user;
+
+
 
                 var story = await db.Story.create(storyInput);
                 story.media = media;
@@ -165,6 +168,8 @@ export default {
 
 
                 setTimeout(destroyStory, DAY, story);
+
+
 
 
                 return storyInput;
@@ -213,41 +218,61 @@ export default {
             }
         },
 
-        commentStory: async (_, { storyCommentInput }, { db, user, sendPushNotification }) => {
+        commentStory: async (_, { storyCommentInput }, { db, user, sendPushNotification , pubSub }) => {
             try {
                 // check if the story exists 
-                const story = await db.Story.findByPk(storyCommentInput.storyId);
+                const story = await db.Story.findByPk(storyCommentInput.storyId, {
+                    include: [{
+                        model: db.Media,
+                        as: "media"
+                    }]
+                });
                 if (story == null)
                     throw new Error("Story not found");
 
                 // asssign the needed attribues to the story input 
+                user.profilePicture = await user.getProfilePicture();
+
                 storyCommentInput.story = story;
                 storyCommentInput.userId = user.id;
                 storyCommentInput.user = user;
+
 
                 const result = await user.createStoryComment(storyCommentInput)
                 storyCommentInput.id = result.id;
                 storyCommentInput.createdAt = new Date();
 
-                if (story.userId != user.id) { 
+                if (story.userId != user.id) {
                     sendPushNotification(
-                        await story.getUser() , 
+                        await story.getUser(),
                         {
-                            type : "story-comment" , 
-                            user : { 
-                                name : user.name , 
-                                lastname : user.lastname , 
-                                profilePicture : await user.getProfilePicture() 
-                            } , 
-                            storyComment : { 
-                                id :  storyCommentInput.id , 
-                                comment :  storyCommentInput.comment , 
+                            type: "story-comment",
+                            user: {
+                                name: user.name,
+                                lastname: user.lastname,
+                                profilePicture: user.profilePicture
+                            },
+                            storyComment: {
+                                id: storyCommentInput.id,
+                                comment: storyCommentInput.comment,
                             }
                         }
                     )
                 }
 
-                    return storyCommentInput;
+                const liked = (await story.getLikes({
+                    where : {
+                        id : story.userId 
+                    }
+                })).pop() != null ; 
+
+                storyCommentInput.story.liked = liked ; 
+
+                pubSub.publish('NEW_STORY_COMMENT' , {
+                    newStoryComment : storyCommentInput 
+                })
+
+                return storyCommentInput;
 
             } catch (error) {
                 return new ApolloError(error.message);
