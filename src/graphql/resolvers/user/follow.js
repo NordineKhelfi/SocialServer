@@ -39,7 +39,7 @@ export default {
 
 
     Mutation: {
-        toggleFollow: async (_, { userId }, { db, user, sendPushNotification }) => {
+        toggleFollow: async (_, { userId }, { db, user, sendPushNotification , pubSub }) => {
 
             try {
 
@@ -60,7 +60,7 @@ export default {
 
                 if (!following) {
                     // the user is not blocked 
-                    await db.Follow.create({
+                    var follow = await db.Follow.create({
                         userId: user.id,
                         followingId: target.id
                     });
@@ -71,7 +71,7 @@ export default {
                         numFollowers: target.numFollowers + 1
                     });
 
-
+                    user.profilePicture = await user.getProfilePicture() ; 
                     sendPushNotification(
                         target,
                         {
@@ -79,10 +79,26 @@ export default {
                                 id : user.id , 
                                 name: user.name,
                                 lastname: user.lastname,
-                                profilePicture: await user.getProfilePicture()
+                                profilePicture: user.profilePicture 
                             }
                         }
                     );
+                    var isFollowed = false ; 
+              
+                    var isFollowed = (await user.getFollowers({
+                        where : { 
+                            userId : target.id 
+                        }
+                    })).pop() != null ; 
+                
+                    follow.createdAt = new Date() ; 
+                    follow.user = user ;  
+                    follow.user.isFollowed = isFollowed ; 
+                    pubSub.publish("NEW_FOLLOW" , { 
+                        newFollow : follow  
+                    }) ; 
+
+
 
                     return true;
 

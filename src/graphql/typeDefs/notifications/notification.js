@@ -10,6 +10,15 @@ export default gql`
         
     }
 
+    extend type Subscription  {
+        newFollow : Follow!  
+        newLike : Like! 
+        newComment : Comment! 
+        newReplay : Replay! 
+        newStoryComment : StoryComment! 
+
+    }
+
     type FollowNotification {
         follow : Follow! 
     }  

@@ -161,7 +161,7 @@ export default {
                     throw new Error("Notifications State not found !");
 
                 notificationState = await notificationState.update({
-                    seeFollowNotifications: new Date().toISOString()
+                    sawFollowNotificationAt: new Date().toISOString()
                 })
 
                 return notificationState
@@ -180,7 +180,7 @@ export default {
                     throw new Error("Notifications State not found !");
 
                 notificationState = await notificationState.update({
-                    seeCommentNotifications: new Date().toISOString()
+                    sawCommentNotificationAt: new Date().toISOString()
                 })
 
                 return notificationState

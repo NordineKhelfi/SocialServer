@@ -1,4 +1,5 @@
 import { ApolloError } from "apollo-server-express"
+import { withFilter } from "graphql-subscriptions";
 import { Op, Sequelize } from "sequelize";
 
 export default {
@@ -97,7 +98,7 @@ export default {
 
                     const { post } = like;
 
-             
+
 
 
                     var postLike = post.postLikes[0];
@@ -149,7 +150,7 @@ export default {
                 });
 
 
-                for(let index = 0 ; index < storyComments.length ; index ++) { 
+                for (let index = 0; index < storyComments.length; index++) {
                     storyComments[index].story.liked = (await user.getStoryLikes({
                         where: {
                             storyId: storyComments[index].story.id
@@ -157,7 +158,7 @@ export default {
                     })).length > 0;
 
 
-                
+
                 }
 
                 return storyComments.map(storyComment => ({
@@ -200,7 +201,7 @@ export default {
                     }, {
                         model: db.Media,
                         as: "media"
-                    } ],
+                    }],
 
 
 
@@ -213,7 +214,7 @@ export default {
                     offset, limit
                 });
 
-             
+
                 return comments.map(comment => ({
                     comment
                 }));
@@ -270,7 +271,7 @@ export default {
                 });
 
 
-        
+
                 // count the replays and assign it to the numReplays attribute 
                 // and check if this comment is allready been liked by the user or not  
 
@@ -283,5 +284,101 @@ export default {
                 return new ApolloError(error.message);
             }
         },
+    },
+
+    Subscription: {
+        newFollow: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_FOLLOW`),
+                
+                ({newFollow}, {  }, { isUserAuth, user }) => {
+
+        
+                    if (!isUserAuth)
+                        return false;
+        
+ 
+                    
+                    return newFollow.followingId == user.id ; 
+                     
+                }
+            )
+        } , 
+        newLike: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_LIKE`),
+                (_, { newLike }, { isUserAuth, user }) => {
+
+                    if (!isUserAuth)
+                        return false;
+
+
+                    /*
+                    
+                        put your filting code here
+                    */
+
+                    return true ; 
+                     
+                }
+            )
+        } , 
+        newComment: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_COMMENT`),
+                (_, { newComment }, { isUserAuth, user }) => {
+
+                    if (!isUserAuth)
+                        return false;
+
+
+                    /*
+                    
+                        put your filting code here
+                    */
+
+                    return true ; 
+                     
+                }
+            )
+        } ,
+        newReplay: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_REPLAY`),
+                (_, { newReplay }, { isUserAuth, user }) => {
+
+                    if (!isUserAuth)
+                        return false;
+
+
+                    /*
+                    
+                        put your filting code here
+                    */
+
+                    return true ; 
+                     
+                }
+            )
+        } ,
+        newStoryComment: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_STORY_COMMENT`),
+                (_, { newStoryComment }, { isUserAuth, user }) => {
+
+                    if (!isUserAuth)
+                        return false;
+
+
+                    /*
+                    
+                        put your filting code here
+                    */
+
+                    return true ; 
+                     
+                }
+            )
+        }
     }
 }
