@@ -307,19 +307,11 @@ export default {
         newLike: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_LIKE`),
-                (_, { newLike }, { isUserAuth, user }) => {
+                ( { newLike  }, { } , { isUserAuth, user }) => {
 
                     if (!isUserAuth)
                         return false;
-
-
-                    /*
-                    
-                        put your filting code here
-                    */
-
-                    return true ; 
-                     
+                    return newLike.post.userId == user.id ;                      
                 }
             )
         } , 

@@ -306,11 +306,23 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        like: async (_, { postId }, { db, user, sendPushNotification }) => {
+        like: async (_, { postId }, { db, user, sendPushNotification , pubSub }) => {
 
             try {
                 // get the post and check if it's exists 
-                const post = await db.Post.findByPk(postId);
+                const post = await db.Post.findByPk(postId , { 
+                    include : [{
+                        model : db.Media , 
+                        as : "media" , 
+                    } , { 
+                        model : db.Reel , 
+                        as  :"reel" , 
+                        include : [{ 
+                            model  : db.Media , 
+                            as : "thumbnail"
+                        }]
+                    }]
+                });
                 if (!post)
                     throw new Error("Post not found");
 
@@ -326,9 +338,7 @@ export default {
                 // and decreese the number of likes in the post 
                 if (likes) {
                     await likes.destroy()
-
                     await post.update({ likes: post.likes - 1 })
-
                     return false;
 
                 } else {
@@ -336,13 +346,19 @@ export default {
                     // thel add the post to thes like
                     // and increase the likes in the post  
 
-                    await db.Like.create({
+                    var like = await db.Like.create({
                         userId: user.id,
                         postId: post.id
                     });
 
-                    await post.update({ likes: post.likes + 1 })
-                    if (user.id != post.userId)
+
+
+
+
+                    await post.update({ likes: post.likes + 1 }) ; 
+                    user.profilePicture = await user.getProfilePicture() ; 
+
+                    if (user.id != post.userId) {
                         sendPushNotification(
                             await post.getUser(),
                             {
@@ -350,10 +366,10 @@ export default {
                                 user: {
                                     name: user.name,
                                     lastname: user.lastname,
-                                    profilePicture: await user.getProfilePicture()
+                                    profilePicture: user.profilePicture
                                 },
                                 post: {
-                                    id : post.id , 
+                                    id: post.id,
                                     title: post.title,
                                     type: post.type,
                                     likes: post.likes,
@@ -361,7 +377,17 @@ export default {
                                 }
                             }
                         )
+                    }
 
+
+                    like.createdAt = new Date();
+                    like.user = user ; 
+                    like.post = post ; 
+
+                    console.log(JSON.parse(JSON.stringify(like)))  ; 
+                    pubSub.publish("NEW_LIKE" , {
+                        newLike : like 
+                    })    
                     return true;
                 }
 
