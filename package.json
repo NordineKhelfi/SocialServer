@@ -32,10 +32,11 @@
    
     "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.13.0",
-    "yup": "^1.0.0"
+    "yup": "^1.0.0"  , 
+    "esm": "^3.2.25" 
   },
   "devDependencies": {
-    "esm": "^3.2.25" 
+ 
     
   },
   "resolutions": {
