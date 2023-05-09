@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "root",
-    "password": "kachihaja",
-    "database": "Social",
-    "host": "127.0.0.1",
+    "username": "theroyal_social",
+    "password": "kachihaja50",
+    "database": "theroyal_social",
+    "host": "worrisome-pink-school-uniform.cyclic.app",
     "dialect": "mysql" , 
     "logging" : false  , 
     "define": {

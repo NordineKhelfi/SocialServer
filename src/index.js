@@ -1,12 +1,12 @@
 import express from "express";
-import { PORT, UPLOAD_COMMENTS_RECORDS_DIR , ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR } from "./config";
-import { ApolloError, ApolloServer } from "apollo-server-express";
+import { PORT, UPLOAD_COMMENTS_RECORDS_DIR, ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR } from "./config";
+import {  ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
 import { userAuth } from "./middlewares";
 import { graphqlUploadExpress } from "graphql-upload";
 import { makeExecutableSchema } from '@graphql-tools/schema'
-//import db from "../models";
+import db from "../models";
 import { SubscriptionServer } from "subscriptions-transport-ws";
 import { execute, subscribe } from "graphql";
 import { SubscriptionUserAuth } from "./middlewares/userAuth";
@@ -37,7 +37,7 @@ app.use("/" + UPLOAD_REPLAYS_RECORDS_DIR, express.static(UPLOAD_REPLAYS_RECORDS_
 app.use("/" + UPLOAD_MESSAGE_IMAGES_DIR, express.static(UPLOAD_MESSAGE_IMAGES_DIR));
 app.use("/" + UPLOAD_MESSAGE_VIDEOS_DIR, express.static(UPLOAD_MESSAGE_VIDEOS_DIR));
 app.use("/" + UPLOAD_MESSAGE_RECORDS_DIR, express.static(UPLOAD_MESSAGE_RECORDS_DIR));
-app.use("/" + ASSETS , express.static(ASSETS))
+app.use("/" + ASSETS, express.static(ASSETS))
 app.use("/" + UPLOAD_STORIES_DIR, express.static(UPLOAD_STORIES_DIR));
 
 
@@ -57,7 +57,7 @@ async function startServer() {
                     isActive: true,
                 }).then();
             return {
-             //   db,
+                db,
                 user,
                 isUserAuth,
                 pubSub
@@ -85,10 +85,10 @@ async function startServer() {
             const { isUserAuth, user } = req;
 
             return {
-          //      db,
+                db,
                 isUserAuth,
                 user,
-                pubSub , 
+                pubSub,
                 sendPushNotification
 
             }
@@ -115,7 +115,7 @@ async function startServer() {
             apolloServer.applyMiddleware({ app });
             // listen 
 
-         //  handleStoriesExpirations(db);
+            handleStoriesExpirations(db);
             console.log(`Server is runing on port ${PORT}`)
         } catch (error) {
             console.log("Error : ", error)
