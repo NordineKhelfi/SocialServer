@@ -6,7 +6,7 @@ import { typeDefs, resolvers, directives } from "./graphql";
 import { userAuth } from "./middlewares";
 import { graphqlUploadExpress } from "graphql-upload";
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import db from "../models";
+//import db from "../models";
 import { SubscriptionServer } from "subscriptions-transport-ws";
 import { execute, subscribe } from "graphql";
 import { SubscriptionUserAuth } from "./middlewares/userAuth";
@@ -57,7 +57,7 @@ async function startServer() {
                     isActive: true,
                 }).then();
             return {
-                db,
+             //   db,
                 user,
                 isUserAuth,
                 pubSub
@@ -85,7 +85,7 @@ async function startServer() {
             const { isUserAuth, user } = req;
 
             return {
-                db,
+          //      db,
                 isUserAuth,
                 user,
                 pubSub , 
@@ -115,7 +115,7 @@ async function startServer() {
             apolloServer.applyMiddleware({ app });
             // listen 
 
-            handleStoriesExpirations(db);
+         //  handleStoriesExpirations(db);
             console.log(`Server is runing on port ${PORT}`)
         } catch (error) {
             console.log("Error : ", error)
