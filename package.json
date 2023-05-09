@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node -r esm .",
+    "start": "node index.js",
     "dev": "nodemon -r esm ." 
- 
   },
   "keywords": [],
   "author": "",
@@ -32,11 +31,11 @@
    
     "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.13.0",
-    "yup": "^1.0.0"  , 
-    "esm": "^3.2.25" 
+    "yup": "^1.0.0"   
+    
   },
   "devDependencies": {
- 
+    "esm": "^3.2.25" 
     
   },
   "resolutions": {
