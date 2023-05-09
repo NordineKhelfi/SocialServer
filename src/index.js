@@ -24,6 +24,9 @@ app.use(graphqlUploadExpress());
 
 
 
+console.log("database working just fine") ; 
+
+
 
 const pubSub = new PubSub();
 
