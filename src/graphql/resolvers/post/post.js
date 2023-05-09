@@ -266,7 +266,7 @@ export default {
                 return post;
 
             } catch (error) {
-                console.log(error);
+              
                 return new ApolloError(error.message);
             }
         },
@@ -384,7 +384,7 @@ export default {
                     like.user = user ; 
                     like.post = post ; 
 
-                    console.log(JSON.parse(JSON.stringify(like)))  ; 
+       
                     pubSub.publish("NEW_LIKE" , {
                         newLike : like 
                     })    

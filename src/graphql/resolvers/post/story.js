@@ -258,19 +258,22 @@ export default {
                             }
                         }
                     )
+
+                    const liked = (await story.getLikes({
+                        where : {
+                            userId : story.userId 
+                        }
+                    })).pop() != null ; 
+    
+                    storyCommentInput.story.liked = liked ; 
+    
+                    pubSub.publish('NEW_STORY_COMMENT' , {
+                        newStoryComment : storyCommentInput 
+                    })
+
                 }
 
-                const liked = (await story.getLikes({
-                    where : {
-                        id : story.userId 
-                    }
-                })).pop() != null ; 
-
-                storyCommentInput.story.liked = liked ; 
-
-                pubSub.publish('NEW_STORY_COMMENT' , {
-                    newStoryComment : storyCommentInput 
-                })
+                
 
                 return storyCommentInput;
 

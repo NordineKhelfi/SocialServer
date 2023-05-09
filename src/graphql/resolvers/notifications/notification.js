@@ -345,18 +345,12 @@ export default {
         newStoryComment: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_STORY_COMMENT`),
-                (_, { newStoryComment }, { isUserAuth, user }) => {
+                ({ newStoryComment }, {}, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
-                        return false;
-
-
-                    /*
+                        return false;                    
+                    return newStoryComment.story.userId == user.id ; 
                     
-                        put your filting code here
-                    */
-
-                    return true ; 
                      
                 }
             )
