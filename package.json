@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node -r esm .",
     "dev": "nodemon -r esm ." 
   },
   "keywords": [],
@@ -31,13 +31,11 @@
    
     "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.13.0",
-    "yup": "^1.0.0"   
-    
-  },
-  "devDependencies": {
+    "yup": "^1.0.0" ,    
     "esm": "^3.2.25" 
     
   },
+  
   "resolutions": {
     "fs-capacitor": "^6.2.0",
     "graphql-upload": "^11.0.0"
