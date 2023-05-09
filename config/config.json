@@ -3,7 +3,7 @@
     "username": "theroyal_social",
     "password": "kachihaja50",
     "database": "theroyal_social",
-    "host": "worrisome-pink-school-uniform.cyclic.app",
+    "host": "146.19.133.5",
     "dialect": "mysql" , 
     "logging" : false  , 
     "define": {
