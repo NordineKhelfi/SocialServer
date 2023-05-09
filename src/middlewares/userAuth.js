@@ -1,6 +1,6 @@
 import { JWT_SECRET } from "../config";
 import { decode, verify } from "jsonwebtoken";
-import db from "../../models";
+//import db from "../../models";
 
 
 export const userAuth = async (request, response, next) => {
