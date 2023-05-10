@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "theroyal_social",
+    "username": "root",
     "password": "kachihaja50",
-    "database": "theroyal_social",
-    "host": "146.19.133.5",
+    "database": "Social",
+    "host": "127.0.0.1",
     "dialect": "mysql" , 
     "logging" : false  , 
     "define": {
@@ -20,10 +20,24 @@
     "dialect": "mysql"
   },
   "production": {
+
+    "DB_URL" : "postgres://root:Xjnb4RY55mbjbuezTHCbMfbENJVPcwTR@dpg-chdssq1mbg5a4gsvblt0-a.oregon-postgres.render.com:5432/social_j15r" , 
     "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+    "password": "Xjnb4RY55mbjbuezTHCbMfbENJVPcwTR",
+    "database": "social_j15r",
+    "host": "dpg-chdssq1mbg5a4gsvblt0-a.oregon-postgres.render.com",
+    "port" : "5432" , 
+    "dialect": "postgres" , 
+    "protocol": "postgres", 
+    "logging" : false  , 
+    "define": {
+      "timestamps": false,
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    } , 
+    "dialectOptions": {
+      "ssl": true,
+      "native": true
+    }
   }
 }

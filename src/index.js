@@ -83,6 +83,8 @@ async function startServer() {
 
     const apolloServer = new ApolloServer({
         csrfPrevention: false,
+        introspection: true,
+        playground: true,
         schema,
         context: ({ req }) => {
             const { isUserAuth, user } = req;
