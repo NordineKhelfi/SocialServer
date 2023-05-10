@@ -2,3 +2,18 @@
 node_modules
 
 
+uploads/posts/images/*
+uploads/posts/videos/*
+uploads/posts/thumbnails/*
+
+uploads/comments/*
+uploads/replays/*
+
+uploads/stories/*
+
+uploads/message/images/*
+uploads/message/videos/*
+uploads/message/records/*
+
+uploads/validation/*
+uploads/pictures/*

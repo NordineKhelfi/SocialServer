@@ -170,7 +170,7 @@ export default {
                     numComments: post.numComments + 1
                 });
 
-                if (user.id != post.userId)
+                if (user.id != post.userId) {
                     sendPushNotification(
                         await await post.getUser(),
                         {
@@ -194,10 +194,12 @@ export default {
                         }
                     )
 
+                    pubSub.publish('NEW_COMMENT', {
+                        newComment: commentInput
+                    })
 
-                pubSub.publish('NEW_COMMENT', {
-                    newComment: commentInput
-                })
+                }
+               
 
 
                 return commentInput;

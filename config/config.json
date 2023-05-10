@@ -28,7 +28,7 @@
     "host": "dpg-chdssq1mbg5a4gsvblt0-a.oregon-postgres.render.com",
     "port" : "5432" , 
     "dialect": "postgres" , 
-    "protocol": "postgres", 
+ 
     "logging" : false  , 
     "define": {
       "timestamps": false,

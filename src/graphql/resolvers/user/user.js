@@ -117,8 +117,10 @@ export default {
                     id: {
                         [Op.notIn]: followingsIds
                     }
-                },
-                limit: [offset, limit],
+                }, 
+                offset : offset , 
+                limit : limit ,  
+                
                 order: [
                     ["createdAt", "DESC"]
                 ]

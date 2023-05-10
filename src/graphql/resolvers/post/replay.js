@@ -193,12 +193,13 @@ export default {
                             }
                         }
                     )
+                    pubSub.publish("NEW_REPLAY" , {
+                        newReplay : replayInput 
+                    })
                 }
 
 
-                pubSub.publish("NEW_REPLAY" , {
-                    newReplay : replayInput 
-                })
+               
 
                 return replayInput;
 

@@ -91,6 +91,7 @@ export default {
                     time = new Date(parseInt(time)).toISOString();
 
                 var posts = await db.Post.findAll({
+                 
                     include: [{
                         model: db.User,
                         as: "user",
@@ -357,6 +358,11 @@ export default {
 
                     await post.update({ likes: post.likes + 1 }) ; 
                     user.profilePicture = await user.getProfilePicture() ; 
+                    
+                    like.createdAt = new Date();
+                    like.user = user ; 
+                    like.post = post ; 
+
 
                     if (user.id != post.userId) {
                         sendPushNotification(
@@ -377,17 +383,15 @@ export default {
                                 }
                             }
                         )
+
+                        pubSub.publish("NEW_LIKE" , {
+                            newLike : like 
+                        }) 
                     }
 
 
-                    like.createdAt = new Date();
-                    like.user = user ; 
-                    like.post = post ; 
-
        
-                    pubSub.publish("NEW_LIKE" , {
-                        newLike : like 
-                    })    
+                      
                     return true;
                 }
 

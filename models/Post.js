@@ -61,7 +61,8 @@ module.exports = (Sequelize, DataTypes) => {
 
         Post.belongsToMany(db.Media, {
             through: "PostMedia",
-            as: "media"
+            as: "media" , 
+            foreignKey : "postId"
         });
 
         Post.hasMany(db.Comment, {
