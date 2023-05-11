@@ -66,7 +66,8 @@ module.exports = (Sequelize, DataTypes) => {
 
         Replay.belongsToMany(db.User ,  { 
             through : "ReplayLikes" , 
-            as : "userLikes"
+            as : "userLikes" , 
+            foreignKey : "replayId" 
         })
     } ; 
 

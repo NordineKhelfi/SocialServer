@@ -22,7 +22,8 @@ module.exports = (Sequelize, DataTypes) => {
     Media.associate = (db) => {
         Media.belongsToMany(db.Post, {
             through: "PostMedia" , 
-            as : "media"
+            as : "media" , 
+            foreignKey : "mediaId" 
         })
 
     }

@@ -59,6 +59,7 @@ module.exports = (Sequelize, DataTypes) => {
         Story.belongsToMany(db.User ,  {
             as : "viewers" , 
             through : "StorySeen"  ,
+            foreignKey : "storyId" 
         }) 
     } ; 
 

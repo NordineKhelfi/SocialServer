@@ -179,18 +179,21 @@ module.exports = (Sequelize, DataTypes) => {
 
     user.belongsToMany(db.Post, {
       through: "Favorites",
-      as: "favorites"
+      as: "favorites" , 
+      foreignKey : "userId"
     })
 
     user.belongsToMany(db.Comment, {
       through: "CommentLikes",
-      as: "commentLikes"
+      as: "commentLikes" , 
+      foreignKey : "userId" 
     })
 
 
     user.belongsToMany(db.Replay, {
       through: "ReplayLikes",
-      as: "replayLikes"
+      as: "replayLikes" , 
+      foreignKey : "userId" 
     })
 
     user.hasMany(db.Follow, {
@@ -225,7 +228,8 @@ module.exports = (Sequelize, DataTypes) => {
 
     user.belongsToMany(db.Story, {
       as: "storiesSeen",
-      through: "StorySeen"
+      through: "StorySeen" , 
+      foreignKey : "userId" 
     });
 
 
