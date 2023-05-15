@@ -352,10 +352,6 @@ export default {
                         postId: post.id
                     });
 
-
-
-
-
                     await post.update({ likes: post.likes + 1 }) ; 
                     user.profilePicture = await user.getProfilePicture() ; 
                     
@@ -383,15 +379,10 @@ export default {
                                 }
                             }
                         )
-
                         pubSub.publish("NEW_LIKE" , {
                             newLike : like 
                         }) 
                     }
-
-
-       
-                      
                     return true;
                 }
 
