@@ -91,7 +91,7 @@ export default {
                     time = new Date(parseInt(time)).toISOString();
 
                 var posts = await db.Post.findAll({
-                 
+
                     include: [{
                         model: db.User,
                         as: "user",
@@ -201,6 +201,40 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
+        },
+        getFavorites: async (_, { offset, limit }, { db, user }) => {
+            try {
+
+                var posts = await user.getFavorites({
+                    include: [{
+                        model: db.User,
+                        as: "user",
+                        include: [{
+                            model: db.Media,
+                            as: "profilePicture"
+                        }]
+                    }, {
+                        model: db.Media,
+                        as: "media"
+                    }, {
+
+                        model: db.Reel,
+                        as: "reel",
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
+                        }]
+
+                    }],
+                    order : [["id" , "DESC"]] , 
+                    offset: offset,
+                    limit: limit
+                });
+
+                return posts;
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
     },
 
@@ -267,7 +301,7 @@ export default {
                 return post;
 
             } catch (error) {
-              
+
                 return new ApolloError(error.message);
             }
         },
@@ -307,20 +341,20 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        like: async (_, { postId }, { db, user, sendPushNotification , pubSub }) => {
+        like: async (_, { postId }, { db, user, sendPushNotification, pubSub }) => {
 
             try {
                 // get the post and check if it's exists 
-                const post = await db.Post.findByPk(postId , { 
-                    include : [{
-                        model : db.Media , 
-                        as : "media" , 
-                    } , { 
-                        model : db.Reel , 
-                        as  :"reel" , 
-                        include : [{ 
-                            model  : db.Media , 
-                            as : "thumbnail"
+                const post = await db.Post.findByPk(postId, {
+                    include: [{
+                        model: db.Media,
+                        as: "media",
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
                         }]
                     }]
                 });
@@ -352,12 +386,12 @@ export default {
                         postId: post.id
                     });
 
-                    await post.update({ likes: post.likes + 1 }) ; 
-                    user.profilePicture = await user.getProfilePicture() ; 
-                    
+                    await post.update({ likes: post.likes + 1 });
+                    user.profilePicture = await user.getProfilePicture();
+
                     like.createdAt = new Date();
-                    like.user = user ; 
-                    like.post = post ; 
+                    like.user = user;
+                    like.post = post;
 
 
                     if (user.id != post.userId) {
@@ -379,9 +413,9 @@ export default {
                                 }
                             }
                         )
-                        pubSub.publish("NEW_LIKE" , {
-                            newLike : like 
-                        }) 
+                        pubSub.publish("NEW_LIKE", {
+                            newLike: like
+                        })
                     }
                     return true;
                 }
