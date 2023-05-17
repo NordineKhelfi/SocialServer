@@ -4,6 +4,12 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     return queryInterface.createTable("Favorites", {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false
+      },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -22,7 +28,15 @@ module.exports = {
           model: "Posts",
           key: "id"
         }
+      },
+
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
+
+
     })
   },
 

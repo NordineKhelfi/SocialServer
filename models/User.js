@@ -177,8 +177,7 @@ module.exports = (Sequelize, DataTypes) => {
       as: "likes"
     });
 
-    user.belongsToMany(db.Post, {
-      through: "Favorites",
+    user.hasMany(db.Favorite, {
       as: "favorites" , 
       foreignKey : "userId"
     })

@@ -55,7 +55,7 @@ export default {
 
                         posts[index].isFavorite = (await user.getFavorites({
                             where: {
-                                id : posts[index].id
+                                postId : posts[index].id
                             }
                         })).length > 0;
 
@@ -133,7 +133,7 @@ export default {
 
                     posts[index].isFavorite = (await user.getFavorites({
                         where: {
-                            id: posts[index].id
+                            postId: posts[index].id
                         }
                     })).length > 0;
 

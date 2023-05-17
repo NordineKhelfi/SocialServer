@@ -62,7 +62,7 @@ export default {
 
                         posts[index].isFavorite = (await user.getFavorites({
                             where: {
-                                id: posts[index].id
+                                postId: posts[index].id
                             }
                         })).length > 0;
                     }
@@ -83,7 +83,6 @@ export default {
             }
         },
         getPosts: async (_, { time, limit }, { db, user }) => {
-
             try {
                 if (!time)
                     time = new Date().toISOString();
@@ -126,18 +125,16 @@ export default {
 
                         posts[index].isFavorite = (await user.getFavorites({
                             where: {
-                                id: posts[index].id
+                                postId: posts[index].id
                             }
                         })).length > 0;
                     }
                 }
                 else {
                     for (let index = 0; index < posts.length; index++) {
-
                         posts[index].liked = false;
                         posts[index].isFavorite = false;
                     }
-
                 }
                 return posts;
 
@@ -185,7 +182,7 @@ export default {
 
                     post.isFavorite = (await user.getFavorites({
                         where: {
-                            id: post.id
+                            postId: post.id
                         }
                     })).length > 0;
 
@@ -205,32 +202,50 @@ export default {
         getFavorites: async (_, { offset, limit }, { db, user }) => {
             try {
 
-                var posts = await user.getFavorites({
+                var favorites = await user.getFavorites({
                     include: [{
-                        model: db.User,
-                        as: "user",
+                        model: db.Post,
+                        as: "post",
                         include: [{
+                            model: db.User,
+                            as: "user",
+                            include: [{
+                                model: db.Media,
+                                as: "profilePicture"
+                            }]
+                        }, {
                             model: db.Media,
-                            as: "profilePicture"
-                        }]
-                    }, {
-                        model: db.Media,
-                        as: "media"
-                    }, {
+                            as: "media"
+                        }, {
 
-                        model: db.Reel,
-                        as: "reel",
-                        include: [{
-                            model: db.Media,
-                            as: "thumbnail"
-                        }]
+                            model: db.Reel,
+                            as: "reel",
+                            include: [{
+                                model: db.Media,
+                                as: "thumbnail"
+                            }]
 
+                        }],
                     }],
-                    order : [["id" , "DESC"]] , 
+
+
+                    order: [["createdAt", "DESC"]],
                     offset: offset,
                     limit: limit
                 });
 
+                var posts = favorites.map(favorite => favorite.post);
+
+
+                for (let index = 0; index < posts.length; index++) {
+                    posts[index].liked = (await user.getLikes({
+                        where: {
+                            postId: posts[index].id
+                        }
+                    })).length > 0;
+
+                    posts[index].isFavorite = true;
+                }
                 return posts;
             } catch (error) {
                 return new ApolloError(error.message);
@@ -435,22 +450,25 @@ export default {
                     throw new Error("Post not found");
 
                 // check if this post is allready favorites or not 
-                const favorites = await user.getFavorites({
+                const favorites = (await user.getFavorites({
                     where: {
-                        id: postId
+                        postId: postId
                     }
-                });
+                })).pop();
 
 
                 // if the post allready liked remove the favorites
-                if (favorites && favorites.length > 0) {
-                    await user.removeFavorites(post);
+                if (favorites) {
+                    await favorites.destroy();
                     return false;
 
                 } else {
                     // else if this is the first fav for this user to this post 
                     // then add the post to the favorites
-                    await user.addFavorites(post);
+                    await db.Favorite.create({
+                        userId: user.id,
+                        postId: post.id
+                    })
 
                     return true;
                 }
