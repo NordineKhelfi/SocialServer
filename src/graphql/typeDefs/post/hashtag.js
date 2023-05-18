@@ -3,7 +3,7 @@ import { gql } from "apollo-server-express";
 export default gql`
 
     extend type Query {
-        searchHashTag(name : String!) : [HashTag!]! @userAuth  
+        searchHashTag(name : String! , offset : Int!, limit : Int!) : [HashTag!]! @userAuth  
     } 
 
     extend type Mutation {
@@ -14,6 +14,7 @@ export default gql`
     type HashTag  { 
         id :ID! 
         name : String!
+        numPosts : Int! 
     }
 
 `
