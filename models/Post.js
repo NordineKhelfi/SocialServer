@@ -79,6 +79,12 @@ module.exports = (Sequelize, DataTypes) => {
         Post.hasOne(db.Reel, {
             foreignKey: "postId",
             as: "reel"
+        }) ; 
+
+        Post.belongsToMany(db.HashTag , {
+            through : "PostHashTags" , 
+            foreignKey : "postId" , 
+            as  : "hashtags"
         })
     }
 

@@ -5,6 +5,7 @@ import replay from "./replay";
 import story from "./story";
 import reel from "./reel"  ;
 import like from "./like" ;  
+import hashtag from "./hashtag";
 export default [
     media , 
     post , 
@@ -12,5 +13,6 @@ export default [
     replay  , 
     story , 
     reel , 
-    like
+    like , 
+    hashtag
 ]
