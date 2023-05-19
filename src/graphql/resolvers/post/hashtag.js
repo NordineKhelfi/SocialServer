@@ -2,9 +2,9 @@ import { ApolloError } from "apollo-server-express"
 import { Op } from "sequelize";
 
 
-const regexExp = /^#[A-Za-z0-9(_)]*$/;
+const regexExp = /#+([ا-يa-zA-Z0-9_]+)/;
 
-const isValidHashTag = (name) => {
+export const isValidHashTag = (name) => {
     return name.length > 1 && regexExp.test(name);
 }
 
@@ -55,15 +55,7 @@ export default {
 
                 if (!hashtag)
                     return await db.HashTag.create({ name: name })
-                /*
-                return await db.HashTag.findOrCreate({
-                    where : { 
-                        name : {
-                            [Op.like] : name
-                        }
-                    }
-                }) ; 
-                */
+               
                 return hashtag;
 
             } catch (error) {

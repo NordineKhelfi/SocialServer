@@ -9,8 +9,7 @@ export default gql`
     extend type Mutation {
         createHashTag(name : String!) : HashTag @userAuth
     }
-
-
+    
     type HashTag  { 
         id :ID! 
         name : String!

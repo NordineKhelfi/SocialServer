@@ -22,6 +22,7 @@ export default gql`
         title : String  
         type : String! 
         media : [Upload!] 
+        hashtags : [String!] 
         reel : ReelInput 
     }
     type Post  { 
@@ -39,6 +40,7 @@ export default gql`
         updatedAt : String!
         userId : ID! 
         postLikes : [Like!]
+        hashtags : [HashTag!] 
     }
     
 

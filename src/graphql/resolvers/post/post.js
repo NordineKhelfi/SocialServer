@@ -4,6 +4,7 @@ import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
 import { PostValidator } from "../../../validators/post";
 import { Op } from "sequelize";
+import { isValidHashTag } from "./hashtag";
 
 export default {
     Upload: GraphQLUpload,
@@ -38,6 +39,10 @@ export default {
                                 model: db.Media,
                                 as: "thumbnail"
                             }]
+                        }, {
+
+                            model  : db.HashTag , 
+                            as : "hashtags"
                         }
 
                     ],
@@ -101,6 +106,10 @@ export default {
                     }, {
                         model: db.Media,
                         as: "media"
+                    }, {
+
+                        model  : db.HashTag , 
+                        as : "hashtags"
                     }],
                     where: {
                         type: {
@@ -267,8 +276,9 @@ export default {
                 const post = await user.createPost(postInput);
                 // if the post is media for upload the media and assign it to the post 
 
-                var outputs = []; var medium = [];
-
+                var outputs = []; 
+                var medium = [];
+                
                 // check if the content is image or reel 
                 // uploda the content files and assign the paths to the outputs array 
                 if (post.type == "image")
@@ -295,6 +305,7 @@ export default {
                     }
                 }
 
+
                 for (let index = 0; index < outputs.length; index++) {
                     // insert media into database 
                     // add it to the post 
@@ -306,7 +317,36 @@ export default {
                     medium.splice(0, 0, media);
                 }
 
+                var hashtags = [] ; 
 
+                if ( postInput.hashtags && postInput.hashtags.length > 0) {
+                    for (let index = 0 ; index < postInput.hashtags.length ; index ++) {
+                        var hashtag = postInput.hashtags[index] ; 
+                        if ( ! isValidHashTag(hashtag) ) {
+                            continue ; 
+                        } 
+
+                        const hashtagExists = await db.HashTag.findOne({
+                            where: {
+                                name: {
+                                    [Op.like]: hashtag
+                                }
+                            }
+                        });
+                        if (hashtagExists) { 
+                            await post.addHashtag(hashtagExists) ; 
+                            hashtags.push(hashtagExists) ; 
+                            continue ; 
+                        }
+
+                        var newHashTag = await db.HashTag.create({ name: hashtag }) ; 
+                        await post.addHashtag(newHashTag) ;  
+                        hashtags.push(newHashTag) ; 
+                        
+                    } 
+                }
+
+                post.hashtags = hashtags ; 
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
                 await user.update({
