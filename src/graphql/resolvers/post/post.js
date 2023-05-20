@@ -3,7 +3,7 @@ import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_
 import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
 import { PostValidator } from "../../../validators/post";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { isValidHashTag } from "./hashtag";
 
 export default {
@@ -41,8 +41,8 @@ export default {
                             }]
                         }, {
 
-                            model  : db.HashTag , 
-                            as : "hashtags"
+                            model: db.HashTag,
+                            as: "hashtags"
                         }
 
                     ],
@@ -108,8 +108,8 @@ export default {
                         as: "media"
                     }, {
 
-                        model  : db.HashTag , 
-                        as : "hashtags"
+                        model: db.HashTag,
+                        as: "hashtags"
                     }],
                     where: {
                         type: {
@@ -259,6 +259,94 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
+        },
+        searchPost: async (_, { type, query, offset, limit }, { db, user }) => {
+            try {
+
+                var include = [{
+                    model: db.User,
+                    as: "user",
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
+                    }]
+                }, {
+                    model: db.Media,
+                    as: "media",
+                }] ; 
+
+
+                if (type == "reel") 
+                    include.push({
+                        model : db.Reel , 
+                        as  :"reel" , 
+                        
+                        include : [{
+                            model : db.Media , 
+                            as : "thumbnail"
+                        }]
+                    })
+
+                if (!query) {
+                    query = "";
+                }
+
+                query = query.trim();
+
+                var posts = await db.Post.findAll({
+                    subQuery: false,
+                    include: include,
+                    where: {
+                        [Op.or]: [
+                            {
+                                title: {
+                                    [Op.like]: `%${query}%`
+                                }
+                            },
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("`User`.name"), " ", Sequelize.col("`User`.lastname")),
+                                {
+                                    [Op.like]: `%${query}%`
+                                }
+                            ),
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("`User`.lastname"), " ", Sequelize.col("`User`.name")),
+                                {
+                                    [Op.like]: `%${query}%`
+                                }
+                            ),
+                            Sequelize.where(
+                                Sequelize.col("`User`.username"), {
+                                [Op.like]: `%${query}%`
+                            }
+                            )
+                        ],
+                        type: type
+                    },
+                    offset: offset,
+                    limit: limit,
+                    order: [["createdAt", "DESC"]]
+                });
+                for (let index = 0; index < posts.length; index++) {
+                    posts[index].liked = (await user.getLikes({
+                        where: {
+                            postId: posts[index].id
+                        }
+                    })).length > 0;
+
+                    posts[index].isFavorite = (await user.getFavorites({
+                        where: {
+                            postId: posts[index].id
+                        }
+                    })).length > 0;
+                }
+
+                return posts;
+
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
     },
 
@@ -276,9 +364,9 @@ export default {
                 const post = await user.createPost(postInput);
                 // if the post is media for upload the media and assign it to the post 
 
-                var outputs = []; 
+                var outputs = [];
                 var medium = [];
-                
+
                 // check if the content is image or reel 
                 // uploda the content files and assign the paths to the outputs array 
                 if (post.type == "image")
@@ -317,14 +405,14 @@ export default {
                     medium.splice(0, 0, media);
                 }
 
-                var hashtags = [] ; 
+                var hashtags = [];
 
-                if ( postInput.hashtags && postInput.hashtags.length > 0) {
-                    for (let index = 0 ; index < postInput.hashtags.length ; index ++) {
-                        var hashtag = postInput.hashtags[index] ; 
-                        if ( ! isValidHashTag(hashtag) ) {
-                            continue ; 
-                        } 
+                if (postInput.hashtags && postInput.hashtags.length > 0) {
+                    for (let index = 0; index < postInput.hashtags.length; index++) {
+                        var hashtag = postInput.hashtags[index];
+                        if (!isValidHashTag(hashtag)) {
+                            continue;
+                        }
 
                         const hashtagExists = await db.HashTag.findOne({
                             where: {
@@ -333,20 +421,20 @@ export default {
                                 }
                             }
                         });
-                        if (hashtagExists) { 
-                            await post.addHashtag(hashtagExists) ; 
-                            hashtags.push(hashtagExists) ; 
-                            continue ; 
+                        if (hashtagExists) {
+                            await post.addHashtag(hashtagExists);
+                            hashtags.push(hashtagExists);
+                            continue;
                         }
 
-                        var newHashTag = await db.HashTag.create({ name: hashtag }) ; 
-                        await post.addHashtag(newHashTag) ;  
-                        hashtags.push(newHashTag) ; 
-                        
-                    } 
+                        var newHashTag = await db.HashTag.create({ name: hashtag });
+                        await post.addHashtag(newHashTag);
+                        hashtags.push(newHashTag);
+
+                    }
                 }
 
-                post.hashtags = hashtags ; 
+                post.hashtags = hashtags;
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
                 await user.update({

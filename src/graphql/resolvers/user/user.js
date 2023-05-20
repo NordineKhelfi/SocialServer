@@ -131,20 +131,11 @@ export default {
 
         searchUser: async (_, { query, offset, limit }, { db, user }) => {
             try {
-
-                
-        
                 query = query.trim().split(" ").filter(word => word != "").join("") ; 
 
                 return await db.User.findAll({
-
                     where: {
                         [Op.or]: [
-
-
-
-
-
                             Sequelize.where(
                                 Sequelize.fn("CONCAT", Sequelize.col("name") , Sequelize.col("lastname")), {
                                 [Op.like]: `%${query}%`
@@ -159,19 +150,15 @@ export default {
                                     [Op.like]: `%${query}%`
                                 }
                             }
-
                         ]
                     },
-
                     include: [{
                         model: db.Media,
                         as: "profilePicture"
                     }],
-
                     offset: offset,
                     limit: limit,
                     order: [["createdAt", "DESC"]]
-
                 })
 
 
