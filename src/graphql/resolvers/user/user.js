@@ -117,15 +117,67 @@ export default {
                     id: {
                         [Op.notIn]: followingsIds
                     }
-                }, 
-                offset : offset , 
-                limit : limit ,  
-                
+                },
+                offset: offset,
+                limit: limit,
+
                 order: [
                     ["createdAt", "DESC"]
                 ]
             });
             return users;
+        },
+
+
+        searchUser: async (_, { query, offset, limit }, { db, user }) => {
+            try {
+
+                
+        
+                query = query.trim().split(" ").filter(word => word != "").join("") ; 
+
+                return await db.User.findAll({
+
+                    where: {
+                        [Op.or]: [
+
+
+
+
+
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("name") , Sequelize.col("lastname")), {
+                                [Op.like]: `%${query}%`
+                            }
+                            ),
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("lastname") , Sequelize.col("name")), {
+                                [Op.like]: `%${query}%`
+                            }),
+                            {
+                                username: {
+                                    [Op.like]: `%${query}%`
+                                }
+                            }
+
+                        ]
+                    },
+
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
+                    }],
+
+                    offset: offset,
+                    limit: limit,
+                    order: [["createdAt", "DESC"]]
+
+                })
+
+
+            } catch (error) {
+                return new ApolloError(error.message)
+            }
         }
     },
 
@@ -223,36 +275,36 @@ export default {
         },
         deleteAccount: async (_, { }, { db, user }) => {
             return await user.destroy();
-        } , 
+        },
 
-        updateToken : async ( _ , {token } , {db , user}) => {
-            
-            try { 
+        updateToken: async (_, { token }, { db, user }) => {
+
+            try {
 
                 await user.update({
-                    token : token 
+                    token: token
                 })
 
-                return token 
-            }catch(error) {
-                return new ApolloError(error.message) ; 
+                return token
+            } catch (error) {
+                return new ApolloError(error.message);
             }
 
 
-        } , 
-        logOut : async ( _  , {} , {db, user}) => {
-            try { 
+        },
+        logOut: async (_, { }, { db, user }) => {
+            try {
 
-                await user.update( {
-                    isActive : false , 
-                    token : null 
-                }) ; 
+                await user.update({
+                    isActive: false,
+                    token: null
+                });
 
 
-                return user ; 
-                
-            }catch(error) { 
-                return new ApolloError(error.message) ; 
+                return user;
+
+            } catch (error) {
+                return new ApolloError(error.message);
             }
         }
 

@@ -8,6 +8,9 @@ export default gql`
         getUserById(userId : ID!) : User 
         checkUsername(username : String!) : Boolean! 
         suggestUsers( offset : Int! , limit : Int!) : [User!]! @userAuth
+        searchUser(query : String! , offset : Int! , limit : Int!) : [User!]! @userAuth 
+
+
     }
 
     extend type Mutation { 
