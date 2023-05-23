@@ -8,14 +8,18 @@ export default gql`
         getHashTagPosts(name : String! , offset :Int!, limit : Int!) : [Post!]! 
     } 
 
+
+
     extend type Mutation {
         createHashTag(name : String!) : HashTag @userAuth
+        followHashTag(hashtagId : ID!) : Boolean! @userAuth 
     }
     
     type HashTag  { 
         id :ID! 
         name : String!
         numPosts : Int! 
+        isFollowed : Boolean 
     }
 
 `

@@ -5,7 +5,7 @@ export default gql`
 
     extend type Query { 
         getUserPosts ( userId : ID!, postType : String! , offset : Int! , limit : Int!) : [Post!]! @userAuth 
-        getPosts (time : String , limit : Int!) : [Post!]! 
+        getPosts (time : String , limit : Int! , includeReels : Boolean ) : [Post!]! 
         getPostById(postId : ID!) : Post  @userAuth 
         getFavorites(offset : Int! , limit : Int!) : [Post!]! @userAuth 
         searchPost(type : String! , query : String  , offset : Int! , limit : Int!) : [Post!]! @userAuth  

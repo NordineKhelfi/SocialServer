@@ -20,12 +20,20 @@ module.exports = (Sequelize, DataTypes) => {
             through : "PostHashTags" , 
             hashtagId : "hashtagId" , 
             as : "posts"
-        })
+        }); 
+
+        HashTag.belongsToMany(db.User , { 
+            as : "users" , 
+            through : "UserHashTags" , 
+            foreignKey : "hashtagId"
+          })
+    
+      
+    
        
     } ; 
 
-  
-
+   
     return HashTag;
 
 }

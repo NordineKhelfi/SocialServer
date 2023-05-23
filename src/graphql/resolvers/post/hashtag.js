@@ -55,6 +55,11 @@ export default {
 
 
                 hashtag.numPosts = await hashtag.countPosts();
+                hashtag.isFollowed = (await user.getHashtags({
+                    where : { 
+                        id : hashtag.id 
+                    }
+                })).pop() != null ; 
                 return hashtag ; 
             } catch (error) {
                 return new ApolloError(error.message) ; 
@@ -156,6 +161,34 @@ export default {
 
             } catch (error) {
                 return new ApolloError(error.message)
+            }
+        } , 
+
+
+        followHashTag : async ( _ , { hashtagId } , {db , user}) => {
+
+            try { 
+                const hashtag = await db.HashTag.findByPk( hashtagId ) ; 
+
+                if ( ! hashtag) 
+                    throw new Error("Hashtag not found") ; 
+
+                const isFollowed = (await hashtag.getUsers({
+                    where : { 
+                        id : user.id  
+                    }
+                }) ).pop() ; 
+ 
+                if (isFollowed) {
+                    await user.removeHashtag(hashtag) ; 
+                    return false ; 
+                }else {
+                    await user.addHashtag(hashtag) ; 
+                    return true ;
+                }                
+
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
             }
         }
     }

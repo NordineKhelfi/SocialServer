@@ -236,7 +236,12 @@ module.exports = (Sequelize, DataTypes) => {
       as : "notificationsState" , 
       foreignKey : "userId"
     })
-    
+
+  user.belongsToMany(db.HashTag , { 
+    as : "hashtags" , 
+    through : "UserHashTags" , 
+    foreignKey : "userId"
+  })
 
 
   }

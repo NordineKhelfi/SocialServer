@@ -87,12 +87,24 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        getPosts: async (_, { time, limit }, { db, user }) => {
+        getPosts: async (_, { time, limit , includeReels }, { db, user }) => {
             try {
                 if (!time)
                     time = new Date().toISOString();
                 else
                     time = new Date(parseInt(time)).toISOString();
+                var whereCase = {
+                    createdAt: {
+                        [Op.lt]: time
+                    }
+                }
+
+
+                if ( ! includeReels ) { 
+                    whereCase.type = { 
+                        [Op.not]: "reel"
+                    } 
+                }
 
                 var posts = await db.Post.findAll({
 
@@ -110,17 +122,16 @@ export default {
 
                         model: db.HashTag,
                         as: "hashtags"
+                    }, { 
+                        model : db.Reel , 
+                        as : "reel" , 
+                        include : [{
+                            model : db.Media , 
+                            as  : "thumbnail"
+                        }]
                     }],
-                    where: {
-                        type: {
-                            [Op.not]: "reel"
-                        },
-                        createdAt: {
-                            [Op.lt]: time
-                        }
-                    },
+                    where: whereCase,
                     order: [["createdAt", "DESC"]],
-
                     limit
                 });
                 // if the user logged in check if he allready liked on of this posts 
