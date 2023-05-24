@@ -87,7 +87,7 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        getPosts: async (_, { time, limit , includeReels }, { db, user }) => {
+        getPosts: async (_, { time, limit, includeReels }, { db, user }) => {
             try {
                 if (!time)
                     time = new Date().toISOString();
@@ -100,10 +100,10 @@ export default {
                 }
 
 
-                if ( ! includeReels ) { 
-                    whereCase.type = { 
+                if (!includeReels) {
+                    whereCase.type = {
                         [Op.not]: "reel"
-                    } 
+                    }
                 }
 
                 var posts = await db.Post.findAll({
@@ -122,12 +122,12 @@ export default {
 
                         model: db.HashTag,
                         as: "hashtags"
-                    }, { 
-                        model : db.Reel , 
-                        as : "reel" , 
-                        include : [{
-                            model : db.Media , 
-                            as  : "thumbnail"
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
                         }]
                     }],
                     where: whereCase,
@@ -284,17 +284,17 @@ export default {
                 }, {
                     model: db.Media,
                     as: "media",
-                }] ; 
+                }];
 
 
-                if (type == "reel") 
+                if (type == "reel")
                     include.push({
-                        model : db.Reel , 
-                        as  :"reel" , 
-                        
-                        include : [{
-                            model : db.Media , 
-                            as : "thumbnail"
+                        model: db.Reel,
+                        as: "reel",
+
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
                         }]
                     })
 
@@ -470,6 +470,14 @@ export default {
                     include: [{
                         model: db.Media,
                         as: "media"
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
+                        }]
                     }]
                 });
                 // if the post do not exists return error
@@ -488,6 +496,18 @@ export default {
                     await deleteFiles(post.media.map(file => file.path));
 
                 }
+
+                if (post.reel && post.reel.thumbnail) {
+                    await post.reel.thumbnail.destroy();
+                    await deleteFiles([post.reel.thumbnail.path]);
+                }
+
+
+                await user.update({
+                    numPosts: user.numPosts - 1
+                });
+
+
                 await post.destroy();
                 return postId
 
@@ -611,6 +631,131 @@ export default {
 
                     return true;
                 }
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+        editPost: async (_, { postInput }, { db, user }) => {
+            try {
+
+
+                const post = await db.Post.findOne({
+                    where: {
+                        userId: user.id,
+                        id: postInput.id
+                    },
+                    include: [{
+                        model: db.Media,
+                        as: "media"
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
+                        }]
+                    }, {
+                        model: db.HashTag,
+                        as: "hashtags"
+                    }]
+                });
+
+                if (post == null)
+                    throw new Error("Post not found");
+
+                if (post.media && !postInput.media) {
+                    throw new Error("Media is required");
+                }
+                await post.removeHashtags(post.hashtags.map(hashtag => hashtag.id));
+                var hashtags = [];
+
+                if (postInput.hashtags && postInput.hashtags.length > 0) {
+                    for (let index = 0; index < postInput.hashtags.length; index++) {
+                        var hashtag = postInput.hashtags[index];
+                        if (!isValidHashTag(hashtag)) {
+                            continue;
+                        }
+
+                        const hashtagExists = await db.HashTag.findOne({
+                            where: {
+                                name: {
+                                    [Op.like]: hashtag
+                                }
+                            }
+                        });
+                        if (hashtagExists) {
+                            await post.addHashtag(hashtagExists);
+                            hashtags.push(hashtagExists);
+                            continue;
+                        }
+
+                        var newHashTag = await db.HashTag.create({ name: hashtag });
+                        await post.addHashtag(newHashTag);
+                        hashtags.push(newHashTag);
+
+                    }
+                }
+                post.hashtags = hashtags;
+
+
+                var uploadableMedia = postInput.media.filter(postMedia => postMedia.id == null && postMedia.file);
+                var oldMedia = postInput.media.filter(postMedia => postMedia.id != null && !postMedia.file);
+                var medium = [];
+                for (let index = 0; index < post.media.length; index++) {
+                    const findIndex = oldMedia.findIndex(postMedia => postMedia.id == post.media[index].id);
+                    if (findIndex < 0) {
+                        // the user want to remove this piece of media  
+                        await post.media[index].destroy();
+                        // delete the files from the storage 
+                        await deleteFiles([post.media[index].path]);
+                    }
+                    else {
+                        medium.push(post.media[index]);
+                    }
+                }
+
+                var outputs = [];
+                if (post.type == "image" && uploadableMedia)
+                    outputs = await uploadFiles(uploadableMedia, UPLOAD_POST_IMAGES_DIR);
+
+
+                if (post.type == "reel" && uploadableMedia) {
+
+                    outputs = await uploadFiles(uploadableMedia, UPLOAD_POST_VIDEOS_DIR);
+                    // upload thumbnail to the given directory 
+                    // and associate it to the reel 
+                    // and associate the reel to the post 
+                    await deleteFiles([post.reel.thumbnail.path]);
+                    var thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
+
+                    if (thumbnail) {
+                        await post.reel.thumbnail.update({
+                            path: thumbnail
+                        });
+                        post.reel.thumbnail.path = thumbnail;
+                    }
+                }
+
+                for (let index = 0; index < outputs.length; index++) {
+                    // insert media into database 
+                    // add it to the post 
+                    const media = await db.Media.create({
+                        path: outputs[index]
+                    });
+
+                    await post.addMedia(media);
+                    medium.push(media);
+                }
+
+                post.media = medium;
+
+                await post.update({
+                    title: postInput.title
+                })
+                return post;
 
             } catch (error) {
                 return new ApolloError(error.message);

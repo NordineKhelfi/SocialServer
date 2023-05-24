@@ -22,4 +22,9 @@ export default gql`
     }
 
 
+    input EditReelInput { 
+        thumbnail : EditMedia!
+    }
+
+
 `

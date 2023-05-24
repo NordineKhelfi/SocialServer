@@ -16,7 +16,17 @@ export default gql`
         deletePost(postId : ID!) : ID!  @userAuth   
         like ( postId : ID! ) : Boolean! @userAuth
         favorite ( postId : ID! ) : Boolean! @userAuth
+        editPost (postInput  : EditPostInput!) : Post @userAuth 
     }
+
+    input EditPostInput {
+        id : ID! , 
+        media : [ EditMedia!] 
+        hashtags : [String!] 
+        reel : EditReelInput 
+        title : String 
+    }
+
 
     input PostInput { 
         title : String  
