@@ -666,7 +666,7 @@ export default {
                 if (post == null)
                     throw new Error("Post not found");
 
-                if (post.media && !postInput.media) {
+                if (post.media && post.media.length > 0 && !postInput.media) {
                     throw new Error("Media is required");
                 }
                 await post.removeHashtags(post.hashtags.map(hashtag => hashtag.id));
@@ -700,57 +700,59 @@ export default {
                 }
                 post.hashtags = hashtags;
 
-
-                var uploadableMedia = postInput.media.filter(postMedia => postMedia.id == null && postMedia.file);
-                var oldMedia = postInput.media.filter(postMedia => postMedia.id != null && !postMedia.file);
-                var medium = [];
-                for (let index = 0; index < post.media.length; index++) {
-                    const findIndex = oldMedia.findIndex(postMedia => postMedia.id == post.media[index].id);
-                    if (findIndex < 0) {
-                        // the user want to remove this piece of media  
-                        await post.media[index].destroy();
-                        // delete the files from the storage 
-                        await deleteFiles([post.media[index].path]);
+                if (postInput.media && postInput.media.length > 0) {
+                    var uploadableMedia = postInput.media.filter(postMedia => postMedia.id == null && postMedia.file);
+                    var oldMedia = postInput.media.filter(postMedia => postMedia.id != null && !postMedia.file);
+                    var medium = [];
+                    for (let index = 0; index < post.media.length; index++) {
+                        const findIndex = oldMedia.findIndex(postMedia => postMedia.id == post.media[index].id);
+                        if (findIndex < 0) {
+                            // the user want to remove this piece of media  
+                            await post.media[index].destroy();
+                            // delete the files from the storage 
+                            await deleteFiles([post.media[index].path]);
+                        }
+                        else {
+                            medium.push(post.media[index]);
+                        }
                     }
-                    else {
-                        medium.push(post.media[index]);
+
+                    var outputs = [];
+                    if (post.type == "image" && uploadableMedia && uploadableMedia.length > 0)
+                        outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_IMAGES_DIR);
+
+
+                    if (post.type == "reel" && uploadableMedia && uploadableMedia.length > 0) {
+
+                        outputs = await uploadFiles(uploadableMedia.map(video => video.file), UPLOAD_POST_VIDEOS_DIR);
+                        // upload thumbnail to the given directory 
+                        // and associate it to the reel 
+                        // and associate the reel to the post 
+                        await deleteFiles([post.reel.thumbnail.path]);
+                        var thumbnail = (await uploadFiles([postInput.reel.thumbnail.file], UPLOAD_POST_THUMBNAILS_DIR)).pop();
+
+                        if (thumbnail) {
+                            await post.reel.thumbnail.update({
+                                path: thumbnail
+                            });
+                            post.reel.thumbnail.path = thumbnail;
+                        }
                     }
-                }
 
-                var outputs = [];
-                if (post.type == "image" && uploadableMedia)
-                    outputs = await uploadFiles(uploadableMedia, UPLOAD_POST_IMAGES_DIR);
-
-
-                if (post.type == "reel" && uploadableMedia) {
-
-                    outputs = await uploadFiles(uploadableMedia, UPLOAD_POST_VIDEOS_DIR);
-                    // upload thumbnail to the given directory 
-                    // and associate it to the reel 
-                    // and associate the reel to the post 
-                    await deleteFiles([post.reel.thumbnail.path]);
-                    var thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
-
-                    if (thumbnail) {
-                        await post.reel.thumbnail.update({
-                            path: thumbnail
+                    for (let index = 0; index < outputs.length; index++) {
+                        // insert media into database 
+                        // add it to the post 
+                        const media = await db.Media.create({
+                            path: outputs[index]
                         });
-                        post.reel.thumbnail.path = thumbnail;
+
+                        await post.addMedia(media);
+                        medium.push(media);
                     }
+                    post.media = medium;
                 }
 
-                for (let index = 0; index < outputs.length; index++) {
-                    // insert media into database 
-                    // add it to the post 
-                    const media = await db.Media.create({
-                        path: outputs[index]
-                    });
-
-                    await post.addMedia(media);
-                    medium.push(media);
-                }
-
-                post.media = medium;
+              
 
                 await post.update({
                     title: postInput.title

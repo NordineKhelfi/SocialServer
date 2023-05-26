@@ -8,6 +8,9 @@ export default gql`
     
     type Query {
         _ : String!    
+
+        getCurrentTimeTamps : String! 
+
     }  
 
     type Subscription { 
