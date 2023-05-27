@@ -1,40 +1,101 @@
 import { ApolloError } from "apollo-server-express";
+import { Op, Sequelize } from "sequelize";
 
 export default {
 
 
     Query: {
 
-        getFollowers: async (_, { offset, limit }, { db, user }) => {
+        getFollowers: async (_, {query ,  offset, limit }, { db, user }) => {
+            
+
+            if ( ! query ) { 
+                query = "" ; 
+            }
+
+            query = query.trim().split(" ").filter(word => word != "").join("") ; 
+         
 
             // get the follwing users by offset and limit 
-            return await user.getFollowers({
+            var follows = await user.getFollowers({
                 include: [{
                     model: db.User,
-                    as: "user"
+                    as: "user" , 
+                    where : {
+                        [Op.or]: [
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("name") , Sequelize.col("lastname")), {
+                                [Op.like]: `%${query}%`
+                            }
+                            ),
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("lastname") , Sequelize.col("name")), {
+                                [Op.like]: `%${query}%`
+                            }),
+                            {
+                                username: {
+                                    [Op.like]: `%${query}%`
+                                }
+                            }
+                        ]
+                    } , 
+                    include : [{ 
+                        model : db.Media , 
+                        as : "profilePicture"
+                    }]
                 }],
                 offset,
                 limit
             });
+
+
+            return follows.map( follow => follow.user ) ; 
 
         },
 
-        getFollowing: async (_, { offset, limit }, { db, user }) => {
+        getFollowing: async (_, { query , offset, limit }, { db, user }) => {
 
+            if ( ! query ) { 
+                query = "" ; 
+            }
 
+            query = query.trim().split(" ").filter(word => word != "").join("") ; 
+            
             // get the follwing users by offset and limit 
-            return await user.getFollowing({
+            var follows =  await user.getFollowing({
                 include: [{
                     model: db.User,
-                    as: "following"
+                    as: "following" , 
+                    where : {
+                        [Op.or]: [
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("name") , Sequelize.col("lastname")), {
+                                [Op.like]: `%${query}%`
+                            }
+                            ),
+                            Sequelize.where(
+                                Sequelize.fn("CONCAT", Sequelize.col("lastname") , Sequelize.col("name")), {
+                                [Op.like]: `%${query}%`
+                            }),
+                            {
+                                username: {
+                                    [Op.like]: `%${query}%`
+                                }
+                            }
+                        ]
+                    } , 
+                    include : [{ 
+                        model : db.Media , 
+                        as : "profilePicture"
+                    }]
                 }],
                 offset,
                 limit
             });
+            return follows.map(follow => follow.following) ; 
 
-
-
-        }
+        } , 
+       
     },
 
 
