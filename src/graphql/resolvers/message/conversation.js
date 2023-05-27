@@ -193,7 +193,7 @@ export default {
                 // loop over them and get user from database by id 
                 // if the user not found throw an error to break the thread 
                 // else push it to the user table 
-                var users = [];
+                var users = [user];
                 for (let index = 0; index < members.length; index++) {
                     var userMember = await db.User.findByPk(members[index]);
                     if (userMember == null)
@@ -206,13 +206,15 @@ export default {
                     type: "group"
                 });
 
-                // add the creator of the group 
-                await conversation.addMember(user);
-                // add the members 
-                for (let index = 0; index < users.length; index++)
-                    await conversation.addMember(users[index]);
-
-                conversation.members = [user, ...users];
+                var conversationMembers = [] ; 
+                
+                for ( let index = 0 ; index < users.length ; index ++) { 
+                    conversationMembers.push( await db.ConversationMember.create ({
+                        conversationId : conversation.id , 
+                        userId : users[index].id
+                    }) ) 
+                } 
+                conversation.members = conversationMembers ;
                 conversation.messages = [];
                 return conversation;
             } catch (error) {
