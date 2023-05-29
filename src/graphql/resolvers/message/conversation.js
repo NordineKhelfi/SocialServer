@@ -1,59 +1,105 @@
 import { ApolloError } from "apollo-server-express";
 import { withFilter } from "graphql-subscriptions";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 export default {
 
     Query: {
-        getConversations: async (_, { offset, limit }, { db, user }) => {
+        getConversations: async (_, { query, offset, limit }, { db, user }) => {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
+
+            if (!query)
+                query = "";
+
+
+            query = query.trim().split(" ").filter(word => word != "").join("");
+
+
             try {
 
                 var conversationMembers = await user.getConversationMember({
-               
+                    distinct: true,
+                    subQuery: false,
                     include: [{
+
                         model: db.Conversation,
                         as: "conversation",
+                        required : true  , 
                         include: [{
                             model: db.ConversationMember,
                             as: "members",
+                     
+                            required : true  , 
                             include: [{
                                 model: db.User,
                                 as: "user",
+                             
                                 where: {
-                                    id: {
-                                        [Op.not]: user.id
-                                    }
+
+                                    [Op.and] : [
+                                        {
+                                            id: {
+                                                [Op.not]: user.id
+                                            },
+                                        } , { 
+                                            [Op.or]: [
+                                                Sequelize.where(
+                                                    Sequelize.fn("CONCAT", Sequelize.col("name"), Sequelize.col("lastname")), {
+                                                    [Op.like]: `%${query}%`
+                                                }
+                                                ),
+                                                Sequelize.where(
+                                                    Sequelize.fn("CONCAT", Sequelize.col("lastname"), Sequelize.col("name")), {
+                                                    [Op.like]: `%${query}%`
+                                                }),
+                                                {
+                                                    username: {
+                                                        [Op.like]: `%${query}%`
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 },
                                 include: [{
                                     model: db.Media,
                                     as: "profilePicture"
                                 }]
                             }]
-
-                        }, {
+                        },
+                        {
                             model: db.Message,
                             as: "messages",
+
                             include: [{
                                 model: db.User,
                                 as: "sender",
                             }],
-                            offset: 0,
                             limit: 1,
-                            order: [["id", "DESC"]]
+                            offset: 0,
+                            order: [["createdAt", "DESC"]]
                         }],
+
                     }],
-                    offset,
-                    limit,
-                    order: [["id", "DESC"]]
+
+                    limit: [offset, limit],
+                    order: [["conversation", "updatedAt", "DESC"]],
+
+
+
+
                 });
-              
-                
+
+
+
+
+
                 for (var index = 0; index < conversationMembers.length; index++) {
                     var conversation = conversationMembers[index].conversation;
                     var lastSeenAt = conversationMembers[index].lastSeenAt;
+                    if ( conversation )
                     conversation.unseenMessages = 0;
 
                     var filterQuery = {};
@@ -69,9 +115,10 @@ export default {
 
 
 
-                    if (conversation.messages && conversation.messages.length > 0) {
+                    if (conversation && conversation.messages && conversation.messages.length > 0) {
                         var sender = conversation.messages[0].sender;
-                        if (sender.id != user.id) {
+
+                        if (sender && sender.id != user.id) {
                             const unseenMessages = await conversation.getMessages({
                                 where: {
                                     userId: sender.id,
@@ -132,7 +179,7 @@ export default {
                 else
                     return null;
 
- 
+
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -206,15 +253,15 @@ export default {
                     type: "group"
                 });
 
-                var conversationMembers = [] ; 
-                
-                for ( let index = 0 ; index < users.length ; index ++) { 
-                    conversationMembers.push( await db.ConversationMember.create ({
-                        conversationId : conversation.id , 
-                        userId : users[index].id
-                    }) ) 
-                } 
-                conversation.members = conversationMembers ;
+                var conversationMembers = [];
+
+                for (let index = 0; index < users.length; index++) {
+                    conversationMembers.push(await db.ConversationMember.create({
+                        conversationId: conversation.id,
+                        userId: users[index].id
+                    }))
+                }
+                conversation.members = conversationMembers;
                 conversation.messages = [];
                 return conversation;
             } catch (error) {
@@ -249,13 +296,10 @@ export default {
                 const currentTimeTamps = new Date();
                 conversationMember = await conversationMember.update({ lastSeenAt: currentTimeTamps });
 
-
                 pubSub.publish("CONVERSATION_SAW", {
                     conversationSaw: conversationMember
-                }) ; 
+                });
 
- 
-                
                 return currentTimeTamps;
 
             } catch (error) {

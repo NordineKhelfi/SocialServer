@@ -12,20 +12,28 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.ENUM(["individual", "group"]),
             allowNull: false,
             defaultValue: "individual"
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
         }
+
     });
 
     Conversation.associate = (db) => {
-        
+
         Conversation.hasMany(db.Message, {
             foreignKey: "conversationId",
             as: "messages"
         });
 
+
+
         Conversation.hasMany(db.ConversationMember, {
             foreignKey: "conversationId",
             as: "members"
-        });    
+        });
     }
     return Conversation;
 }

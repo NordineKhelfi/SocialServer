@@ -5,7 +5,7 @@
     "database": "Social",
     "host": "127.0.0.1",
     "dialect": "mysql" , 
-    "logging" : false  , 
+    "logging" : false   , 
     "define": {
       "timestamps": false,
       "charset": "utf8",

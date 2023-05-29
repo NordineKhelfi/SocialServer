@@ -103,10 +103,11 @@ export default {
                 messageInput.id = message.id;
                 messageInput.createdAt = new Date();
 
+                conversation.update({updatedAt : new Date()})
+
 
                 
                 const members = await conversation.getMembers({
-
                     where: {
                         userId: {
                             [Op.not]: user.id
@@ -115,8 +116,6 @@ export default {
                 });
 
                 messageInput.conversation.members = members;
-
-
 
                 pubSub.publish("NEW_MESSAGE", {
                     newMessage: messageInput
