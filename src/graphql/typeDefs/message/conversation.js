@@ -23,6 +23,7 @@ export default gql`
         messages : [Message!]! 
         updatedAt : String! 
         unseenMessages : Int 
+        simat : Simat 
 
     } 
 

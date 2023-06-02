@@ -17,10 +17,12 @@ module.exports = (Sequelize, DataTypes) => {
     });
 
     Simat.associate = (db) => {
-        Simat.belongsTo(db.Conversation , { 
+       
+        Simat.hasMany(db.Conversation , { 
             as : "conversations" , 
             foreignKey : "simatId" 
         })
+       
         
     }
     return Simat;

@@ -17,18 +17,18 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-        } , 
+        },
 
 
-        simatId : { 
-            type : DataTypes.INTEGER , 
-            allowNull : true , 
-            onDelete : "CASCADE" , 
-            references : { 
-              model : "Simats" , 
-              key : "id"
+        simatId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            onDelete: "CASCADE",
+            references: {
+                model: "Simats",
+                key: "id"
             }
-    
+
         }
 
     });
@@ -48,10 +48,17 @@ module.exports = (Sequelize, DataTypes) => {
         });
 
 
-        Conversation.hasOne(db.Simat , { 
-            foreignKey : "conversationId" , 
-            as  : "simat"
-        })
+        Conversation.belongsTo(db.Simat, {
+            foreignKey: "simatId",
+            as: "simat"
+        });
+
+
+        Conversation.hasMany(db.ArchivedConversation, {
+            as: "archivedConversations",
+            foreignKey: "conversationId"
+        });
+
     }
     return Conversation;
 }

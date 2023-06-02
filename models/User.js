@@ -132,16 +132,16 @@ module.exports = (Sequelize, DataTypes) => {
       }
     },
     createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE ,
+    updatedAt: DataTypes.DATE,
 
 
-    token : { 
-      type : DataTypes.STRING , 
-      allowNull : true , 
-    } , 
+    token: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   }, {
-    timestamps: true , 
-    
+    timestamps: true,
+
     charset: "utf8mb4",
     collate: "utf8mb4_general_ci"
   });
@@ -178,21 +178,21 @@ module.exports = (Sequelize, DataTypes) => {
     });
 
     user.hasMany(db.Favorite, {
-      as: "favorites" , 
-      foreignKey : "userId"
+      as: "favorites",
+      foreignKey: "userId"
     })
 
     user.belongsToMany(db.Comment, {
       through: "CommentLikes",
-      as: "commentLikes" , 
-      foreignKey : "userId" 
+      as: "commentLikes",
+      foreignKey: "userId"
     })
 
 
     user.belongsToMany(db.Replay, {
       through: "ReplayLikes",
-      as: "replayLikes" , 
-      foreignKey : "userId" 
+      as: "replayLikes",
+      foreignKey: "userId"
     })
 
     user.hasMany(db.Follow, {
@@ -227,21 +227,27 @@ module.exports = (Sequelize, DataTypes) => {
 
     user.belongsToMany(db.Story, {
       as: "storiesSeen",
-      through: "StorySeen" , 
-      foreignKey : "userId" 
+      through: "StorySeen",
+      foreignKey: "userId"
     });
 
 
-    user.hasOne(db.NotificationsState , {
-      as : "notificationsState" , 
-      foreignKey : "userId"
+    user.hasOne(db.NotificationsState, {
+      as: "notificationsState",
+      foreignKey: "userId"
     })
 
-  user.belongsToMany(db.HashTag , { 
-    as : "hashtags" , 
-    through : "UserHashTags" , 
-    foreignKey : "userId"
-  })
+    user.belongsToMany(db.HashTag, {
+      as: "hashtags",
+      through: "UserHashTags",
+      foreignKey: "userId"
+    })
+
+
+    user.hasMany(db.ArchivedConversation , { 
+      as : "archivedConversations" , 
+      foreignKey : "userId"
+    })
 
 
   }
