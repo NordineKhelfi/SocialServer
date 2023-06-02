@@ -5,7 +5,7 @@ import { Op, Sequelize } from "sequelize";
 export default {
 
     Query: {
-        getConversations: async (_, { query, offset, limit }, { db, user }) => {
+        getConversations: async (_, { asParticipant = true , query, offset, limit }, { db, user }) => {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
@@ -14,22 +14,24 @@ export default {
                 query = "";
 
 
+            console.log(asParticipant) ; 
+
             query = query.trim().split(" ").filter(word => word != "").join(" ");
 
             var typeFilter = {
-                where : { 
+                where: {
 
                 }
             }
 
 
-            
-            if (query.length > 0) 
-        
-                typeFilter.where.type = "individual";  
-          
-        
-           
+
+            if (query.length > 0)
+
+                typeFilter.where.type = "individual";
+
+
+
             try {
 
                 var conversationMembers = await user.getConversationMember({
@@ -39,25 +41,25 @@ export default {
 
                         model: db.Conversation,
                         as: "conversation",
-                        required : true  , 
-                        ...typeFilter  ,
+                        required: true,
+                        ...typeFilter,
                         include: [{
                             model: db.ConversationMember,
                             as: "members",
-                     
-                            required : true  , 
+
+                            required: true,
                             include: [{
                                 model: db.User,
                                 as: "user",
-                             
+
                                 where: {
 
-                                    [Op.and] : [
+                                    [Op.and]: [
                                         {
                                             id: {
                                                 [Op.not]: user.id
                                             },
-                                        } , { 
+                                        }, {
                                             [Op.or]: [
                                                 Sequelize.where(
                                                     Sequelize.fn("CONCAT", Sequelize.col("name"), Sequelize.col("lastname")), {
@@ -98,12 +100,17 @@ export default {
 
                     }],
 
+
+                    where : { 
+                        isParticipant : asParticipant  
+                    } , 
+
                     limit: [offset, limit],
                     order: [["conversation", "updatedAt", "DESC"]],
 
 
 
-                  
+
                 });
 
 
@@ -113,8 +120,8 @@ export default {
                 for (var index = 0; index < conversationMembers.length; index++) {
                     var conversation = conversationMembers[index].conversation;
                     var lastSeenAt = conversationMembers[index].lastSeenAt;
-                    if ( conversation )
-                    conversation.unseenMessages = 0;
+                    if (conversation)
+                        conversation.unseenMessages = 0;
 
                     var filterQuery = {};
                     if (lastSeenAt) {
@@ -216,6 +223,12 @@ export default {
                     type: "individual"
                 });
 
+
+                const isFollower = (await user.getFollowers({
+                    where: {
+                        userId: userMember.id
+                    }
+                })).pop() != null;
                 // add the creator of the conversation 
                 // and add the target user to communicate with  
 
@@ -223,11 +236,13 @@ export default {
 
                     await db.ConversationMember.create({
                         conversationId: conversation.id,
-                        userId: user.id
+                        userId: user.id, 
+                        isParticipant : true 
                     }),
                     await db.ConversationMember.create({
                         conversationId: conversation.id,
                         userId: userMember.id,
+                        isParticipant : isFollower
 
                     }),
 
@@ -254,11 +269,22 @@ export default {
                 // loop over them and get user from database by id 
                 // if the user not found throw an error to break the thread 
                 // else push it to the user table 
-                var users = [user];
+                var users = [
+                    {
+                        ...user,
+                        isParticipant: true
+                    }
+                ];
                 for (let index = 0; index < members.length; index++) {
                     var userMember = await db.User.findByPk(members[index]);
                     if (userMember == null)
                         throw new Error("User " + members[index] + " not found");
+
+                    userMember.isParticipant = (await user.getFollowers({
+                        where: {
+                            userId: userMember.id
+                        }
+                    })).pop() != null;
                     users.push(userMember);
                 }
                 // if we reach this level all members are real users in the system 
@@ -272,7 +298,8 @@ export default {
                 for (let index = 0; index < users.length; index++) {
                     conversationMembers.push(await db.ConversationMember.create({
                         conversationId: conversation.id,
-                        userId: users[index].id
+                        userId: users[index].id,
+                        isParticipant: isParticipant
                     }))
                 }
                 conversation.members = conversationMembers;
@@ -318,6 +345,26 @@ export default {
 
             } catch (error) {
                 return new ApolloError(error.message);
+            }
+        } , 
+
+
+        acceptConversationInvite : async ( _ , {  conversationId } , {db , user}) => { 
+            try {   
+                const conversationMember = await db.ConversationMember.findOne({
+                    where : { 
+                        conversationId : conversationId , 
+                        userId : user.id
+                    } , 
+                }) ; 
+                if (conversationMember.isParticipant == false) { 
+                    await conversationMember.update({ 
+                        isParticipant : true
+                    })
+                }
+                return conversationMember ; 
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
             }
         }
     },

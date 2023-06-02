@@ -12,11 +12,8 @@ export default {
 
     Mutation: {
 
-
-        applySimat: async (_, { conversationId, simatId }, { db, user }) => {
+        applySimat: async (_, { conversationId, simatId }, { db, user, pubSub }) => {
             try {
-
-
                 const userMember = await db.ConversationMember.findOne({
                     where: {
                         userId: user.id,
@@ -25,11 +22,8 @@ export default {
                     include: [{
                         model: db.Conversation,
                         as: "conversation",
-
-
                     }]
                 });
-
 
                 if (!userMember)
                     throw new Error("Conversation not found or you are not member of it");
@@ -40,12 +34,10 @@ export default {
                 
 
                 var conversation = userMember.conversation;
-
                 conversation.simat = simat ; 
-
                 return conversation;
 
-                return null;
+                
             } catch (error) {
                 return new ApolloError(error.message);
             }
