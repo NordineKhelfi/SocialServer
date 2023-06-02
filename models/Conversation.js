@@ -17,6 +17,18 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        } , 
+
+
+        simatId : { 
+            type : DataTypes.INTEGER , 
+            allowNull : true , 
+            onDelete : "CASCADE" , 
+            references : { 
+              model : "Simats" , 
+              key : "id"
+            }
+    
         }
 
     });
@@ -34,6 +46,12 @@ module.exports = (Sequelize, DataTypes) => {
             foreignKey: "conversationId",
             as: "members"
         });
+
+
+        Conversation.hasOne(db.Simat , { 
+            foreignKey : "conversationId" , 
+            as  : "simat"
+        })
     }
     return Conversation;
 }

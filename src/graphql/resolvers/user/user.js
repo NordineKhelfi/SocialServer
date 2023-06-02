@@ -131,7 +131,7 @@ export default {
 
         searchUser: async (_, { query, offset, limit }, { db, user }) => {
             try {
-                query = query.trim().split(" ").filter(word => word != "").join("") ; 
+                query = query.trim().split(" ").filter(word => word != "").join(" ") ; 
 
                 return await db.User.findAll({
                     where: {

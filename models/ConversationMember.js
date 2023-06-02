@@ -31,6 +31,13 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: true ,
             
+        }, 
+
+
+        isParticipant : { 
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     });
 

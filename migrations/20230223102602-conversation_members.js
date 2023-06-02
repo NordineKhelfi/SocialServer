@@ -9,7 +9,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         allowNull: false
-    },
+      },
       conversationId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -18,9 +18,9 @@ module.exports = {
           key: "id"
         },
         onDelete: "CASCADE"
-      } , 
+      },
 
-      userId : { 
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -28,16 +28,26 @@ module.exports = {
           key: "id"
         },
         onDelete: "CASCADE"
-      }, 
-      lastSeenAt : {
-        type : Sequelize.DATE , 
-        allowNull : true  , 
-        
+      },
+      lastSeenAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+
+      },
+
+
+
+      isParticipant: {
+
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+
       }
     })
   },
 
   async down(queryInterface, Sequelize) {
-    return queryInterface.dropTable("ConversationMembers") ; 
+    return queryInterface.dropTable("ConversationMembers");
   }
 };

@@ -14,9 +14,22 @@ export default {
                 query = "";
 
 
-            query = query.trim().split(" ").filter(word => word != "").join("");
+            query = query.trim().split(" ").filter(word => word != "").join(" ");
+
+            var typeFilter = {
+                where : { 
+
+                }
+            }
 
 
+            
+            if (query.length > 0) 
+        
+                typeFilter.where.type = "individual";  
+          
+        
+           
             try {
 
                 var conversationMembers = await user.getConversationMember({
@@ -27,6 +40,7 @@ export default {
                         model: db.Conversation,
                         as: "conversation",
                         required : true  , 
+                        ...typeFilter  ,
                         include: [{
                             model: db.ConversationMember,
                             as: "members",
@@ -89,7 +103,7 @@ export default {
 
 
 
-
+                  
                 });
 
 
