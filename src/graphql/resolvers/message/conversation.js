@@ -5,7 +5,7 @@ import { Op, Sequelize } from "sequelize";
 export default {
 
     Query: {
-        getConversations: async (_, { asParticipant = true , query, offset, limit }, { db, user }) => {
+        getConversations: async (_, { asParticipant = true, query, offset, limit }, { db, user }) => {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
@@ -14,7 +14,7 @@ export default {
                 query = "";
 
 
-            console.log(asParticipant) ; 
+            console.log(asParticipant);
 
             query = query.trim().split(" ").filter(word => word != "").join(" ");
 
@@ -96,14 +96,18 @@ export default {
                             limit: 1,
                             offset: 0,
                             order: [["createdAt", "DESC"]]
+                        },
+                        {
+                            model: db.Simat,
+                            as: "simat"
                         }],
 
                     }],
 
 
-                    where : { 
-                        isParticipant : asParticipant  
-                    } , 
+                    where: {
+                        isParticipant: asParticipant
+                    },
 
                     limit: [offset, limit],
                     order: [["conversation", "updatedAt", "DESC"]],
@@ -236,13 +240,13 @@ export default {
 
                     await db.ConversationMember.create({
                         conversationId: conversation.id,
-                        userId: user.id, 
-                        isParticipant : true 
+                        userId: user.id,
+                        isParticipant: true
                     }),
                     await db.ConversationMember.create({
                         conversationId: conversation.id,
                         userId: userMember.id,
-                        isParticipant : isFollower
+                        isParticipant: isFollower
 
                     }),
 
@@ -346,25 +350,25 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
-        } , 
+        },
 
 
-        acceptConversationInvite : async ( _ , {  conversationId } , {db , user}) => { 
-            try {   
+        acceptConversationInvite: async (_, { conversationId }, { db, user }) => {
+            try {
                 const conversationMember = await db.ConversationMember.findOne({
-                    where : { 
-                        conversationId : conversationId , 
-                        userId : user.id
-                    } , 
-                }) ; 
-                if (conversationMember.isParticipant == false) { 
-                    await conversationMember.update({ 
-                        isParticipant : true
+                    where: {
+                        conversationId: conversationId,
+                        userId: user.id
+                    },
+                });
+                if (conversationMember.isParticipant == false) {
+                    await conversationMember.update({
+                        isParticipant: true
                     })
                 }
-                return conversationMember ; 
-            }catch(error) { 
-                return new ApolloError(error.message) ; 
+                return conversationMember;
+            } catch (error) {
+                return new ApolloError(error.message);
             }
         }
     },
