@@ -3,37 +3,27 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+
     /*
-
     return Promise.all([
-      queryInterface.addColumn('ConversationMembers', 'isParticipant', {
+      queryInterface.changeColumn("Messages", "type",{
 
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-
+        type: Sequelize.ENUM(["text", "image", "video", "record" , "post"]),
+        defaultValue: "text",
+        allowNull: false
       }) , 
-
-
-      queryInterface.addColumn('Conversations', 'simatId', {
-
-        type : Sequelize.INTEGER , 
+      queryInterface.addColumn("Messages" , "postId" , {
+        type :  Sequelize.INTEGER , 
         allowNull : true , 
-        onDelete : "CASCADE" , 
-        references : { 
-          model : "Simats" , 
+        onDelete : "SET NULL" , 
+        references  : { 
+          model : "Posts" , 
           key : "id"
         }
-
       })
-    ]);
+    ])
     */
+    
   },
 
   async down(queryInterface, Sequelize) {
@@ -43,16 +33,16 @@ module.exports = {
       queryInterface.removeColumn('Conversations', 'simatId') , 
       
     ])
-      */
+    */
+    
 
-    
-    
+
     /**
      * Add reverting commands here.
      *
      * Example:
      * await queryInterface.dropTable('users');
      */
-    
+
   }
 };

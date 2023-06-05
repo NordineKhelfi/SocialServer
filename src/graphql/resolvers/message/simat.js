@@ -1,4 +1,5 @@
 import { ApolloError } from "apollo-server-express";
+import { withFilter } from "graphql-subscriptions";
 
 export default {
 
@@ -28,19 +29,60 @@ export default {
                 if (!userMember)
                     throw new Error("Conversation not found or you are not member of it");
 
-                const simat = await db.Simat.findByPk(simatId) ; 
-                if (!simat) 
-                    throw new Error("Simat not found") ; 
-                
 
-                var conversation = userMember.conversation;
-                conversation.simat = simat ; 
-                return conversation;
+                if (simatId) {
+                    const simat = await db.Simat.findByPk(simatId);
+                    if (!simat)
+                        throw new Error("Simat not found");
 
-                
+
+                    var conversation = userMember.conversation;
+                    await conversation.update({
+                        simatId: simat.id
+                    });
+                    conversation.simat = simat;
+
+                    pubSub.publish("SIMAT_CHANGED", {
+                        simatChanged: simat,
+                        conversation
+                    });
+
+                    return conversation;
+                } else {
+                    var conversation = userMember.conversation;
+                    await conversation.update({
+                        simatId: null,
+
+                    });
+                    pubSub.publish("SIMAT_CHANGED", {
+                        simatChanged: null,
+                        conversation
+                    });
+                    return conversation;
+                }
             } catch (error) {
                 return new ApolloError(error.message);
             }
+
+        }
+    },
+
+
+    Subscription: {
+        simatChanged: {
+            subscribe: withFilter(
+                (_, { }, { pubSub }) => pubSub.asyncIterator(`SIMAT_CHANGED`),
+
+
+                ({ simatChanged, conversation }, { conversationId }, { isUserAuth, user }) => {
+                    console.log(conversationId);
+
+                    if (!isUserAuth)
+                        return false;
+
+                    return conversation.id == conversationId;
+
+                })
 
         }
     }

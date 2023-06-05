@@ -9,6 +9,7 @@ export default gql`
     }
     extend type Mutation { 
         sendMessage( messageInput : MessageInput!) : Message!   @userAuth 
+        sharePost(postId : ID! , conversationId : ID!) : Message! @userAuth 
     }
 
     extend type Subscription  {
@@ -24,6 +25,8 @@ export default gql`
         media : Media  
         conversation : Conversation! 
         createdAt : String!
+        post : Post 
+        postId : ID 
     } 
 
     input MessageInput { 

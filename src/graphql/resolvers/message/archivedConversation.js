@@ -57,6 +57,8 @@ export default {
 
             for (var index = 0; index < archivedConversations.length; index++) {
                 var conversation = archivedConversations[index].conversation;
+                conversation.isReadable = archivedConversations[index].isParticipant ; 
+                conversation.isArchived = true ; 
                 var lastSeenAt = archivedConversations[index].lastSeenAt;
                 if (conversation)
                     conversation.unseenMessages = 0;

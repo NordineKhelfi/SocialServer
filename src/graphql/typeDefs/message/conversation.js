@@ -28,7 +28,8 @@ export default gql`
         updatedAt : String! 
         unseenMessages : Int 
         simat : Simat 
-        
+        isReadable : Boolean 
+        isArchived : Boolean 
 
     } 
 

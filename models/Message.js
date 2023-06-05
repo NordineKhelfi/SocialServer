@@ -14,7 +14,7 @@ module.exports = (Sequelize, DataTypes) => {
             allowNull: true,
         },
         type: {
-            type: DataTypes.ENUM(["text", "image", "video", "record"]),
+            type: DataTypes.ENUM(["text", "image", "video", "record" , "post"]),
             defaultValue: "text",
             allowNull: false
         },
@@ -49,7 +49,16 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-        }
+        }, 
+        postId  : { 
+            type :  DataTypes.INTEGER , 
+            allowNull : true , 
+            onDelete : "SET NULL" , 
+            references  : { 
+              model : "Posts" , 
+              key : "id"
+            }
+          }
     });
 
     Message.associate = ( db ) => { 
@@ -67,6 +76,11 @@ module.exports = (Sequelize, DataTypes) => {
             foreignKey : "mediaId" , 
             as : "media"
         }) ; 
+
+        Message.belongsTo(db.Post , { 
+            foreignKey : "postId" , 
+            as : "post"
+        })
     }
 
     return Message ; 

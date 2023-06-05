@@ -19,18 +19,11 @@ export default {
             query = query.trim().split(" ").filter(word => word != "").join(" ");
 
             var typeFilter = {
-                where: {
-
-                }
+                where: {}
             }
 
-
-
             if (query.length > 0)
-
                 typeFilter.where.type = "individual";
-
-
 
             try {
 
@@ -123,6 +116,7 @@ export default {
 
                 for (var index = 0; index < conversationMembers.length; index++) {
                     var conversation = conversationMembers[index].conversation;
+                    conversation.isReadable = conversationMembers[index].isParticipant;
                     var lastSeenAt = conversationMembers[index].lastSeenAt;
                     if (conversation)
                         conversation.unseenMessages = 0;
@@ -191,6 +185,9 @@ export default {
                                 as: "user",
 
                             }]
+                        }, { 
+                            model : db.Simat , 
+                            as : "simat"
                         }],
                         where: {
                             type: type
@@ -199,8 +196,10 @@ export default {
                 })).pop();
 
 
-                if (memberShip)
+                if (memberShip)  {
+                    memberShip.conversation.isReadable = memberShip.asParticipant ; 
                     return memberShip.conversation
+                }
                 else
                     return null;
 
@@ -360,12 +359,29 @@ export default {
                         conversationId: conversationId,
                         userId: user.id
                     },
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation"
+                    }]
                 });
+
+
+
                 if (conversationMember.isParticipant == false) {
+
+
+
                     await conversationMember.update({
                         isParticipant: true
                     })
-                }
+
+                    await conversationMember.conversation.update({
+                        updatedAt : new Date()
+                    })
+
+                };
+
+
                 return conversationMember;
             } catch (error) {
                 return new ApolloError(error.message);

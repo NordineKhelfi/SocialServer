@@ -38,6 +38,27 @@ export default {
                     }, {
                         model: db.User,
                         as: "sender"
+                    }, { 
+                        model : db.Post , 
+                        as : "post" , 
+                        include : [{
+                            model : db.Media , 
+                            as : "media" 
+                        } , { 
+                            model : db.User , 
+                            as : "user" , 
+                            include : [{
+                                model : db.Media , 
+                                as : "profilePicture"
+                            }]
+                        }, { 
+                            model : db.Reel , 
+                            as : "reel" , 
+                            include : [{
+                                model : db.Media , 
+                                as : "thumbnail"
+                            }]
+                        }]
                     }],
                     offset,
                     limit,
@@ -51,9 +72,9 @@ export default {
 
     },
     Mutation: {
-        sendMessage: async (_, { messageInput }, { db, user, pubSub , sendPushNotification }) => {
+        sendMessage: async (_, { messageInput }, { db, user, pubSub, sendPushNotification }) => {
 
-            
+
 
             try {
                 // validate the conversation input 
@@ -103,10 +124,10 @@ export default {
                 messageInput.id = message.id;
                 messageInput.createdAt = new Date();
 
-                conversation.update({updatedAt : new Date()})
+                conversation.update({ updatedAt: new Date() })
 
 
-                
+
                 const members = await conversation.getMembers({
                     where: {
                         userId: {
@@ -121,51 +142,90 @@ export default {
                     newMessage: messageInput
                 });
 
-                for ( let index = 0 ; index < members.length ; index++) {
-                    if (user.id == members[index].userId) 
-                        continue ; 
+                for (let index = 0; index < members.length; index++) {
+                    if (user.id == members[index].userId)
+                        continue;
                     sendPushNotification(
-                        await members[index].getUser() , 
-                        { 
-                            type : "message" , 
-                            user : {
-                                id : user.id , 
-                                name : user.name , 
-                                lastname : user.lastname , 
-                                profilePicture : await user.getProfilePicture() 
-                            } , 
-                            message : { 
-                                conversationId : message.conversationId , 
-                                type : message.type , 
-                                content : message.content 
+                        await members[index].getUser(),
+                        {
+                            type: "message",
+                            user: {
+                                id: user.id,
+                                name: user.name,
+                                lastname: user.lastname,
+                                profilePicture: await user.getProfilePicture()
+                            },
+                            message: {
+                                conversationId: message.conversationId,
+                                type: message.type,
+                                content: message.content
                             }
                         }
                     )
-                } 
+                }
 
                 return messageInput
 
             } catch (error) {
-                console.log(error.message) ; 
+                console.log(error.message);
                 return new ApolloError(error.message);
             }
 
+        },
+
+
+        sharePost: async (_, { conversationId, postId }, { db, user }) => {
+            try {
+
+
+                const conversationMemeber = await db.ConversationMember.findOne({
+                    where: {
+                        userId: user.id,
+                        conversationId
+                    },
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation"
+                    }]
+                });
+
+                if (!conversationMemeber)
+                    throw new Error("Not part of this conversation")
+
+                const post = await db.Post.findByPk (postId) ; 
+                                
+                if ( ! post )   
+                    throw new Error('Post not found')
+
+
+                return await db.Message.create({
+                    type : "post" , 
+                    postId : post.id , 
+                    conversationId : conversationId, 
+                    userId : user.id 
+                })
+                
+
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
     },
     Subscription: {
         newMessage: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_MESSAGE`),
-                
-                
+
+
                 ({ newMessage }, { }, { isUserAuth, user }) => {
-                    
-                    if (!isUserAuth) 
-                        return false ; 
-                    
-                    const index = newMessage.conversation.members.findIndex(member => member.userId == user.id) ; 
-                    return index >= 0 ; 
-                    
+
+                    if (!isUserAuth)
+                        return false;
+
+                    const index = newMessage.conversation.members.findIndex(member => member.userId == user.id);
+                    return index >= 0;
+
                 })
 
         }

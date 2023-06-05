@@ -16,7 +16,7 @@ module.exports = {
         allowNull: true,
       },
       type: {
-        type: Sequelize.ENUM(["text", "image", "video", "record"]),
+        type: Sequelize.ENUM(["text", "image", "video", "record" , "post"]),
         defaultValue: "text",
         allowNull: false
       },
@@ -51,6 +51,16 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      } , 
+
+      postId  : { 
+        type :  Sequelize.INTEGER , 
+        allowNull : true , 
+        onDelete : "SET NULL" , 
+        references  : { 
+          model : "Posts" , 
+          key : "id"
+        }
       }
     })
   },
