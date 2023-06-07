@@ -30,7 +30,7 @@ export default {
 
                 // get all the messages that belongs to this conversation between offset and limit 
                 // and include the sender and the media content 
-                return await conversation.getMessages({
+                var messages = await conversation.getMessages({
                     include: [{
                         model: db.Media,
                         as: "media",
@@ -38,25 +38,25 @@ export default {
                     }, {
                         model: db.User,
                         as: "sender"
-                    }, { 
-                        model : db.Post , 
-                        as : "post" , 
-                        include : [{
-                            model : db.Media , 
-                            as : "media" 
-                        } , { 
-                            model : db.User , 
-                            as : "user" , 
-                            include : [{
-                                model : db.Media , 
-                                as : "profilePicture"
+                    }, {
+                        model: db.Post,
+                        as: "post",
+                        include: [{
+                            model: db.Media,
+                            as: "media"
+                        }, {
+                            model: db.User,
+                            as: "user",
+                            include: [{
+                                model: db.Media,
+                                as: "profilePicture"
                             }]
-                        }, { 
-                            model : db.Reel , 
-                            as : "reel" , 
-                            include : [{
-                                model : db.Media , 
-                                as : "thumbnail"
+                        }, {
+                            model: db.Reel,
+                            as: "reel",
+                            include: [{
+                                model: db.Media,
+                                as: "thumbnail"
                             }]
                         }]
                     }],
@@ -65,6 +65,26 @@ export default {
                     order: [["createdAt", "DESC"]]
                 });
 
+
+
+                for (let index = 0; index < messages.length; index++) {
+                    if (messages[index].type == "post") {
+                        messages[index].post.liked = (await user.getLikes({
+                            where: {
+                                postId: messages[index].post.id
+                            }
+                        })).length > 0;
+
+                        messages[index].post.isFavorite = (await user.getFavorites({
+                            where: {
+                                postId: messages[index].post.id
+                            }
+                        })).length > 0;
+                    }
+                }
+
+
+                return messages;
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -125,9 +145,6 @@ export default {
                 messageInput.createdAt = new Date();
 
                 conversation.update({ updatedAt: new Date() })
-
-
-
                 const members = await conversation.getMembers({
                     where: {
                         userId: {
@@ -174,7 +191,7 @@ export default {
         },
 
 
-        sharePost: async (_, { conversationId, postId }, { db, user }) => {
+        sharePost: async (_, { conversationId, postId }, { db, user, pubSub, sendPushNotification }) => {
             try {
 
 
@@ -192,21 +209,90 @@ export default {
                 if (!conversationMemeber)
                     throw new Error("Not part of this conversation")
 
-                const post = await db.Post.findByPk (postId) ; 
-                                
-                if ( ! post )   
+                const post = await db.Post.findOne({
+                    include: [{
+                        model: db.Media,
+                        as: "media"
+                    }, {
+                        model: db.Reel,
+                        as: "reel",
+                        include: [{
+                            model: db.Media,
+                            as: "thumbnail"
+                        }]
+                    }, {
+                        model: db.User,
+                        as: "user",
+                        include: [{
+                            model : db.Media , 
+                            as : "profilePicture"
+                        }]
+                    }],
+                    where: {
+                        id: postId
+                    }
+                });
+
+                if (!post)
                     throw new Error('Post not found')
 
 
-                return await db.Message.create({
-                    type : "post" , 
-                    postId : post.id , 
-                    conversationId : conversationId, 
-                    userId : user.id 
-                })
-                
+
+                var message = await db.Message.create({
+                    type: "post",
+                    postId: post.id,
+                    conversationId: conversationId,
+                    userId: user.id
+                });
 
 
+                user.profilePicture = await user.getProfilePicture();
+                message.createdAt = new Date();
+                message.post = post;
+                message.sender = user;
+                conversationMemeber.conversation.members = await conversationMemeber.conversation.getMembers({
+                    where: {
+                        userId: {
+                            [Op.not]: user.id
+                        }
+                    }
+                });
+                message.conversation = conversationMemeber.conversation;
+                message.conversation.update({ updatedAt: new Date() })
+
+                pubSub.publish("NEW_MESSAGE", {
+                    newMessage: message
+                });
+
+                var members = message.conversation.members;
+
+                for (let index = 0; index < members.length; index++) {
+
+
+
+                    if (user.id == members[index].userId)
+                        continue;
+                    sendPushNotification(
+                        await members[index].getUser(),
+                        {
+                            type: "message",
+                            user: {
+                                id: user.id,
+                                name: user.name,
+                                lastname: user.lastname,
+                                profilePicture: await user.getProfilePicture()
+                            },
+                            message: {
+                                conversationId: message.conversationId,
+                                type: message.type,
+                                content: message.content
+                            }
+                        }
+                    )
+                }
+
+
+                return message;
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -218,11 +304,24 @@ export default {
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_MESSAGE`),
 
 
-                ({ newMessage }, { }, { isUserAuth, user }) => {
+                async ({ newMessage }, { }, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
                         return false;
 
+                    if (newMessage.type == "post") {
+                        newMessage.post.liked = (await user.getLikes({
+                            where: {
+                                postId: user.id
+                            }
+                        })).pop() != null;
+                        newMessage.post.isFavorite = (await user.getFavorites({
+                            where: {
+                                postId: user.id
+                            }
+                        })).pop() != null;
+
+                    }
                     const index = newMessage.conversation.members.findIndex(member => member.userId == user.id);
                     return index >= 0;
 

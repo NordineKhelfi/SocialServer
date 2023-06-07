@@ -5,7 +5,7 @@ import { Op, Sequelize } from "sequelize";
 export default {
 
     Query: {
-        getConversations: async (_, { asParticipant = true, query, offset, limit }, { db, user }) => {
+        getConversations: async (_, {    asParticipant = true, query, offset, limit }, { db, user }) => {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
@@ -14,7 +14,7 @@ export default {
                 query = "";
 
 
-            console.log(asParticipant);
+ 
 
             query = query.trim().split(" ").filter(word => word != "").join(" ");
 
@@ -22,7 +22,7 @@ export default {
                 where: {}
             }
 
-            if (query.length > 0)
+            if (query.length > 0 )
                 typeFilter.where.type = "individual";
 
             try {
@@ -272,12 +272,17 @@ export default {
                 // loop over them and get user from database by id 
                 // if the user not found throw an error to break the thread 
                 // else push it to the user table 
+
+                 
+
                 var users = [
                     {
-                        ...user,
+                        ...(user.dataValues),
                         isParticipant: true
                     }
                 ];
+            
+            
                 for (let index = 0; index < members.length; index++) {
                     var userMember = await db.User.findByPk(members[index]);
                     if (userMember == null)
@@ -290,6 +295,7 @@ export default {
                     })).pop() != null;
                     users.push(userMember);
                 }
+
                 // if we reach this level all members are real users in the system 
                 // create the conversation as a grouup conversation  
                 const conversation = await db.Conversation.create({
@@ -297,18 +303,19 @@ export default {
                 });
 
                 var conversationMembers = [];
-
+       
                 for (let index = 0; index < users.length; index++) {
                     conversationMembers.push(await db.ConversationMember.create({
                         conversationId: conversation.id,
                         userId: users[index].id,
-                        isParticipant: isParticipant
+                        isParticipant: users[index].isParticipant
                     }))
                 }
                 conversation.members = conversationMembers;
                 conversation.messages = [];
                 return conversation;
             } catch (error) {
+                console.log(error.message) ; 
                 return new ApolloError(error.message)
             }
         },
