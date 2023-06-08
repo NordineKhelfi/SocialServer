@@ -1,11 +1,12 @@
 import { ApolloError } from "apollo-server-express";
 import { withFilter } from "graphql-subscriptions";
 import { Op, Sequelize } from "sequelize";
+import { deleteFiles } from "../../../providers";
 
 export default {
 
     Query: {
-        getConversations: async (_, {    asParticipant = true, query, offset, limit }, { db, user }) => {
+        getConversations: async (_, { asParticipant = true, query, offset, limit }, { db, user }) => {
             // get all the conversations that the given user is member on 
             // and include in each one the members 
             // the last message send and his sender 
@@ -14,7 +15,7 @@ export default {
                 query = "";
 
 
- 
+
 
             query = query.trim().split(" ").filter(word => word != "").join(" ");
 
@@ -22,7 +23,7 @@ export default {
                 where: {}
             }
 
-            if (query.length > 0 )
+            if (query.length > 0)
                 typeFilter.where.type = "individual";
 
             try {
@@ -171,6 +172,7 @@ export default {
 
 
                 var memberShip = (await user.getConversationMember({
+
                     include: [{
                         model: db.Conversation,
                         as: "conversation",
@@ -185,9 +187,9 @@ export default {
                                 as: "user",
 
                             }]
-                        }, { 
-                            model : db.Simat , 
-                            as : "simat"
+                        }, {
+                            model: db.Simat,
+                            as: "simat"
                         }],
                         where: {
                             type: type
@@ -196,14 +198,51 @@ export default {
                 })).pop();
 
 
-                if (memberShip)  {
-                    memberShip.conversation.isReadable = memberShip.asParticipant ; 
+                if (memberShip) {
+                    memberShip.conversation.isReadable = memberShip.asParticipant;
                     return memberShip.conversation
                 }
                 else
                     return null;
 
 
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+        getUnReadConversations: async (_, { asParticipant = true }, { db, user }) => {
+            try {
+
+                var conversationMembers = await user.getConversationMember({
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation",
+                        required: true,
+                        include: [{
+                            model: db.Message,
+                            as: "messages",
+                            required: true,
+                            order: [["createdAt", "DESC"]],
+                            where: {
+                                userId: {
+                                    [Op.not]: user.id
+                                },
+                                createdAt: {
+                                    [Op.gt]: { [Op.col]: "ConversationMember.lastSeenAt" }
+                                }
+
+                            },
+                        }]
+                    }],
+                    where: {
+                        isParticipant: asParticipant
+                    }
+                });
+
+
+                return conversationMembers;
+                return conversationMembers.map(conversationMember => conversationMember.conversation);
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -273,7 +312,7 @@ export default {
                 // if the user not found throw an error to break the thread 
                 // else push it to the user table 
 
-                 
+
 
                 var users = [
                     {
@@ -281,8 +320,8 @@ export default {
                         isParticipant: true
                     }
                 ];
-            
-            
+
+
                 for (let index = 0; index < members.length; index++) {
                     var userMember = await db.User.findByPk(members[index]);
                     if (userMember == null)
@@ -303,7 +342,7 @@ export default {
                 });
 
                 var conversationMembers = [];
-       
+
                 for (let index = 0; index < users.length; index++) {
                     conversationMembers.push(await db.ConversationMember.create({
                         conversationId: conversation.id,
@@ -315,9 +354,80 @@ export default {
                 conversation.messages = [];
                 return conversation;
             } catch (error) {
-                console.log(error.message) ; 
+                console.log(error.message);
                 return new ApolloError(error.message)
             }
+        },
+
+
+        deleteConversation: async (_, { conversationId }, { db, user }) => {
+            try {
+                const conversationMember = await db.ConversationMember.findOne({
+                    where: {
+                        conversationId: conversationId,
+                        userId: user.id
+                    },
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation",
+
+                        include: [{
+                            model: db.Message,
+                            as: "messages",
+                            include: [{
+                                model: db.Media,
+                                as: "media"
+                            }]
+                        }, {
+                            model: db.ConversationMember,
+                            as: "members"
+                        }],
+                    }]
+                });
+
+                if (!conversationMember)
+                    throw new Error("Not part of this conversation");
+
+                const conversation = conversationMember.conversation;
+                var media = [];
+                if (conversation.type === "individual" || (conversation.type === "group" && conversation.members.length == 2)) {
+                    media = conversation.messages.filter(message => message.media).map(message => message.media.path);
+                    await conversation.destroy();
+
+                } else if (conversation.members.length > 2) {
+                    var myMessages = await db.Message.findAll({
+                        where: {
+                            userId : user.id , 
+                            conversationId : conversationId 
+                        }
+                    }) ; 
+                    media = myMessages.filter(message => message.media).map(message => message.media.path);
+                    var archivedConversation = await db.ArchivedConversation.findOne( {
+                        where : { 
+                            userId : user.id , 
+                            conversationId : conversation.id 
+                        }
+                    }) ; 
+
+
+                    if(archivedConversation) { 
+                        await archivedConversation.destroy() ; 
+                    } 
+                    for ( let index = 0 ; index < myMessages.length ; index ++) { 
+                        await myMessages[index].destroy() ;  
+                    } 
+                
+                
+                    await conversationMember.destroy() ; 
+                }
+
+                await deleteFiles(media);
+                return conversation;
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+
         },
         seeConversation: async (_, { conversationId }, { db, user, pubSub }) => {
             try {
@@ -383,7 +493,7 @@ export default {
                     })
 
                     await conversationMember.conversation.update({
-                        updatedAt : new Date()
+                        updatedAt: new Date()
                     })
 
                 };

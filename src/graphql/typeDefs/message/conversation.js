@@ -4,12 +4,15 @@ export default gql`
     extend type Query { 
         getConversations(   asParticipant : Boolean ,   query : String ,   offset : Int! , limit : Int!) : [Conversation!]! @userAuth 
         getConversation(userId : ID! , type  : String) :  Conversation @userAuth 
+        getUnReadConversations (asParticipant : Boolean) : [ConversationMember!] @userAuth  
+
     } 
     extend type Mutation { 
         createConversation ( members : [ID!]! ) : Conversation! @userAuth 
         createGroup ( members : [ID!]! ) : Conversation! @userAuth
         seeConversation(conversationId : ID!) :  String! @userAuth 
         acceptConversationInvite(conversationId : ID!) : ConversationMember @userAuth 
+        deleteConversation (conversationId : ID!) : Conversation! @userAuth  
     } 
 
     extend type Subscription {
