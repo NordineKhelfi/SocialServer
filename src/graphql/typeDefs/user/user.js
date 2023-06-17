@@ -39,14 +39,12 @@ export default gql`
     }
 
     input EditUserInput { 
-
         name : String! 
         lastname : String! 
         username : String! 
         countryId : ID! , 
         profilePicture : Upload 
-        pictureId : ID 
-        
+        pictureId : ID  
         bio : String 
         socialMedia : SocialMediaInput 
     }

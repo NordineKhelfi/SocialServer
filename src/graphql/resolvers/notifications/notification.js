@@ -9,10 +9,34 @@ export default {
         getFollowersNotifications: async (_, { offset, limit }, { db, user }) => {
             try {
 
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
+
+
                 var followers = await user.getFollowers({
 
                     include: [{
                         model: db.User,
+                        where: {
+                            id: {
+                                [Op.notIn]: blockedUsers
+                            }
+                        },
                         as: "user",
                         include: [{
                             model: db.Media,
@@ -48,6 +72,23 @@ export default {
         getLikePostNotification: async (_, { offset, limit }, { db, user }) => {
             try {
 
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
 
                 var likes = await db.Like.findAll({
                     attributes: ['postId'],
@@ -63,9 +104,19 @@ export default {
                             as: "postLikes",
                             required: true,
                             where: {
-                                userId: {
-                                    [Op.not]: user.id
-                                }
+
+                                [Op.and]: [
+                                    {
+                                        userId: {
+                                            [Op.not]: user.id
+                                        }
+                                    } , 
+                                    {
+                                        userId : { 
+                                            [Op.notIn] : blockedUsers 
+                                        }
+                                    }
+                                ]
                             },
                             include: [{
                                 model: db.User,
@@ -119,11 +170,33 @@ export default {
 
         getStoryCommentNotification: async (_, { offset, limit }, { db, user }) => {
             try {
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
 
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
                 var storyComments = await db.StoryComment.findAll({
                     include: [{
                         model: db.User,
                         as: "user",
+                        required : true , 
+                        where : { 
+                            id : { 
+                                [Op.notIn] : blockedUsers 
+                            }
+                        } , 
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -171,12 +244,35 @@ export default {
         },
         getCommentPostNotification: async (_, { offset, limit }, { db, user }) => {
             try {
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
                 var comments = await db.Comment.findAll({
 
 
                     include: [{
                         model: db.User,
                         as: "user",
+                        required : true , 
+                        where : { 
+                            id : { 
+                                [Op.notIn] : blockedUsers 
+                            } 
+                        } , 
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -230,6 +326,12 @@ export default {
                     include: [{
                         model: db.User,
                         as: "user",
+                        required : true , 
+                        where : { 
+                            id : { 
+                                [Op.notIn] : blockedUsers 
+                            }
+                        }  , 
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -290,68 +392,56 @@ export default {
         newFollow: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_FOLLOW`),
-                
-                ({newFollow}, {  }, { isUserAuth, user }) => {
-
-        
+                ({ newFollow }, { }, { isUserAuth, user }) => {
                     if (!isUserAuth)
                         return false;
-        
- 
-                    
-                    return newFollow.followingId == user.id ; 
-                     
+                    return newFollow.followingId == user.id;
                 }
             )
-        } , 
+        },
         newLike: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_LIKE`),
-                ( { newLike  }, { } , { isUserAuth, user }) => {
+                ({ newLike }, { }, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
                         return false;
-                    return newLike.post.userId == user.id ;                      
+                    return newLike.post.userId == user.id;
                 }
             )
-        } , 
+        },
         newComment: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_COMMENT`),
-                ({newComment }, { }, { isUserAuth, user }) => {
-
+                ({ newComment }, { }, { isUserAuth, user }) => {
                     if (!isUserAuth)
                         return false;
-
-                    return newComment.post.userId == user.id ; 
-
-                    
-                     
+                    return newComment.post.userId == user.id;
                 }
             )
-        } ,
+        },
         newReplay: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_REPLAY`),
-                ({newReplay  }, {  }, { isUserAuth, user }) => {
+                ({ newReplay }, { }, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
                         return false;
 
-                    return newReplay.comment.userId == user.id ;
+                    return newReplay.comment.userId == user.id;
                 }
             )
-        } ,
+        },
         newStoryComment: {
             subscribe: withFilter(
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_STORY_COMMENT`),
-                ({ newStoryComment }, {}, { isUserAuth, user }) => {
+                ({ newStoryComment }, { }, { isUserAuth, user }) => {
 
                     if (!isUserAuth)
-                        return false;                    
-                    return newStoryComment.story.userId == user.id ; 
-                    
-                     
+                        return false;
+                    return newStoryComment.story.userId == user.id;
+
+
                 }
             )
         }

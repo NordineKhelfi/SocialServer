@@ -108,6 +108,25 @@ export default {
                 if (userId == user.id)
                     throw new Error("You can't follow your self asshole");
 
+                
+                const blockedUser = await db.BlockedUser.findOne({ 
+                    where : {
+                        [Op.or] : [
+                            {
+                                userId : userId , 
+                                blockedUserId : user.id  
+                            } , 
+                            { 
+                                blockedUserId : userId , 
+                                userId  : user.id
+                            }
+                        ]
+                    } 
+                }) ; 
+
+                if (blockedUser) 
+                    throw new Error("this user is blocked") ; 
+
                 const target = await db.User.findByPk(userId);
                 if (target == null)
                     throw new Error("User not found");

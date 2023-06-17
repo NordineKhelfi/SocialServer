@@ -26,6 +26,25 @@ export default {
             if (query.length > 0)
                 typeFilter.where.type = "individual";
 
+
+            var blockedUsers = await db.BlockedUser.findAll({
+                where: {
+                    [Op.or]: [
+                        {
+                            blockedUserId: user.id
+                        },
+                        {
+                            userId: user.id
+                        }
+                    ]
+                }
+            });
+
+
+            blockedUsers = blockedUsers.map(blockedUser => {
+                return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+            })
+
             try {
 
                 var conversationMembers = await user.getConversationMember({
@@ -53,6 +72,10 @@ export default {
                                             id: {
                                                 [Op.not]: user.id
                                             },
+                                        }, {
+                                            id : {
+                                                [Op.notIn] : blockedUsers
+                                            }
                                         }, {
                                             [Op.or]: [
                                                 Sequelize.where(
@@ -105,14 +128,7 @@ export default {
 
                     limit: [offset, limit],
                     order: [["conversation", "updatedAt", "DESC"]],
-
-
-
-
                 });
-
-
-
 
 
                 for (var index = 0; index < conversationMembers.length; index++) {
@@ -397,28 +413,28 @@ export default {
                 } else if (conversation.members.length > 2) {
                     var myMessages = await db.Message.findAll({
                         where: {
-                            userId : user.id , 
-                            conversationId : conversationId 
+                            userId: user.id,
+                            conversationId: conversationId
                         }
-                    }) ; 
+                    });
                     media = myMessages.filter(message => message.media).map(message => message.media.path);
-                    var archivedConversation = await db.ArchivedConversation.findOne( {
-                        where : { 
-                            userId : user.id , 
-                            conversationId : conversation.id 
+                    var archivedConversation = await db.ArchivedConversation.findOne({
+                        where: {
+                            userId: user.id,
+                            conversationId: conversation.id
                         }
-                    }) ; 
+                    });
 
 
-                    if(archivedConversation) { 
-                        await archivedConversation.destroy() ; 
-                    } 
-                    for ( let index = 0 ; index < myMessages.length ; index ++) { 
-                        await myMessages[index].destroy() ;  
-                    } 
-                
-                
-                    await conversationMember.destroy() ; 
+                    if (archivedConversation) {
+                        await archivedConversation.destroy();
+                    }
+                    for (let index = 0; index < myMessages.length; index++) {
+                        await myMessages[index].destroy();
+                    }
+
+
+                    await conversationMember.destroy();
                 }
 
                 await deleteFiles(media);

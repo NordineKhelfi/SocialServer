@@ -2,6 +2,7 @@ import { ApolloError } from "apollo-server-express"
 import { UPLOAD_REPLAYS_RECORDS_DIR } from "../../../config";
 import { uploadFiles } from "../../../providers";
 import { ReplayValidator } from "../../../validators";
+import { Op } from "sequelize";
 
 export default {
     Query: {
@@ -11,6 +12,24 @@ export default {
                 const comment = await db.Comment.findByPk(commentId);
                 if (comment == null)
                     throw new Error("Comment do not exists");
+
+
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                });
 
                 // get replays that belongs to the given comment between the offset and limit 
                 var replays = await comment.getReplays({
@@ -30,6 +49,11 @@ export default {
                     order: [
                         ["id", "DESC"]
                     ],
+                    where : { 
+                        userId : {
+                            [Op.notIn] : blockedUsers 
+                        }
+                    } ,
                     offset: offset,
                     limit: limit,
 
@@ -69,26 +93,26 @@ export default {
                                 as: "profilePicture"
                             }
                         ]
-                    } , {
-                        model : db.Comment , 
-                        as : "comment" , 
-                        include : [{ 
-                            model : db.User , 
-                            as : "user" , 
-                            include  :[{
-                                model : db.Media , 
-                                as : "profilePicture"
+                    }, {
+                        model: db.Comment,
+                        as: "comment",
+                        include: [{
+                            model: db.User,
+                            as: "user",
+                            include: [{
+                                model: db.Media,
+                                as: "profilePicture"
                             }]
-                        }, { 
-                            model : db.Replay , 
-                            as : "replays"
                         }, {
-                            model : db.Post , 
-                            as : "post"
+                            model: db.Replay,
+                            as: "replays"
+                        }, {
+                            model: db.Post,
+                            as: "post"
                         }]
-                    }], 
-                    where : { 
-                        id : replayId 
+                    }],
+                    where: {
+                        id: replayId
                     }
 
                 });
@@ -120,25 +144,25 @@ export default {
     },
 
     Mutation: {
-        replay: async (_, { replayInput }, { db, user, sendPushNotification , pubSub }) => {
+        replay: async (_, { replayInput }, { db, user, sendPushNotification, pubSub }) => {
             try {
                 // vdalited the input
                 await ReplayValidator.validate(replayInput, { abortEarly: true });
                 // check if the comment realy exists 
-                const comment = await db.Comment.findByPk(replayInput.commentId , { 
-                    include : [{
-                        model : db.Post , 
-                        as : "post" , 
-                        include : [{
-                            model : db.Reel , 
-                            as : "reel" ,
-                            include : [{
-                                model : db.Media , 
-                                as : "thumbnail"
+                const comment = await db.Comment.findByPk(replayInput.commentId, {
+                    include: [{
+                        model: db.Post,
+                        as: "post",
+                        include: [{
+                            model: db.Reel,
+                            as: "reel",
+                            include: [{
+                                model: db.Media,
+                                as: "thumbnail"
                             }]
-                        } , { 
-                            model : db.Media , 
-                            as : "media"
+                        }, {
+                            model: db.Media,
+                            as: "media"
                         }]
                     }]
                 });
@@ -148,7 +172,7 @@ export default {
 
                 // if the comment exists and the replay input is valid 
                 // assign this replay to the comment 
-                user.profilePicture = await user.getProfilePicture() ; 
+                user.profilePicture = await user.getProfilePicture();
                 replayInput.userId = user.id;
                 replayInput.user = user;
 
@@ -170,7 +194,7 @@ export default {
                 replayInput.commentId = comment.id;
                 replayInput.comment = comment;
                 replayInput.id = result.id;
-                replayInput.createdAt = new Date() ; 
+                replayInput.createdAt = new Date();
 
 
                 if (user.id != comment.userId) {
@@ -193,13 +217,13 @@ export default {
                             }
                         }
                     )
-                    pubSub.publish("NEW_REPLAY" , {
-                        newReplay : replayInput 
+                    pubSub.publish("NEW_REPLAY", {
+                        newReplay: replayInput
                     })
                 }
 
 
-               
+
 
                 return replayInput;
 

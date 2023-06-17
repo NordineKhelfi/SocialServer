@@ -23,7 +23,18 @@ module.exports = {
       })
     ])
     */
-    
+
+    /*
+    return Promise.all([
+      queryInterface.addColumn("BlockedUsers", "id", {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false
+      })  
+    ])
+    */
+
   },
 
   async down(queryInterface, Sequelize) {
@@ -34,7 +45,7 @@ module.exports = {
       
     ])
     */
-    
+
 
 
     /**

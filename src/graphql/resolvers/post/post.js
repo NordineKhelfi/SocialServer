@@ -74,15 +74,9 @@ export default {
                     else {
                         post[index].liked = false;
                         post[index].isFavorite = false;
-
                     }
-
                 }
-
-
                 return posts
-
-
             } catch (error) {
                 return new ApolloError(error.message);
             }
@@ -93,7 +87,34 @@ export default {
                     time = new Date().toISOString();
                 else
                     time = new Date(parseInt(time)).toISOString();
+
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
+
+
+                var followings = await user.getFollowing();
+                followings = followings.map(follow => follow.followingId);
+                followings.push(user.id);
+
+                console.log(followings) ; 
                 var whereCase = {
+                    userId: {
+                        [Op.notIn]: blockedUsers
+                    },
                     createdAt: {
                         [Op.lt]: time
                     }
@@ -104,13 +125,29 @@ export default {
                     whereCase.type = {
                         [Op.not]: "reel"
                     }
-                }
+                };
 
                 var posts = await db.Post.findAll({
 
                     include: [{
                         model: db.User,
                         as: "user",
+                        required: true,
+                        where: {
+
+                            [Op.or]: [
+                                {
+                                    id: {
+                                        [Op.in]: followings
+                                    }
+                                },
+                                {
+                                    private: false 
+                                }
+                            ]
+
+
+                        },
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -159,6 +196,7 @@ export default {
                 return posts;
 
             } catch (error) {
+                console.log(error);
                 return new ApolloError(error.message)
             }
         },
@@ -274,9 +312,54 @@ export default {
         searchPost: async (_, { type, query, offset, limit }, { db, user }) => {
             try {
 
+
+
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                }) ; 
+
+
+                
+
+                var followings = await user.getFollowing();
+                followings = followings.map(follow => follow.followingId);
+                followings.push(user.id);
+
                 var include = [{
                     model: db.User,
                     as: "user",
+                    required : true , 
+
+                    where: {
+                        id: {
+                            [Op.notIn]: blockedUsers
+                        } , 
+                        [Op.or]: [
+                            {
+                                id: {
+                                    [Op.in]: followings
+                                }
+                            },
+                            {
+                                private: false
+                            }
+                        ]
+                    },
+
                     include: [{
                         model: db.Media,
                         as: "profilePicture"
@@ -516,7 +599,6 @@ export default {
             }
         },
         like: async (_, { postId }, { db, user, sendPushNotification, pubSub }) => {
-
             try {
                 // get the post and check if it's exists 
                 const post = await db.Post.findByPk(postId, {
@@ -534,6 +616,24 @@ export default {
                 });
                 if (!post)
                     throw new Error("Post not found");
+
+                const blockedUser = await db.BlockedUser.findOne({
+                    where: {
+                        [Op.or]: [
+                            {
+                                userId: post.userId,
+                                blockedUserId: user.id
+                            },
+                            {
+                                blockedUserId: post.userId,
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+                if (blockedUser)
+                    throw new Error("this user is blocked");
 
                 // check if this post is allready likes or not 
                 const likes = (await user.getLikes({
@@ -752,7 +852,7 @@ export default {
                     post.media = medium;
                 }
 
-              
+
 
                 await post.update({
                     title: postInput.title

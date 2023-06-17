@@ -66,6 +66,26 @@ export default {
         getUserById: async (_, { userId }, { db, user }) => {
             // find user by the given id 
             // and add associations 
+
+
+            const blockedUser = await db.BlockedUser.findOne({
+                where: {
+                    [Op.or]: [
+                        {
+                            userId: userId,
+                            blockedUserId: user.id
+                        },
+                        {
+                            blockedUserId: userId,
+                            userId: user.id
+                        }
+                    ]
+                }
+            });
+
+            if (blockedUser)
+                throw new Error("this user is blocked");
+
             const profile = await db.User.findByPk(userId, {
 
                 include: [{
@@ -78,10 +98,11 @@ export default {
                 }, {
                     model: db.Media,
                     as: "profilePicture"
-                }]
+                }],
+
             });
 
-            if (user) {
+            if (user && profile) {
                 profile.isFollowed = (await user.getFollowing({
                     where: {
                         followingId: profile.id
@@ -100,6 +121,26 @@ export default {
 
             var followingsIds = (await user.getFollowing()).map((following) => following.followingId);
             followingsIds.push(user.id);
+
+
+            var blockedUsers = await db.BlockedUser.findAll({
+                where: {
+                    [Op.or]: [
+                        {
+                            blockedUserId: user.id
+                        },
+                        {
+                            userId: user.id
+                        }
+                    ]
+                }
+            });
+
+
+            blockedUsers = blockedUsers.map(blockedUser => {
+                return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+            })
+
             var users = await db.User.findAll({
                 include: [{
                     model: db.Media,
@@ -114,9 +155,19 @@ export default {
                     }],
                 }],
                 where: {
-                    id: {
-                        [Op.notIn]: followingsIds
-                    }
+                    [Op.and]: [
+                        {
+                            id: {
+                                [Op.notIn]: followingsIds
+                            }
+                        },
+                        {
+                            id: {
+                                [Op.notIn]: blockedUsers
+                            }
+                        }
+                    ]
+
                 },
                 offset: offset,
                 limit: limit,
@@ -131,18 +182,38 @@ export default {
 
         searchUser: async (_, { query, offset, limit }, { db, user }) => {
             try {
-                query = query.trim().split(" ").filter(word => word != "").join(" ") ; 
+
+
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
+
+                query = query.trim().split(" ").filter(word => word != "").join(" ");
 
                 return await db.User.findAll({
                     where: {
                         [Op.or]: [
                             Sequelize.where(
-                                Sequelize.fn("CONCAT", Sequelize.col("name") , Sequelize.col("lastname")), {
+                                Sequelize.fn("CONCAT", Sequelize.col("name"), Sequelize.col("lastname")), {
                                 [Op.like]: `%${query}%`
                             }
                             ),
                             Sequelize.where(
-                                Sequelize.fn("CONCAT", Sequelize.col("lastname") , Sequelize.col("name")), {
+                                Sequelize.fn("CONCAT", Sequelize.col("lastname"), Sequelize.col("name")), {
                                 [Op.like]: `%${query}%`
                             }),
                             {
@@ -150,7 +221,10 @@ export default {
                                     [Op.like]: `%${query}%`
                                 }
                             }
-                        ]
+                        ] , 
+                        id : { 
+                            [Op.notIn] : blockedUsers 
+                        }
                     },
                     include: [{
                         model: db.Media,
@@ -258,7 +332,6 @@ export default {
         },
         togglePrivate: async (_, { }, { db, user }) => {
             return await user.update({ private: !user.private });
-
         },
         deleteAccount: async (_, { }, { db, user }) => {
             return await user.destroy();

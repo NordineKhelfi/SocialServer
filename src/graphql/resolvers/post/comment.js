@@ -2,6 +2,7 @@ import { ApolloError } from "apollo-server-express"
 import { UPLOAD_COMMENTS_RECORDS_DIR } from "../../../config";
 import { uploadFiles } from "../../../providers";
 import { CommentValidator } from "../../../validators";
+import { Op } from "sequelize";
 
 export default {
     Query: {
@@ -13,6 +14,26 @@ export default {
                 if (post == null)
                     throw new Error("Post not Found");
 
+
+
+
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                });
                 // get all the comments for the given post
                 // and includes the replays and the media
                 var comments = await post.getComments({
@@ -37,10 +58,16 @@ export default {
                         }
 
                     ],
+                    where : { 
+                        userId : {
+                            [Op.notIn] : blockedUsers 
+                        }
+                    } , 
                     order: [
                         ["id", "DESC"]
                     ],
                     offset: offset,
+                  
                     limit: limit,
                 });
 
@@ -199,7 +226,7 @@ export default {
                     })
 
                 }
-               
+
 
 
                 return commentInput;

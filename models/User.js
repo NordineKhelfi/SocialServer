@@ -206,11 +206,17 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey: "followingId"
     });
 
-    user.belongsToMany(db.User, {
-      through: "BlockedUsers",
+    user.hasMany(db.BlockedUser, {
+
       as: "blockedUsers",
       foreignKey: "userId"
     });
+    user.hasMany(db.BlockedUser, {
+
+      as: "blockedByUsers",
+      foreignKey: "blockedUserId"
+    });
+    
 
     user.hasMany(db.Story, {
       foreignKey: "userId",

@@ -28,6 +28,23 @@ export default {
 
                 const conversation = await conversationMember.getConversation();
 
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
                 // get all the messages that belongs to this conversation between offset and limit 
                 // and include the sender and the media content 
                 var messages = await conversation.getMessages({
@@ -37,7 +54,14 @@ export default {
 
                     }, {
                         model: db.User,
-                        as: "sender"
+                        as: "sender" , 
+                        required : true , 
+                        where : { 
+                            id : { 
+                                [Op.notIn] : blockedUsers
+                            }
+                        }
+
                     }, {
                         model: db.Post,
                         as: "post",
@@ -162,6 +186,25 @@ export default {
                 for (let index = 0; index < members.length; index++) {
                     if (user.id == members[index].userId)
                         continue;
+
+                    const blockedUser = await db.BlockedUser.findOne({
+                        where: {
+                            [Op.or]: [
+                                {
+                                    userId: members[index].userId,
+                                    blockedUserId: user.id
+                                },
+                                {
+                                    blockedUserId: members[index].userId,
+                                    userId: user.id
+                                }
+                            ]
+                        }
+                    });
+
+                    if (blockedUser)
+                        continue;
+
                     sendPushNotification(
                         await members[index].getUser(),
                         {
@@ -224,8 +267,8 @@ export default {
                         model: db.User,
                         as: "user",
                         include: [{
-                            model : db.Media , 
-                            as : "profilePicture"
+                            model: db.Media,
+                            as: "profilePicture"
                         }]
                     }],
                     where: {
@@ -267,11 +310,27 @@ export default {
                 var members = message.conversation.members;
 
                 for (let index = 0; index < members.length; index++) {
-
-
-
+                    
                     if (user.id == members[index].userId)
                         continue;
+                    const blockedUser = await db.BlockedUser.findOne({
+                        where: {
+                            [Op.or]: [
+                                {
+                                    userId: members[index].userId,
+                                    blockedUserId: user.id
+                                },
+                                {
+                                    blockedUserId: members[index].userId,
+                                    userId: user.id
+                                }
+                            ]
+                        }
+                    });
+
+                    if (blockedUser)
+                        continue;
+
                     sendPushNotification(
                         await members[index].getUser(),
                         {
@@ -320,8 +379,27 @@ export default {
                                 postId: user.id
                             }
                         })).pop() != null;
-
                     }
+
+
+                    const blockedUser = await db.BlockedUser.findOne({
+                        where: {
+                            [Op.or]: [
+                                {
+                                    userId: newMessage.sender.id,
+                                    blockedUserId: user.id
+                                },
+                                {
+                                    blockedUserId: newMessage.sender.id,
+                                    userId: user.id
+                                }
+                            ]
+                        }
+                    });
+
+                    if (blockedUser)
+                        return false;
+
                     const index = newMessage.conversation.members.findIndex(member => member.userId == user.id);
                     return index >= 0;
 

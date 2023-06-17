@@ -80,11 +80,50 @@ export default {
                     }
                 }) ; 
 
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                })
+
+
+                var followings = await user.getFollowing();
+                followings = followings.map(follow => follow.followingId);
+
+                followings.push(user.id);
 
                 var posts = await hashtag.getPosts({
                     include: [{
                         model: db.User,
-                        as: "user",
+                        required : true , 
+                        where : { 
+                            id : {
+                                [Op.notIn] : blockedUsers  
+                            }  , 
+                            [Op.or]: [
+                                {
+                                    id: {
+                                        [Op.in]: followings
+                                    }
+                                },
+                                {
+                                    private: false
+                                }
+                            ]
+                        }  , 
+                        as: "user", 
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
