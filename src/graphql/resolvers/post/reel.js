@@ -45,7 +45,7 @@ export default {
                         where: {
                             id: { [Op.not]: blockedUsers },
 
-
+                            disabled : false  , 
                             [Op.or]: [
                                 {
                                     id: {

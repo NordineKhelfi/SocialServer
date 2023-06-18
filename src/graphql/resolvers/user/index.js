@@ -5,11 +5,13 @@ import follow from "./follow";
 import category from "./category";
 
 import validationRequest from "./validationRequest";
+import removeReasons from "./removeReasons";
 export default [
     user , 
     country  , 
     block , 
     follow  , 
     category , 
-    validationRequest
+    validationRequest , 
+    removeReasons
 ]

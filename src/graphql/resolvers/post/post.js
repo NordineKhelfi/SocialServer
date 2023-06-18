@@ -110,7 +110,7 @@ export default {
                 followings = followings.map(follow => follow.followingId);
                 followings.push(user.id);
 
-                console.log(followings) ; 
+          
                 var whereCase = {
                     userId: {
                         [Op.notIn]: blockedUsers
@@ -134,7 +134,7 @@ export default {
                         as: "user",
                         required: true,
                         where: {
-
+                            disabled : false  , 
                             [Op.or]: [
                                 {
                                     id: {
@@ -346,8 +346,9 @@ export default {
 
                     where: {
                         id: {
-                            [Op.notIn]: blockedUsers
+                            [Op.notIn]: blockedUsers 
                         } , 
+                        disabled : false  , 
                         [Op.or]: [
                             {
                                 id: {

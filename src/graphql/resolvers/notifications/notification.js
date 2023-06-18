@@ -25,7 +25,7 @@ export default {
 
                 blockedUsers = blockedUsers.map(blockedUser => {
                     return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                })
+                });
 
 
                 var followers = await user.getFollowers({
@@ -35,7 +35,10 @@ export default {
                         where: {
                             id: {
                                 [Op.notIn]: blockedUsers
-                            }
+                            },
+
+                            disabled: false
+
                         },
                         as: "user",
                         include: [{
@@ -110,17 +113,22 @@ export default {
                                         userId: {
                                             [Op.not]: user.id
                                         }
-                                    } , 
+                                    },
                                     {
-                                        userId : { 
-                                            [Op.notIn] : blockedUsers 
+                                        userId: {
+                                            [Op.notIn]: blockedUsers
                                         }
-                                    }
+                                    } , 
+                                    
                                 ]
                             },
                             include: [{
                                 model: db.User,
                                 as: "user",
+                                required : true , 
+                                where : { 
+                                    disabled : false 
+                                } , 
                                 include: [{
                                     model: db.Media,
                                     as: "profilePicture"
@@ -191,12 +199,13 @@ export default {
                     include: [{
                         model: db.User,
                         as: "user",
-                        required : true , 
-                        where : { 
-                            id : { 
-                                [Op.notIn] : blockedUsers 
-                            }
-                        } , 
+                        required: true,
+                        where: {
+                            id: {
+                                [Op.notIn]: blockedUsers
+                            } , 
+                            disabled : false 
+                        },
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -260,19 +269,20 @@ export default {
 
                 blockedUsers = blockedUsers.map(blockedUser => {
                     return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                })
+                });
                 var comments = await db.Comment.findAll({
 
 
                     include: [{
                         model: db.User,
                         as: "user",
-                        required : true , 
-                        where : { 
-                            id : { 
-                                [Op.notIn] : blockedUsers 
-                            } 
-                        } , 
+                        required: true,
+                        where: {
+                            id: {
+                                [Op.notIn]: blockedUsers
+                            }, 
+                            disabled : false 
+                        },
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -322,16 +332,35 @@ export default {
         getReplayCommentNotification: async (_, { offset, limit }, { db, user }) => {
             try {
 
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
+                    }
+                });
+
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                });
+
                 var replays = await db.Replay.findAll({
                     include: [{
                         model: db.User,
                         as: "user",
-                        required : true , 
-                        where : { 
-                            id : { 
-                                [Op.notIn] : blockedUsers 
-                            }
-                        }  , 
+                        required: true,
+                        where: {
+                            id: {
+                                [Op.notIn]: blockedUsers
+                            } , 
+                            disabled : false 
+                        },
                         include: [{
                             model: db.Media,
                             as: "profilePicture"

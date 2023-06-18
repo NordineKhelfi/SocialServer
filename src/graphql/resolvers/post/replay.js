@@ -39,6 +39,10 @@ export default {
                     }, {
                         model: db.User,
                         as: "user",
+                        required : true , 
+                        where : { 
+                            disabled : false 
+                        } , 
                         include: [
                             {
                                 model: db.Media,

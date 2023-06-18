@@ -112,6 +112,7 @@ export default {
                             id : {
                                 [Op.notIn] : blockedUsers  
                             }  , 
+                            disabled : false , 
                             [Op.or]: [
                                 {
                                     id: {

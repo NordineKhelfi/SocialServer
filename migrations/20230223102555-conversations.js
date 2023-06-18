@@ -26,7 +26,7 @@ module.exports = {
       simatId: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         references: {
           model: "Simats",
           key: "id"

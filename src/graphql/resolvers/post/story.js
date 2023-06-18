@@ -47,18 +47,17 @@ export default {
 
         getStories: async (_, { offset, limit }, { db, user }) => {
 
-
             try {
 
                 // get all folllowers with their stories 
                 var following = await user.getFollowing({
-
-
                     include: [{
                         model: db.User,
                         as: "following",
-
-
+                        required: true,
+                        where: {
+                            disabled: false
+                        },
                         include: [{
                             model: db.Story,
                             as: "stories",
@@ -113,17 +112,33 @@ export default {
                 if (story == null)
                     throw new Error("Story Not found");
 
-                var filter = {};
-                if (mine) {
-                    filter.where = {
-                        id: user.id
+                var blockedUsers = await db.BlockedUser.findAll({
+                    where: {
+                        [Op.or]: [
+                            {
+                                blockedUserId: user.id
+                            },
+                            {
+                                userId: user.id
+                            }
+                        ]
                     }
-                }
+                });
+
+                blockedUsers = blockedUsers.map(blockedUser => {
+                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                });
+
                 return await story.getStoryComments({
                     include: [{
                         model: db.User,
                         as: "user",
-                        ...filter,
+                        where : {
+                            disabled : false , 
+                            id : {
+                                [Op.notIn] : blockedUsers
+                            }  
+                        } , 
                         include: [{
                             model: db.Media,
                             as: "profilePicture"
@@ -218,7 +233,7 @@ export default {
             }
         },
 
-        commentStory: async (_, { storyCommentInput }, { db, user, sendPushNotification , pubSub }) => {
+        commentStory: async (_, { storyCommentInput }, { db, user, sendPushNotification, pubSub }) => {
             try {
                 // check if the story exists 
                 const story = await db.Story.findByPk(storyCommentInput.storyId, {
@@ -260,20 +275,20 @@ export default {
                     )
 
                     const liked = (await story.getLikes({
-                        where : {
-                            userId : story.userId 
+                        where: {
+                            userId: story.userId
                         }
-                    })).pop() != null ; 
-    
-                    storyCommentInput.story.liked = liked ; 
-    
-                    pubSub.publish('NEW_STORY_COMMENT' , {
-                        newStoryComment : storyCommentInput 
+                    })).pop() != null;
+
+                    storyCommentInput.story.liked = liked;
+
+                    pubSub.publish('NEW_STORY_COMMENT', {
+                        newStoryComment: storyCommentInput
                     })
 
                 }
 
-                
+
 
                 return storyCommentInput;
 

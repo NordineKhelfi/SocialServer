@@ -59,7 +59,8 @@ export default {
                         where : { 
                             id : { 
                                 [Op.notIn] : blockedUsers
-                            }
+                            } , 
+                            disabled : false  
                         }
 
                     }, {

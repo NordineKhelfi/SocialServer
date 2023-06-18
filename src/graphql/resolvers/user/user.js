@@ -155,6 +155,7 @@ export default {
                     }],
                 }],
                 where: {
+                    disabled : false , 
                     [Op.and]: [
                         {
                             id: {
@@ -206,6 +207,7 @@ export default {
 
                 return await db.User.findAll({
                     where: {
+                        disabled : false  , 
                         [Op.or]: [
                             Sequelize.where(
                                 Sequelize.fn("CONCAT", Sequelize.col("name"), Sequelize.col("lastname")), {
