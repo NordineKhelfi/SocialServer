@@ -88,29 +88,34 @@ export default {
                 else
                     time = new Date(parseInt(time)).toISOString();
 
-                var blockedUsers = await db.BlockedUser.findAll({
-                    where: {
-                        [Op.or]: [
-                            {
-                                blockedUserId: user.id
-                            },
-                            {
-                                userId: user.id
-                            }
-                        ]
-                    }
-                });
+                var blockedUsers = [];
+                var followings = [];
+                if (user) {
 
-                blockedUsers = blockedUsers.map(blockedUser => {
-                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                })
+                    blockedUsers = await db.BlockedUser.findAll({
+                        where: {
+                            [Op.or]: [
+                                {
+                                    blockedUserId: user.id
+                                },
+                                {
+                                    userId: user.id
+                                }
+                            ]
+                        }
+                    });
+
+                    blockedUsers = blockedUsers.map(blockedUser => {
+                        return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                    })
 
 
-                var followings = await user.getFollowing();
-                followings = followings.map(follow => follow.followingId);
-                followings.push(user.id);
+                    followings = await user.getFollowing();
+                    followings = followings.map(follow => follow.followingId);
+                    followings.push(user.id);
 
-          
+                }
+
                 var whereCase = {
                     userId: {
                         [Op.notIn]: blockedUsers
@@ -134,7 +139,7 @@ export default {
                         as: "user",
                         required: true,
                         where: {
-                            disabled : false  , 
+                            disabled: false,
                             [Op.or]: [
                                 {
                                     id: {
@@ -142,7 +147,7 @@ export default {
                                     }
                                 },
                                 {
-                                    private: false 
+                                    private: false
                                 }
                             ]
 
@@ -330,10 +335,10 @@ export default {
 
                 blockedUsers = blockedUsers.map(blockedUser => {
                     return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                }) ; 
+                });
 
 
-                
+
 
                 var followings = await user.getFollowing();
                 followings = followings.map(follow => follow.followingId);
@@ -342,13 +347,13 @@ export default {
                 var include = [{
                     model: db.User,
                     as: "user",
-                    required : true , 
+                    required: true,
 
                     where: {
                         id: {
-                            [Op.notIn]: blockedUsers 
-                        } , 
-                        disabled : false  , 
+                            [Op.notIn]: blockedUsers
+                        },
+                        disabled: false,
                         [Op.or]: [
                             {
                                 id: {

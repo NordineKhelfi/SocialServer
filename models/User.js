@@ -255,6 +255,10 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey : "userId"
     })
 
+    user.hasOne(db.RemoveRequest , { 
+      as : "removeRequest" , 
+      foreignKey : "userId"
+    })
 
   }
 

@@ -6,6 +6,7 @@ import category from "./category";
 
 import validationRequest from "./validationRequest";
 import removeReasons from "./removeReasons";
+import removeRequest from "./removeRequest";
 export default [
     user , 
     country  , 
@@ -13,5 +14,6 @@ export default [
     follow  , 
     category , 
     validationRequest , 
-    removeReasons
+    removeReasons , 
+    removeRequest
 ]

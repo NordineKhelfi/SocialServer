@@ -6,6 +6,7 @@ import block from "./block";
 import category from "./category";
 import validationRequest from "./validationRequest";
 import removeReasons  from "./removeReasons";
+import removeRequest from "./removeRequest";
 export default  [ 
     country , 
     SocialMedia , 
@@ -14,5 +15,6 @@ export default  [
     block  , 
     category , 
     validationRequest , 
-    removeReasons
+    removeReasons , 
+    removeRequest
 ]

@@ -22,10 +22,33 @@ module.exports = (Sequelize, DataTypes) => {
     Media.associate = (db) => {
         Media.belongsToMany(db.Post, {
             through: "PostMedia" , 
-            as : "media" , 
+            as : "posts" , 
             foreignKey : "mediaId" 
+        }) ; 
+
+        Media.hasOne(db.Story , {
+            as : "story" , 
+            foreignKey : "mediaId"
         })
 
+        Media.hasOne (db.Reel , {
+            as : "reel" , 
+            foreignKey : "thumbnailId"
+        }) ; 
+
+        Media.hasOne(db.Comment , { 
+            as : "comment" , 
+            foreignKey : "mediaId"
+        }) ; 
+
+        Media.hasOne(db.Replay , { 
+            as : "replay" , 
+            foreignKey : "mediaId"
+        }) ; 
+        Media.hasOne(db.Message , { 
+            as : "message" , 
+            foreignKey : "mediaId"
+        })
     }
 
     return Media;

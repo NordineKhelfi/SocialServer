@@ -73,8 +73,8 @@ export default {
                                                 [Op.not]: user.id
                                             },
                                         }, {
-                                            id : {
-                                                [Op.notIn] : blockedUsers
+                                            id: {
+                                                [Op.notIn]: blockedUsers
                                             }
                                         }, {
                                             [Op.or]: [
@@ -93,9 +93,9 @@ export default {
                                                     }
                                                 }
                                             ]
-                                        } , 
-                                        { 
-                                            disabled : false 
+                                        },
+                                        {
+                                            disabled: false
                                         }
                                     ]
                                 },
@@ -408,9 +408,12 @@ export default {
                     throw new Error("Not part of this conversation");
 
                 const conversation = conversationMember.conversation;
+             
                 var media = [];
+
                 if (conversation.type === "individual" || (conversation.type === "group" && conversation.members.length == 2)) {
-                    media = conversation.messages.filter(message => message.media).map(message => message.media.path);
+                    media = conversation.messages.filter(message => message.media).map(message => message.media);
+                    
                     await conversation.destroy();
 
                 } else if (conversation.members.length > 2) {
@@ -420,7 +423,7 @@ export default {
                             conversationId: conversationId
                         }
                     });
-                    media = myMessages.filter(message => message.media).map(message => message.media.path);
+                    media = myMessages.filter(message => message.media).map(message => message.media);
                     var archivedConversation = await db.ArchivedConversation.findOne({
                         where: {
                             userId: user.id,
@@ -440,7 +443,10 @@ export default {
                     await conversationMember.destroy();
                 }
 
-                await deleteFiles(media);
+                for ( let index = 0 ; index < media.length ; index ++) { 
+                    await media[index].destroy()
+                }
+                await deleteFiles(media.map(m => m.path));
                 return conversation;
 
             } catch (error) {

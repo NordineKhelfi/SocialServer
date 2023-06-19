@@ -5,7 +5,7 @@ export default {
         getRemoveReasons: async (_, { }, { db, user }) => {
             try {
 
-                console.log( "executed") ; 
+    
                 return await db.RemoveReason.findAll() ; 
 
             } catch (error) {

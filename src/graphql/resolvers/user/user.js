@@ -155,7 +155,7 @@ export default {
                     }],
                 }],
                 where: {
-                    disabled : false , 
+                    disabled: false,
                     [Op.and]: [
                         {
                             id: {
@@ -207,7 +207,7 @@ export default {
 
                 return await db.User.findAll({
                     where: {
-                        disabled : false  , 
+                        disabled: false,
                         [Op.or]: [
                             Sequelize.where(
                                 Sequelize.fn("CONCAT", Sequelize.col("name"), Sequelize.col("lastname")), {
@@ -223,9 +223,9 @@ export default {
                                     [Op.like]: `%${query}%`
                                 }
                             }
-                        ] , 
-                        id : { 
-                            [Op.notIn] : blockedUsers 
+                        ],
+                        id: {
+                            [Op.notIn]: blockedUsers
                         }
                     },
                     include: [{
@@ -329,15 +329,22 @@ export default {
                 return new ApolloError(error.message);
             }
         },
-        toggleDisable: async (_, { }, { db, user }) => {
-            return await user.update({ disabled: !user.disabled });
+        disableAccount: async (_, { password }, { db, user }) => {
+
+
+            // check the password 
+            var isMath = await compare(password, user.password);
+
+            if (!isMath)
+                throw new Error("Wrong password");
+
+            return await user.update({ disabled: true  });
         },
         togglePrivate: async (_, { }, { db, user }) => {
             return await user.update({ private: !user.private });
         },
-        deleteAccount: async (_, { }, { db, user }) => {
-            return await user.destroy();
-        },
+
+
 
         updateToken: async (_, { token }, { db, user }) => {
 

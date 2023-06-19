@@ -16,9 +16,8 @@ export default gql`
     extend type Mutation { 
         SignUp ( user : UserInput ) : UserToken!  
         EditProfile  (userInput : EditUserInput) : User @userAuth
-        toggleDisable : User! @userAuth 
+        disableAccount(password : String!) : User! @userAuth 
         togglePrivate : User! @userAuth 
-        deleteAccount : ID! @userAuth 
         updateToken(token : String!) : String! @userAuth 
         logOut : User! @userAuth 
 
@@ -46,9 +45,8 @@ export default gql`
         profilePicture : Upload 
         pictureId : ID  
         bio : String 
-        socialMedia : SocialMediaInput 
+        socialMedia : SocialMediaInput   
     }
-
     type User { 
         id : ID! 
         name : String! 
@@ -77,10 +75,10 @@ export default gql`
         validated : Boolean! 
         lastActiveAt : String 
         isActive : Boolean 
-        socialMedia : SocialMedia 
+        socialMedia : SocialMedia  
+        updatedAt : String! 
+        createdAt : String! 
     }
-
-
     type UserToken { 
         user : User! 
         token : String! 

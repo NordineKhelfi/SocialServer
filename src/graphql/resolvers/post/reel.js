@@ -10,33 +10,35 @@ export default {
                 else
                     time = new Date(parseInt(time)).toISOString();
 
+                var followings = [];
+                var blockedUsers = [];
+                if (user) {
+                    blockedUsers = await db.BlockedUser.findAll({
+                        where: {
+                            [Op.or]: [
+                                {
+                                    blockedUserId: user.id
+                                },
+                                {
+                                    userId: user.id
+                                }
+                            ]
+                        }
+                    });
 
 
-                var blockedUsers = await db.BlockedUser.findAll({
-                    where: {
-                        [Op.or]: [
-                            {
-                                blockedUserId: user.id
-                            },
-                            {
-                                userId: user.id
-                            }
-                        ]
-                    }
-                });
-
-
-                blockedUsers = blockedUsers.map(blockedUser => {
-                    return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                })
+                    blockedUsers = blockedUsers.map(blockedUser => {
+                        return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
+                    })
 
 
 
 
-                var followings = await user.getFollowing();
-                followings = followings.map(follow => follow.followingId);
+                    followings = await user.getFollowing();
+                    followings = followings.map(follow => follow.followingId);
 
-                followings.push(user.id);
+                    followings.push(user.id);
+                }
                 var posts = await db.Post.findAll({
                     include: [{
                         model: db.User,
@@ -45,7 +47,7 @@ export default {
                         where: {
                             id: { [Op.not]: blockedUsers },
 
-                            disabled : false  , 
+                            disabled: false,
                             [Op.or]: [
                                 {
                                     id: {
