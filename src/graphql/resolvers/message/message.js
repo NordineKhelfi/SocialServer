@@ -54,13 +54,13 @@ export default {
 
                     }, {
                         model: db.User,
-                        as: "sender" , 
-                        required : true , 
-                        where : { 
-                            id : { 
-                                [Op.notIn] : blockedUsers
-                            } , 
-                            disabled : false  
+                        as: "sender",
+                        required: true,
+                        where: {
+                            id: {
+                                [Op.notIn]: blockedUsers
+                            },
+                            disabled: false
                         }
 
                     }, {
@@ -311,7 +311,7 @@ export default {
                 var members = message.conversation.members;
 
                 for (let index = 0; index < members.length; index++) {
-                    
+
                     if (user.id == members[index].userId)
                         continue;
                     const blockedUser = await db.BlockedUser.findOne({
@@ -354,6 +354,121 @@ export default {
 
                 return message;
             } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+
+        shareAccount: async (_, { userId, conversationId }, { db, user , pubSub , sendPushNotification}) => {
+            try {
+
+                const conversationMemeber = await db.ConversationMember.findOne({
+                    where: {
+                        userId: user.id,
+                        conversationId
+                    },
+                    include: [{
+                        model: db.Conversation,
+                        as: "conversation"
+                    }]
+                });
+
+                if (!conversationMemeber)
+                    throw new Error("Not part of this conversation")
+
+
+                const account = await db.User.findOne({
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
+                    }],
+                    where: {
+                        id: userId,
+                        disabled: false
+                    }
+                });
+
+
+                if (!account)
+                    throw new Error("Shared Account not found");
+
+
+                var message = await db.Message.create({
+                    type: "account",
+                    accountId: account.id,
+                    conversationId: conversationId,
+                    userId: user.id
+                });
+
+
+                message.createdAt = new Date();
+                message.account = account ;
+                message.sender = user;
+
+
+                conversationMemeber.conversation.members = await conversationMemeber.conversation.getMembers({
+                    where: {
+                        userId: {
+                            [Op.not]: user.id
+                        }
+                    }
+                });
+                message.conversation = conversationMemeber.conversation;
+                message.conversation.update({ updatedAt: new Date() })
+
+                pubSub.publish("NEW_MESSAGE", {
+                    newMessage: message
+                });
+
+                var members = message.conversation.members;
+
+                for (let index = 0; index < members.length; index++) {
+
+                    if (user.id == members[index].userId)
+                        continue;
+                    const blockedUser = await db.BlockedUser.findOne({
+                        where: {
+                            [Op.or]: [
+                                {
+                                    userId: members[index].userId,
+                                    blockedUserId: user.id
+                                },
+                                {
+                                    blockedUserId: members[index].userId,
+                                    userId: user.id
+                                }
+                            ]
+                        }
+                    });
+
+                    if (blockedUser)
+                        continue;
+
+                    sendPushNotification(
+                        await members[index].getUser(),
+                        {
+                            type: "message",
+                            user: {
+                                id: user.id,
+                                name: user.name,
+                                lastname: user.lastname,
+                                profilePicture: await user.getProfilePicture()
+                            },
+                            message: {
+                                conversationId: message.conversationId,
+                                type: message.type,
+                                content: message.content
+                            }
+                        }
+                    )
+                }
+
+
+
+                return message ;
+
+            } catch (error) {
+
                 return new ApolloError(error.message);
             }
         }

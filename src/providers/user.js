@@ -1,6 +1,9 @@
 import conversation from "../graphql/resolvers/message/conversation";
 import { deleteFiles } from "./media";
 
+const DAY = 24 * 60 * 60 * 1000;
+export const MONTH = 30;
+
 export const removeAccount = async (db, userId) => {
     try {
         const user = await db.User.findByPk(userId);
@@ -23,7 +26,6 @@ export const removeAccount = async (db, userId) => {
             }]
         });
 
-
         var storiesMedia = await db.Media.findAll({
             include: [{
 
@@ -35,7 +37,6 @@ export const removeAccount = async (db, userId) => {
                 }
             }]
         });
-
 
         var reelsThumbnails = await db.Media.findAll({
             include: [{
@@ -63,7 +64,6 @@ export const removeAccount = async (db, userId) => {
             }]
         });
 
-
         var replayMedia = await db.Media.findAll({
             include: [{
                 model: db.Replay,
@@ -74,15 +74,11 @@ export const removeAccount = async (db, userId) => {
             }]
         })
 
-
         var conversationMember = await db.ConversationMember.findAll({
             where: {
                 userId: userId,
-
             }
         });
-
-
         if (prolfilePicture)
             media.push(prolfilePicture);
 
@@ -95,14 +91,14 @@ export const removeAccount = async (db, userId) => {
 
         await deleteFiles(media.map(m => m.path));
 
-    
+
         await user.destroy();
 
         //console.log(messsageMedia.map(messageMedia => messageMedia.path)) ; 
         for (let index = 0; index < media.length; index++) {
             media[index].destroy()
         }
-    
+
 
     } catch (error) {
         console.log(error)
@@ -111,11 +107,44 @@ export const removeAccount = async (db, userId) => {
 
 }
 
-// profile Picture
-/// Stories
-// posts
-// thumbnails
 
 
-// Comments
-// Replays 
+export const handleRemoveRequests = async (db) => {
+
+    var removeRequests = await db.RemoveRequest.findAll({
+        include: [{
+            model: db.User,
+            as: "user"
+        }]
+    });
+
+    for (let index = 0; index < removeRequests.length; index++) {
+     
+        var user = removeRequests[index].user;
+        var expirdAt = new Date(user.updatedAt).getTime() + (DAY * MONTH);
+        var currentDate = new Date().getTime();
+
+        var deltaTime = expirdAt - currentDate;
+        var days = Math.trunc(deltaTime / DAY);
+
+        setDayTimeout(() => removeAccount(db, user.id), days);
+    }
+}
+
+
+export const setDayTimeout = (callback, days) => {
+    // 86400 seconds in a day
+
+
+    let dayCount = 0;
+    let timer = setInterval(function () {
+        dayCount++;  // a day has passed
+
+        if (dayCount === days) {
+            clearInterval(timer);
+            callback.apply(this, []);
+        }
+    }, DAY);
+}
+
+ 

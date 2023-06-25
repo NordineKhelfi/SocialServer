@@ -20,7 +20,7 @@ export default gql`
         togglePrivate : User! @userAuth 
         updateToken(token : String!) : String! @userAuth 
         logOut : User! @userAuth 
-
+        
     } 
 
 

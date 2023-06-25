@@ -13,6 +13,7 @@ import { SubscriptionUserAuth } from "./middlewares/userAuth";
 import { PubSub } from "graphql-subscriptions";
 import { handleStoriesExpirations } from "./providers";
 import { sendPushNotification } from "./providers/pushNotification";
+import { handleRemoveRequests } from "./providers/user";
 // initialize our express server 
 // init the Server 
 const app = express();
@@ -121,6 +122,7 @@ async function startServer() {
             // listen 
 
             handleStoriesExpirations(db);
+            handleRemoveRequests(db) ; 
             console.log(`Server is runing on port ${PORT}`)
         } catch (error) {
             console.log("Error : ", error)

@@ -16,7 +16,7 @@ module.exports = {
         allowNull: true,
       },
       type: {
-        type: Sequelize.ENUM(["text", "image", "video", "record" , "post"]),
+        type: Sequelize.ENUM(["text", "image", "video", "record" , "post" , "account"]),
         defaultValue: "text",
         allowNull: false
       },
@@ -47,6 +47,15 @@ module.exports = {
           key: "id"
         }
       },
+      accountId :{ 
+        type  : Sequelize.INTEGER ,
+        allowNull : true , 
+        onDelete : "CASCADE" , 
+        references : { 
+          model : "Users" , 
+          key : "id"
+        }
+      } ,
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

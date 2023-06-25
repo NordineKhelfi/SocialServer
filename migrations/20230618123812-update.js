@@ -3,11 +3,9 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-
     /*
     return Promise.all([
       queryInterface.changeColumn("Messages", "type",{
-
         type: Sequelize.ENUM(["text", "image", "video", "record" , "post"]),
         defaultValue: "text",
         allowNull: false
@@ -23,18 +21,26 @@ module.exports = {
       })
     ])
     */
-
     /*
     return Promise.all([
-      queryInterface.addColumn("BlockedUsers", "id", {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
+      queryInterface.addColumn("Messages", "accountId",
+        {
+          type: Sequelize.INTEGER,
+          allowNull: true,
+          onDelete: "CASCADE",
+          references: {
+            model: "Users",
+            key: "id"
+          }
+        }
+      ) , 
+      queryInterface.changeColumn("Messages", "type",{
+        type: Sequelize.ENUM(["text", "image", "video", "record" , "post", "account"]),
+        defaultValue: "text",
         allowNull: false
-      })  
+      })
     ])
-    */
-
+  */
   },
 
   async down(queryInterface, Sequelize) {

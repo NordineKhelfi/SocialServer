@@ -15,7 +15,7 @@ const destroyStory = async (story) => {
     await deleteFiles([story.media.path])
     await story.media.destroy();
     await story.destroy();
-    console.log("story destroyed") ; 
+ 
 
 }
 const handleStoriesExpirations = async (db) => {
