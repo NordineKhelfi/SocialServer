@@ -408,12 +408,12 @@ export default {
                     throw new Error("Not part of this conversation");
 
                 const conversation = conversationMember.conversation;
-             
+
                 var media = [];
 
                 if (conversation.type === "individual" || (conversation.type === "group" && conversation.members.length == 2)) {
                     media = conversation.messages.filter(message => message.media).map(message => message.media);
-                    
+
                     await conversation.destroy();
 
                 } else if (conversation.members.length > 2) {
@@ -443,7 +443,7 @@ export default {
                     await conversationMember.destroy();
                 }
 
-                for ( let index = 0 ; index < media.length ; index ++) { 
+                for (let index = 0; index < media.length; index++) {
                     await media[index].destroy()
                 }
                 await deleteFiles(media.map(m => m.path));
@@ -525,6 +525,30 @@ export default {
 
 
                 return conversationMember;
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+
+        muteConversation: async (_, { conversationId }, { db, user }) => {
+            try {
+
+                var conversationMember = await db.ConversationMember.findOne({
+                    where : { 
+                        userId : user.id , 
+                        conversationId 
+                    }
+                }) ; 
+
+                if ( ! conversationMember ) 
+                    throw new Error("Conversation not found") ; 
+
+                
+                conversationMember = await conversationMember.update({allowNotifications : !conversationMember.allowNotifications}) ;
+                return conversationMember.allowNotifications
+
+                 
             } catch (error) {
                 return new ApolloError(error.message);
             }

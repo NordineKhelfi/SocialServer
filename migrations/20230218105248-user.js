@@ -134,6 +134,26 @@ module.exports = {
         type : Sequelize.STRING , 
         allowNull : true , 
       } , 
+      
+      mute : { 
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : false , 
+      } , 
+
+      allowMessaging : { 
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : true , 
+        
+      } , 
+      showState : {
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : true , 
+        
+      } , 
+ 
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE
 

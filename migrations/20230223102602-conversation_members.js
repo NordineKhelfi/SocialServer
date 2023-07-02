@@ -34,7 +34,11 @@ module.exports = {
         allowNull: true,
 
       },
-
+      allowNotifications : { 
+        type : Sequelize.BOOLEAN , 
+        allowNull : false , 
+        defaultValue : true , 
+      } , 
 
 
       isParticipant: {

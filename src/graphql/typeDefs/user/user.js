@@ -10,7 +10,6 @@ export default gql`
         suggestUsers( offset : Int! , limit : Int!) : [User!]! @userAuth
         searchUser(query : String! , offset : Int! , limit : Int!) : [User!]! @userAuth 
 
-
     }
 
     extend type Mutation { 
@@ -20,6 +19,12 @@ export default gql`
         togglePrivate : User! @userAuth 
         updateToken(token : String!) : String! @userAuth 
         logOut : User! @userAuth 
+        addPhoneNumber(phone : String! ,  password : String!) : User! @userAuth 
+        changePassword(oldPassword : String! , newPassword : String!) : String! @userAuth 
+        toggleMute : Boolean! @userAuth
+        toggleShowState : Boolean! @userAuth
+        toggleAllowMessaging : Boolean! @userAuth
+         
         
     } 
 
@@ -76,6 +81,9 @@ export default gql`
         lastActiveAt : String 
         isActive : Boolean 
         socialMedia : SocialMedia  
+        allowMessaging : Boolean  
+        mute : Boolean
+        showState : Boolean 
         updatedAt : String! 
         createdAt : String! 
     }

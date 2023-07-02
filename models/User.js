@@ -131,6 +131,27 @@ module.exports = (Sequelize, DataTypes) => {
         key: "id"
       }
     },
+
+
+    
+    mute : { 
+      type : DataTypes.BOOLEAN , 
+      allowNull : false , 
+      defaultValue : false , 
+    } , 
+
+    allowMessaging : { 
+      type : DataTypes.BOOLEAN , 
+      allowNull : false , 
+      defaultValue : true , 
+      
+    } , 
+    showState : {
+      type : DataTypes.BOOLEAN , 
+      allowNull : false , 
+      defaultValue : true , 
+      
+    } , 
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
 

@@ -29,12 +29,17 @@ module.exports = (Sequelize, DataTypes) => {
         },
         lastSeenAt: {
             type: DataTypes.DATE,
-            allowNull: true ,
-            
-        }, 
+            allowNull: true,
 
+        },
 
-        isParticipant : { 
+        allowNotifications: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
+        },
+
+        isParticipant: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false

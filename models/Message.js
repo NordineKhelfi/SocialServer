@@ -67,6 +67,10 @@ module.exports = (Sequelize, DataTypes) => {
             as : "sender"
         }) ; 
 
+        Message.belongsTo(db.User ,{
+            foreignKey : "accountId", 
+            as : "account"
+        })
         Message.belongsTo(db.Conversation , { 
             foreignKey : "conversationId" , 
             as : "conversation"

@@ -84,6 +84,13 @@ export default {
                                 as: "thumbnail"
                             }]
                         }]
+                    }, {
+                        model: db.User,
+                        as: "account",
+                        include: [{
+                            model: db.Media,
+                            as: "profilePicture"
+                        }]
                     }],
                     offset,
                     limit,
@@ -206,23 +213,25 @@ export default {
                     if (blockedUser)
                         continue;
 
-                    sendPushNotification(
-                        await members[index].getUser(),
-                        {
-                            type: "message",
-                            user: {
-                                id: user.id,
-                                name: user.name,
-                                lastname: user.lastname,
-                                profilePicture: await user.getProfilePicture()
-                            },
-                            message: {
-                                conversationId: message.conversationId,
-                                type: message.type,
-                                content: message.content
+                    var sendTo = await members[index].getUser();
+                    if (!sendTo.mute)
+                        sendPushNotification(
+                            sendTo,
+                            {
+                                type: "message",
+                                user: {
+                                    id: user.id,
+                                    name: user.name,
+                                    lastname: user.lastname,
+                                    profilePicture: await user.getProfilePicture()
+                                },
+                                message: {
+                                    conversationId: message.conversationId,
+                                    type: message.type,
+                                    content: message.content
+                                }
                             }
-                        }
-                    )
+                        )
                 }
 
                 return messageInput
@@ -331,24 +340,26 @@ export default {
 
                     if (blockedUser)
                         continue;
+                    var sendTo = await members[index].getUser();
 
-                    sendPushNotification(
-                        await members[index].getUser(),
-                        {
-                            type: "message",
-                            user: {
-                                id: user.id,
-                                name: user.name,
-                                lastname: user.lastname,
-                                profilePicture: await user.getProfilePicture()
-                            },
-                            message: {
-                                conversationId: message.conversationId,
-                                type: message.type,
-                                content: message.content
+                    if (!sendTo.mute)
+                        sendPushNotification(
+                            sendTo,
+                            {
+                                type: "message",
+                                user: {
+                                    id: user.id,
+                                    name: user.name,
+                                    lastname: user.lastname,
+                                    profilePicture: await user.getProfilePicture()
+                                },
+                                message: {
+                                    conversationId: message.conversationId,
+                                    type: message.type,
+                                    content: message.content
+                                }
                             }
-                        }
-                    )
+                        )
                 }
 
 
@@ -359,7 +370,7 @@ export default {
         },
 
 
-        shareAccount: async (_, { userId, conversationId }, { db, user , pubSub , sendPushNotification}) => {
+        shareAccount: async (_, { userId, conversationId }, { db, user, pubSub, sendPushNotification }) => {
             try {
 
                 const conversationMemeber = await db.ConversationMember.findOne({
@@ -376,7 +387,6 @@ export default {
                 if (!conversationMemeber)
                     throw new Error("Not part of this conversation")
 
-
                 const account = await db.User.findOne({
                     include: [{
                         model: db.Media,
@@ -387,7 +397,6 @@ export default {
                         disabled: false
                     }
                 });
-
 
                 if (!account)
                     throw new Error("Shared Account not found");
@@ -402,7 +411,7 @@ export default {
 
 
                 message.createdAt = new Date();
-                message.account = account ;
+                message.account = account;
                 message.sender = user;
 
 
@@ -443,29 +452,30 @@ export default {
 
                     if (blockedUser)
                         continue;
+                        
+                    var sendTo = await members[index].getUser();                    
+                    if (!sendTo.mute)
 
-                    sendPushNotification(
-                        await members[index].getUser(),
-                        {
-                            type: "message",
-                            user: {
-                                id: user.id,
-                                name: user.name,
-                                lastname: user.lastname,
-                                profilePicture: await user.getProfilePicture()
-                            },
-                            message: {
-                                conversationId: message.conversationId,
-                                type: message.type,
-                                content: message.content
+                        sendPushNotification(
+                            sendTo,
+                            {
+                                type: "message",
+                                user: {
+                                    id: user.id,
+                                    name: user.name,
+                                    lastname: user.lastname,
+                                    profilePicture: await user.getProfilePicture()
+                                },
+                                message: {
+                                    conversationId: message.conversationId,
+                                    type: message.type,
+                                    content: message.content
+                                }
                             }
-                        }
-                    )
+                        )
                 }
 
-
-
-                return message ;
+                return message;
 
             } catch (error) {
 

@@ -21,26 +21,41 @@ module.exports = {
       })
     ])
     */
+
     /*
     return Promise.all([
-      queryInterface.addColumn("Messages", "accountId",
+      queryInterface.addColumn("Users", "mute",
         {
-          type: Sequelize.INTEGER,
-          allowNull: true,
-          onDelete: "CASCADE",
-          references: {
-            model: "Users",
-            key: "id"
-          }
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
         }
-      ) , 
-      queryInterface.changeColumn("Messages", "type",{
-        type: Sequelize.ENUM(["text", "image", "video", "record" , "post", "account"]),
-        defaultValue: "text",
-        allowNull: false
-      })
+      ),
+
+      queryInterface.addColumn("Users", "allowMessaging",
+        {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: true,
+        }
+      ),
+      queryInterface.addColumn("Users", "showState",
+        {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: true,
+        }
+      ),
+      queryInterface.addColumn("ConversationMembers", "allowNotifications",
+        {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        }
+      ),
     ])
-  */
+    */
+
   },
 
   async down(queryInterface, Sequelize) {

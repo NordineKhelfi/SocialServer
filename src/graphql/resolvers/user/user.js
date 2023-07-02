@@ -338,7 +338,7 @@ export default {
             if (!isMath)
                 throw new Error("Wrong password");
 
-            return await user.update({ disabled: true  });
+            return await user.update({ disabled: true });
         },
         togglePrivate: async (_, { }, { db, user }) => {
             return await user.update({ private: !user.private });
@@ -375,7 +375,90 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
-        }
+        },
+
+
+
+        addPhoneNumber: async (_, { phone, password }, { db, user }) => {
+            try {
+
+
+                // check the password 
+                var isMath = await compare(password, user.password);
+
+                if (!isMath)
+                    throw new Error("Wrong password");
+
+                var regex = /^\+(?:[0-9] ?){6,14}[0-9]$/;
+                if (!regex.test(phone)) {
+                    throw new Error("not valid number");
+
+                }
+
+
+
+                return await user.update({ phone });
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+        changePassword: async (_, { oldPassword, newPassword }, { db, user }) => {
+
+            try {
+
+                // check the password 
+                var isMatch = await compare(oldPassword, user.password);
+
+                if (!isMatch)
+                    throw new Error("Wrong password");
+
+                user.password = await hash(newPassword, 10)
+                await user.update({ password: user.password });
+
+                // create token
+                var token = createToken(user.email, user.password);
+
+                return token
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        } ,
+
+
+        toggleMute : async ( _ , { } , {db , user}) => { 
+            try { 
+                
+                var result = await user.update({mute : !user.mute}) ; 
+                return result.mute ;
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
+            }
+        }  , 
+
+        toggleShowState : async ( _ , { } , {db , user}) => { 
+            try { 
+                var result = await user.update({showState : !user.showState}) ; 
+
+                return result.showState ;
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
+            }
+        } ,  
+
+        
+        toggleAllowMessaging : async ( _ , { } , {db , user}) => { 
+            try { 
+                var result = await user.update({allowMessaging : !user.allowMessaging}) ; 
+
+                return result.allowMessaging ;
+
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
+            }
+        }  
+
+        
 
 
     }

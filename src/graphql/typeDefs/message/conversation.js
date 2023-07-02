@@ -13,6 +13,7 @@ export default gql`
         seeConversation(conversationId : ID!) :  String! @userAuth 
         acceptConversationInvite(conversationId : ID!) : ConversationMember @userAuth 
         deleteConversation (conversationId : ID!) : Conversation! @userAuth  
+        muteConversation(conversationId : ID!) : Boolean! @userAuth
     } 
 
     extend type Subscription {
@@ -39,5 +40,6 @@ export default gql`
         lastSeenAt : String 
         conversation : Conversation 
         isParticipant : Boolean! 
+        allowNotifications : Boolean!  
     }
 `
