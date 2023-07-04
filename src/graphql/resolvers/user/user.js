@@ -388,7 +388,7 @@ export default {
 
                 if (!isMath)
                     throw new Error("Wrong password");
-
+               
                 var regex = /^\+(?:[0-9] ?){6,14}[0-9]$/;
                 if (!regex.test(phone)) {
                     throw new Error("not valid number");
@@ -396,6 +396,9 @@ export default {
                 }
 
 
+        
+
+           
 
                 return await user.update({ phone });
             } catch (error) {

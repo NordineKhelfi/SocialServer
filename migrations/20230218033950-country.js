@@ -13,23 +13,30 @@ module.exports = {
         primaryKey: true,
         allowNull: false,
       },
-      name: { type: Sequelize.STRING, allowNull: false }
+      name: { type: Sequelize.STRING, allowNull: false } , 
 
+      dialCode : {
+        type : Sequelize.STRING  , 
+        allowNull : false , 
+      }
     }, {
       timestamps: true,
       charset: 'utf8',
       collate: 'utf8_unicode_ci'
-    }).then(async () => {
+    })
+    
+    /*
+    .then(async () => {
 
       const countries = require("../assets/countries.json");
-
-      
       await queryInterface.bulkInsert("Countries", countries.map((country) => {
         return {
-          name: country.name
+          name: country.name , 
+          dialCode : country.dialCode 
         }
       }))
     });
+    */
   },
 
   async down(queryInterface, Sequelize) {

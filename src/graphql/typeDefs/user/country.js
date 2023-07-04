@@ -10,6 +10,7 @@ export default gql`
     type  Country   { 
         id : ID! , 
         name : String!
+        dialCode : String! 
     }
 
 `

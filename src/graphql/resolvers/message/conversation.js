@@ -137,6 +137,7 @@ export default {
                 for (var index = 0; index < conversationMembers.length; index++) {
                     var conversation = conversationMembers[index].conversation;
                     conversation.isReadable = conversationMembers[index].isParticipant;
+                    conversation.allowNotifications = conversationMembers[index].allowNotifications;
                     var lastSeenAt = conversationMembers[index].lastSeenAt;
                     if (conversation)
                         conversation.unseenMessages = 0;
@@ -219,6 +220,7 @@ export default {
 
                 if (memberShip) {
                     memberShip.conversation.isReadable = memberShip.asParticipant;
+                    memberShip.conversation.allowNotifications = memberShip.allowNotifications;
                     return memberShip.conversation
                 }
                 else

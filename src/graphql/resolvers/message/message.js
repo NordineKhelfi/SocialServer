@@ -209,12 +209,12 @@ export default {
                             ]
                         }
                     });
-
+                    
                     if (blockedUser)
                         continue;
 
                     var sendTo = await members[index].getUser();
-                    if (!sendTo.mute)
+                    if (!sendTo.mute || !members[index].allowNotifications)
                         sendPushNotification(
                             sendTo,
                             {
@@ -342,7 +342,7 @@ export default {
                         continue;
                     var sendTo = await members[index].getUser();
 
-                    if (!sendTo.mute)
+                    if (!sendTo.mute || !members[index].allowNotifications)
                         sendPushNotification(
                             sendTo,
                             {
@@ -452,9 +452,9 @@ export default {
 
                     if (blockedUser)
                         continue;
-                        
+
                     var sendTo = await members[index].getUser();                    
-                    if (!sendTo.mute)
+                    if (!sendTo.mute || !members[index].allowNotifications)
 
                         sendPushNotification(
                             sendTo,

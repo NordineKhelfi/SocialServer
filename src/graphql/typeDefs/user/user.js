@@ -66,9 +66,9 @@ export default gql`
         confirmPassword : String! 
         birthday : String! 
         gender : Boolean! 
-        countryId : ID! 
+        countryId : ID 
         phone : String 
-        country : Country!
+        country : Country 
         stories : [Story!] 
         bio : String 
         private : Boolean! 

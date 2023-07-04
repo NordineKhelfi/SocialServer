@@ -30,7 +30,7 @@ export default gql`
         simat : Simat 
         isReadable : Boolean 
         isArchived : Boolean 
-
+        allowNotifications : Boolean! 
     } 
     type ConversationMember {
         id : ID! 

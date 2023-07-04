@@ -55,10 +55,22 @@ module.exports = {
       ),
     ])
     */
+    /*
+    return queryInterface.addColumn("Countries", "dialCode",
+      {
+        type: Sequelize.STRING,
+        allowNull: true ,
+      }
+    ) ; 
+      */
+
 
   },
 
   async down(queryInterface, Sequelize) {
+
+    //return       queryInterface.removeColumn('Countries', 'dialCode') 
+
     /*
     return Promise.all([
       queryInterface.removeColumn('ConversationMembers', 'isParticipant') , 
