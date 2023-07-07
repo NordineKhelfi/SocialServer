@@ -7,6 +7,7 @@ import category from "./category";
 import validationRequest from "./validationRequest";
 import removeReasons  from "./removeReasons";
 import removeRequest from "./removeRequest";
+import reportReason from "./reportReason";
 export default  [ 
     country , 
     SocialMedia , 
@@ -16,5 +17,6 @@ export default  [
     category , 
     validationRequest , 
     removeReasons , 
-    removeRequest
+    removeRequest , 
+    reportReason
 ]
