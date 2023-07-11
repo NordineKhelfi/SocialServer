@@ -219,7 +219,7 @@ export default {
 
 
                 if (memberShip) {
-                    memberShip.conversation.isReadable = memberShip.asParticipant;
+                    memberShip.conversation.isReadable = memberShip.isParticipant;
                     memberShip.conversation.allowNotifications = memberShip.allowNotifications;
                     return memberShip.conversation
                 }
@@ -262,7 +262,7 @@ export default {
                 });
 
 
-                return conversationMembers;
+             
                 return conversationMembers.map(conversationMember => conversationMember.conversation);
             } catch (error) {
                 return new ApolloError(error.message);
@@ -566,10 +566,7 @@ export default {
                         return false;
 
                     const index = conversationSaw.conversation.members.findIndex(member => member.userId == user.id);
-
                     return index >= 0;
-
-
                 }
             )
         }

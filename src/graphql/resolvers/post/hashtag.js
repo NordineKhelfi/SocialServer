@@ -104,6 +104,9 @@ export default {
 
                 followings.push(user.id);
 
+                var unImportantPosts = await user.getUnimportantPosts() ; 
+                unImportantPosts = unImportantPosts.map(post => post.id) ; 
+
                 var posts = await hashtag.getPosts({
                     include: [{
                         model: db.User,
@@ -142,7 +145,11 @@ export default {
                     }],
                   
                     order: [["createdAt", "DESC"]],
-
+                    where : { 
+                        id : { 
+                            [Op.notIn] : unImportantPosts
+                        }
+                    } , 
                     offset : offset , 
                     limit : limit 
                 })

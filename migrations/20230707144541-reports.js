@@ -37,7 +37,7 @@ module.exports = {
 
       userId : { 
         type  : Sequelize.INTEGER , 
-        allowNull : false , 
+        allowNull : true , 
         onDelete : "CASCADE" , 
         references : { 
           model : "Users" , 
@@ -47,7 +47,7 @@ module.exports = {
 
       postId : { 
         type  : Sequelize.INTEGER , 
-        allowNull : false , 
+        allowNull : true , 
         onDelete : "CASCADE" , 
         references : { 
           model : "Posts" , 
@@ -56,7 +56,7 @@ module.exports = {
       } , 
       conversationId : { 
         type  : Sequelize.INTEGER , 
-        allowNull : false , 
+        allowNull : true , 
         onDelete : "CASCADE" , 
         references : { 
           model : "Conversations" , 

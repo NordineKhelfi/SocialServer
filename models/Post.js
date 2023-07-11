@@ -85,7 +85,14 @@ module.exports = (Sequelize, DataTypes) => {
             through : "PostHashTags" , 
             foreignKey : "postId" , 
             as  : "hashtags"
-        })
+        }) ; 
+
+
+        Post.belongsToMany(db.User  , { 
+            as : "unimportantPosts" , 
+            through : "UnimportantPosts" , 
+            foreignKey : "postId"
+          }) ; 
     }
 
 

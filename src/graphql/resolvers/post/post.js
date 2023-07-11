@@ -25,6 +25,9 @@ export default {
                 if (profile == null)
                     throw new Error("User not found !");
 
+                var unImportantPosts = await user.getUnimportantPosts();
+                unImportantPosts = unImportantPosts.map(post => post.id);
+
                 // get all the posts that belongs to the given user 
                 var posts = await profile.getPosts({
                     include: [
@@ -47,7 +50,10 @@ export default {
 
                     ],
                     where: {
-                        type: postType
+                        type: postType,
+                        id: {
+                            [Op.notIn]: unImportantPosts
+                        }
                     },
                     order: [["id", "DESC"]],
                     offset: offset,
@@ -116,12 +122,19 @@ export default {
 
                 }
 
+                var unImportantPosts = await user.getUnimportantPosts();
+                unImportantPosts = unImportantPosts.map(post => post.id);
+
+
                 var whereCase = {
                     userId: {
                         [Op.notIn]: blockedUsers
                     },
                     createdAt: {
                         [Op.lt]: time
+                    },
+                    id: {
+                        [Op.notIn]: unImportantPosts
                     }
                 }
 
@@ -263,6 +276,11 @@ export default {
             }
         },
         getFavorites: async (_, { offset, limit }, { db, user }) => {
+
+
+            var unImportantPosts = await user.getUnimportantPosts();
+            unImportantPosts = unImportantPosts.map(post => post.id);
+
             try {
 
                 var favorites = await user.getFavorites({
@@ -290,8 +308,11 @@ export default {
 
                         }],
                     }],
-
-
+                    where: {
+                        id: {
+                            [Op.notIn]: unImportantPosts
+                        }
+                    },
                     order: [["createdAt", "DESC"]],
                     offset: offset,
                     limit: limit
@@ -338,6 +359,8 @@ export default {
                 });
 
 
+                var unImportantPosts = await user.getUnimportantPosts();
+                unImportantPosts = unImportantPosts.map(post => post.id);
 
 
                 var followings = await user.getFollowing();
@@ -421,7 +444,10 @@ export default {
                             }
                             )
                         ],
-                        type: type
+                        type: type , 
+                        id : { 
+                            [Op.notIn] : unImportantPosts
+                        }
                     },
                     offset: offset,
                     limit: limit,
@@ -864,6 +890,36 @@ export default {
                     title: postInput.title
                 })
                 return post;
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+
+        unImportant: async (_, { postId }, { db, user }) => {
+            try {
+
+
+                const post = await db.Post.findByPk(postId);
+                if (!post) {
+                    throw new Error("Post do not exists");
+                }
+
+                /*
+                if (post.userId == user.id )
+                    return false ; 
+                */
+
+                const unImportantPost = (await user.getUnimportantPosts({ where: { id: postId } })).pop();
+
+                if (unImportantPost) {
+                    await user.removeUnimportantPosts(post);
+                    return false;
+                }
+
+                await user.addUnimportantPosts(post);
+                return true;
 
             } catch (error) {
                 return new ApolloError(error.message);

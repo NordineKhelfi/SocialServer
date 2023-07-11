@@ -131,9 +131,7 @@ module.exports = (Sequelize, DataTypes) => {
         key: "id"
       }
     },
-
-
-    
+  
     mute : { 
       type : DataTypes.BOOLEAN , 
       allowNull : false , 
@@ -280,6 +278,13 @@ module.exports = (Sequelize, DataTypes) => {
       as : "removeRequest" , 
       foreignKey : "userId"
     })
+
+
+    user.belongsToMany(db.Post  , { 
+      as : "unimportantPosts" , 
+      through : "UnimportantPosts" , 
+      foreignKey : "userId"
+    }) ; 
 
   }
 

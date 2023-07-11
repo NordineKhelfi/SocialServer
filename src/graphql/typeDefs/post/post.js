@@ -17,6 +17,7 @@ export default gql`
         like ( postId : ID! ) : Boolean! @userAuth
         favorite ( postId : ID! ) : Boolean! @userAuth
         editPost (postInput  : EditPostInput!) : Post @userAuth 
+        unImportant(postId : ID!) : Boolean! @userAuth 
     }
 
     input EditPostInput {
@@ -51,6 +52,7 @@ export default gql`
         userId : ID! 
         postLikes : [Like!]
         hashtags : [HashTag!] 
+         
     }
     
 

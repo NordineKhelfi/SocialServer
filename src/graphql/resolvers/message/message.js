@@ -209,7 +209,7 @@ export default {
                             ]
                         }
                     });
-                    
+
                     if (blockedUser)
                         continue;
 
@@ -453,7 +453,7 @@ export default {
                     if (blockedUser)
                         continue;
 
-                    var sendTo = await members[index].getUser();                    
+                    var sendTo = await members[index].getUser();
                     if (!sendTo.mute || !members[index].allowNotifications)
 
                         sendPushNotification(
@@ -489,46 +489,49 @@ export default {
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_MESSAGE`),
 
 
-                async ({ newMessage }, { }, { isUserAuth, user }) => {
+                async ({ newMessage }, { }, { isUserAuth, user , db }) => {
+                    try {
+                        if (!isUserAuth)
+                            return false;
 
-                    if (!isUserAuth)
-                        return false;
-
-                    if (newMessage.type == "post") {
-                        newMessage.post.liked = (await user.getLikes({
-                            where: {
-                                postId: user.id
-                            }
-                        })).pop() != null;
-                        newMessage.post.isFavorite = (await user.getFavorites({
-                            where: {
-                                postId: user.id
-                            }
-                        })).pop() != null;
-                    }
-
-
-                    const blockedUser = await db.BlockedUser.findOne({
-                        where: {
-                            [Op.or]: [
-                                {
-                                    userId: newMessage.sender.id,
-                                    blockedUserId: user.id
-                                },
-                                {
-                                    blockedUserId: newMessage.sender.id,
-                                    userId: user.id
+                        if (newMessage.type == "post") {
+                            newMessage.post.liked = (await user.getLikes({
+                                where: {
+                                    postId: user.id
                                 }
-                            ]
+                            })).pop() != null;
+                            newMessage.post.isFavorite = (await user.getFavorites({
+                                where: {
+                                    postId: user.id
+                                }
+                            })).pop() != null;
                         }
-                    });
 
-                    if (blockedUser)
-                        return false;
 
-                    const index = newMessage.conversation.members.findIndex(member => member.userId == user.id);
-                    return index >= 0;
+                        const blockedUser = await db.BlockedUser.findOne({
+                            where: {
+                                [Op.or]: [
+                                    {
+                                        userId: newMessage.sender.id,
+                                        blockedUserId: user.id
+                                    },
+                                    {
+                                        blockedUserId: newMessage.sender.id,
+                                        userId: user.id
+                                    }
+                                ]
+                            }
+                        });
 
+                        if (blockedUser)
+                            return false;
+
+                       
+                        const index = newMessage.conversation.members.findIndex(member => member.userId == user.id);
+                        return index >= 0;
+                    } catch (error) {
+                        console.log(error)
+                    }
                 })
 
         }
