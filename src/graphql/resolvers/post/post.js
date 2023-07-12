@@ -444,9 +444,9 @@ export default {
                             }
                             )
                         ],
-                        type: type , 
-                        id : { 
-                            [Op.notIn] : unImportantPosts
+                        type: type,
+                        id: {
+                            [Op.notIn]: unImportantPosts
                         }
                     },
                     offset: offset,
@@ -486,37 +486,40 @@ export default {
                 if (postInput.type == "reel" && !postInput.reel && !postInput.reel.thumbnail)
                     throw new Error("Thumbnail required for reels");
 
-                // create the post and assign it to the given user 
-                const post = await user.createPost(postInput);
+
                 // if the post is media for upload the media and assign it to the post 
 
                 var outputs = [];
                 var medium = [];
-
+                var thumbnail = null;
                 // check if the content is image or reel 
                 // uploda the content files and assign the paths to the outputs array 
-                if (post.type == "image")
+                if (postInput.type == "image")
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR);
 
-                if (post.type == "reel") {
+                if (postInput.type == "reel") {
 
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
                     // and associate the reel to the post 
-                    var thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
+                    thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
 
-                    if (thumbnail) {
-                        const media = await db.Media.create({
-                            path: thumbnail
-                        });
-                        const reel = await db.Reel.create({
-                            thumbnailId: media.id,
-                            postId: post.id,
-                        });
-                        reel.thumbnail = media;
-                        post.reel = reel;
-                    }
+                }
+
+                // create the post and assign it to the given user 
+                const post = await user.createPost(postInput);
+
+                if (thumbnail) {
+                    const media = await db.Media.create({
+                        path: thumbnail
+                    });
+                    const reel = await db.Reel.create({
+                        thumbnailId: media.id,
+                        postId: post.id,
+                    });
+                    reel.thumbnail = media;
+                    post.reel = reel;
                 }
 
 
