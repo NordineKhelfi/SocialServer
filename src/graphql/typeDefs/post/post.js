@@ -9,6 +9,7 @@ export default gql`
         getPostById(postId : ID!) : Post  @userAuth 
         getFavorites(offset : Int! , limit : Int!) : [Post!]! @userAuth 
         searchPost(type : String! , query : String  , offset : Int! , limit : Int!) : [Post!]! @userAuth  
+        refresh(time : String! , limit : Int!) : [Post!]! @userAuth 
     } 
 
     extend type Mutation { 
