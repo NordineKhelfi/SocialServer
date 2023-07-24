@@ -8,7 +8,7 @@ const SignUpValidator = yup.object({
     phone: yup.string().notRequired().matches(/^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\./0-9]*$/g) , 
     password : yup.string().required().min(6).max(56) , 
     confirmPassword : yup.string().required().min(6).max(56) , 
-    username : yup.string().required().min(6).max(56).matches(/^[a-z0-9_\.]+$/) ,
+    username : yup.string().required().min(1).max(56).matches(/^[a-z0-9_\.]+$/) ,
     countryId : yup.number().required() , 
     gender : yup.boolean().required() , 
     birthday : yup.date().required() 

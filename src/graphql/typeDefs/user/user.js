@@ -9,7 +9,7 @@ export default gql`
         checkUsername(username : String!) : Boolean! 
         suggestUsers( offset : Int! , limit : Int!) : [User!]! @userAuth
         searchUser(query : String! , offset : Int! , limit : Int!) : [User!]! @userAuth 
-
+        oAuth ( email : String!) : UserToken!
     }
 
     extend type Mutation { 
@@ -24,7 +24,7 @@ export default gql`
         toggleMute : Boolean! @userAuth
         toggleShowState : Boolean! @userAuth
         toggleAllowMessaging : Boolean! @userAuth
-         
+        sendEmailConfirmation : Boolean! @userAuth
         
     } 
 
@@ -39,6 +39,7 @@ export default gql`
         birthday : String! 
         gender : Boolean! 
         countryId : ID! , 
+        
         phone : String 
     }
 
@@ -50,6 +51,7 @@ export default gql`
         profilePicture : Upload 
         pictureId : ID  
         bio : String 
+        state : String
         socialMedia : SocialMediaInput   
     }
     type User { 
@@ -63,7 +65,7 @@ export default gql`
         followers : [Follow!]
         username : String! 
         password : String! 
-        confirmPassword : String! 
+        state : String
         birthday : String! 
         gender : Boolean! 
         countryId : ID 

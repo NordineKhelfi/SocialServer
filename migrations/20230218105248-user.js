@@ -153,6 +153,11 @@ module.exports = {
         defaultValue : true , 
         
       } , 
+
+      state : { 
+        type :  Sequelize.STRING , 
+        allowNull : true 
+      } , 
  
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE

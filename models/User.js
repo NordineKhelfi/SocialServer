@@ -150,6 +150,10 @@ module.exports = (Sequelize, DataTypes) => {
       defaultValue : true , 
       
     } , 
+    state : { 
+      type : DataTypes.STRING , 
+      allowNull : true 
+    } , 
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
 

@@ -1,5 +1,5 @@
 const FCM = require('fcm-node');
-const serverKey = 'AAAAcEI-NfQ:APA91bEycPzj6A5peoBiZopvL9MS_oEk0737wXhuAZjB7baM3lIuj7rk-DUk3iLMl9ByDNh1_VlY2ZMLs0libDjiEsV7VdVbefeWHLRtjrGLrCUTmi63qH3bwaUyV2TC5SbhC28j0QrH'; //put your server key here
+const serverKey = 'AAAAt7I2220:APA91bEnVmVaurvuj17B5mcPS2oL_EB0UQ-eGUpC2VwFg6Q_L8uq8RTUa2Fg5DYNRa76w59dbLN5e6rqx5UXeBRLdgaxcf2r9tmEryDWmEVvlAF8NPXFWyqPtDz8EwSG29mT5iRb2bpg'; //put your server key here
 const fcm = new FCM(serverKey);
 
 

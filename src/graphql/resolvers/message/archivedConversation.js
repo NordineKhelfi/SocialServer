@@ -50,9 +50,9 @@ export default {
                                         id: {
                                             [Op.notIn]: blockedUsers
                                         }
-                                    }, 
+                                    },
                                     {
-                                        disabled : false 
+                                        disabled: false
                                     }
                                 ]
 
@@ -88,6 +88,15 @@ export default {
             for (var index = 0; index < archivedConversations.length; index++) {
                 var conversation = archivedConversations[index].conversation;
                 conversation.isReadable = archivedConversations[index].isParticipant;
+
+                const memberShip = await db.ConversationMember.findOne({
+                    where: {
+                        userId: user.id,
+                        conversationId: conversation.id
+                    }
+                }) 
+                if (memberShip)
+                    conversation.allowNotifications = memberShip.allowNotifications;
                 conversation.isArchived = true;
                 var lastSeenAt = archivedConversations[index].lastSeenAt;
                 if (conversation)

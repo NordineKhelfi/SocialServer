@@ -96,17 +96,18 @@ export default {
                 var likes = await db.Like.findAll({
                     attributes: ['postId'],
                     group: "postId",
+                  
                     include: [{
                         model: db.Post,
                         as: "post",
+                    
                         where: {
                             userId: user.id
                         },
                         include: [{
                             model: db.Like,
-                            as: "postLikes",
-                            required: true,
-                            where: {
+                            as: "postLikes",                     
+                            where : { 
 
                                 [Op.and]: [
                                     {
@@ -121,13 +122,15 @@ export default {
                                     } , 
                                     
                                 ]
-                            },
+                            } ,
+                           
                             include: [{
                                 model: db.User,
                                 as: "user",
-                                required : true , 
+                                required : false  , 
                                 where : { 
-                                    disabled : false 
+                                    disabled : false , 
+                                  
                                 } , 
                                 include: [{
                                     model: db.Media,
@@ -152,16 +155,12 @@ export default {
                 });
 
 
+         
 
                 return likes.map(like => {
 
                     const { post } = like;
-
-
-
-
                     var postLike = post.postLikes[0];
-
                     postLike.post = JSON.parse(JSON.stringify(post));
 
                     return {
@@ -172,6 +171,8 @@ export default {
                 })
 
             } catch (error) {
+
+ 
                 return new ApolloError(error.message);
             }
         },

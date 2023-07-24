@@ -241,7 +241,38 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message)
             }
+        },
+        oAuth: async (_, { email }, { db }) => {
+            try {
+
+                const user = await db.User.findOne({
+                    where: {
+                        email: email
+                    },
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
+                    }]
+                });
+                if (!user)
+                    throw new Error("User Not found ");
+
+
+
+                // create token 
+                var token = createToken(user.email, user.password);
+
+                return {
+                    user: user,
+                    token: token
+                }
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+
         }
+
     },
 
     Mutation: {
@@ -381,24 +412,17 @@ export default {
 
         addPhoneNumber: async (_, { phone, password }, { db, user }) => {
             try {
-
-
                 // check the password 
                 var isMath = await compare(password, user.password);
 
                 if (!isMath)
                     throw new Error("Wrong password");
-               
+
                 var regex = /^\+(?:[0-9] ?){6,14}[0-9]$/;
                 if (!regex.test(phone)) {
                     throw new Error("not valid number");
 
                 }
-
-
-        
-
-           
 
                 return await user.update({ phone });
             } catch (error) {
@@ -426,43 +450,71 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
-        } ,
+        },
 
 
-        toggleMute : async ( _ , { } , {db , user}) => { 
-            try { 
+        toggleMute: async (_, { }, { db, user }) => {
+            try {
+
+                var result = await user.update({ mute: !user.mute });
+                return result.mute;
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+        toggleShowState: async (_, { }, { db, user }) => {
+            try {
+                var result = await user.update({ showState: !user.showState });
+
+                return result.showState;
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+
+        toggleAllowMessaging: async (_, { }, { db, user }) => {
+            try {
+                var result = await user.update({ allowMessaging: !user.allowMessaging });
+
+                return result.allowMessaging;
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+
+        sendEmailConfirmation: async (_, { }, { db, user , mailTransporter }) => {
+            /*
+            try {
+
+
+                const confirmationMessage = {
+                    from : "vinkst0@gmail.com" , 
+                    to:   user.email , 
+                    subject : "email confirmation" , 
+                    text : "this is your confirmation code : 1254" 
+                }
+
+                mailTransporter.sendMail(confirmationMessage , ( error ) => { 
+                    if (error) { 
+                        console.log (error) ; 
+                    }else { 
+                        console.log ("success check your mail") ; 
+                    }
+                })
                 
-                var result = await user.update({mute : !user.mute}) ; 
-                return result.mute ;
-            }catch(error) { 
-                return new ApolloError(error.message) ; 
+                 
+                return true ; 
+
+
+            } catch (error) {
+                return new ApolloError(error.message)
             }
-        }  , 
-
-        toggleShowState : async ( _ , { } , {db , user}) => { 
-            try { 
-                var result = await user.update({showState : !user.showState}) ; 
-
-                return result.showState ;
-            }catch(error) { 
-                return new ApolloError(error.message) ; 
-            }
-        } ,  
-
-        
-        toggleAllowMessaging : async ( _ , { } , {db , user}) => { 
-            try { 
-                var result = await user.update({allowMessaging : !user.allowMessaging}) ; 
-
-                return result.allowMessaging ;
-
-            }catch(error) { 
-                return new ApolloError(error.message) ; 
-            }
-        }  
-
-        
-
+            */
+        }
 
     }
 }

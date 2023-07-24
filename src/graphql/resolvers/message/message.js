@@ -213,25 +213,34 @@ export default {
                     if (blockedUser)
                         continue;
 
+
+
                     var sendTo = await members[index].getUser();
-                    if (!sendTo.mute || !members[index].allowNotifications)
-                        sendPushNotification(
-                            sendTo,
-                            {
-                                type: "message",
-                                user: {
-                                    id: user.id,
-                                    name: user.name,
-                                    lastname: user.lastname,
-                                    profilePicture: await user.getProfilePicture()
-                                },
-                                message: {
-                                    conversationId: message.conversationId,
-                                    type: message.type,
-                                    content: message.content
-                                }
+
+                    if (sendTo.mute || !members[index].allowNotifications)
+                        continue;
+
+
+
+                    sendPushNotification(
+                        sendTo,
+                        {
+                            type: "message",
+                            user: {
+                                id: user.id,
+                                name: user.name,
+                                lastname: user.lastname,
+                                profilePicture: await user.getProfilePicture()
+                            },
+                            message: {
+                                conversationId: message.conversationId,
+                                type: message.type,
+                                content: message.content
                             }
-                        )
+                        }
+                    )
+
+
                 }
 
                 return messageInput
@@ -489,7 +498,7 @@ export default {
                 (_, { }, { pubSub }) => pubSub.asyncIterator(`NEW_MESSAGE`),
 
 
-                async ({ newMessage }, { }, { isUserAuth, user , db }) => {
+                async ({ newMessage }, { }, { isUserAuth, user, db }) => {
                     try {
                         if (!isUserAuth)
                             return false;
@@ -526,7 +535,7 @@ export default {
                         if (blockedUser)
                             return false;
 
-                       
+
                         const index = newMessage.conversation.members.findIndex(member => member.userId == user.id);
                         return index >= 0;
                     } catch (error) {

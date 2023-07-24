@@ -1,6 +1,6 @@
 import express from "express";
 import { PORT, UPLOAD_COMMENTS_RECORDS_DIR, ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR } from "./config";
-import {  ApolloServer } from "apollo-server-express";
+import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
 import { userAuth } from "./middlewares";
@@ -14,6 +14,11 @@ import { PubSub } from "graphql-subscriptions";
 import { handleStoriesExpirations } from "./providers";
 import { sendPushNotification } from "./providers/pushNotification";
 import { handleRemoveRequests } from "./providers/user";
+
+
+
+
+ 
 // initialize our express server 
 // init the Server 
 const app = express();
@@ -22,12 +27,6 @@ const http = Server(app);
 // aplaying middlewares
 app.use(userAuth);
 app.use(graphqlUploadExpress());
-
-
-
- 
-
-
 
 const pubSub = new PubSub();
 
@@ -95,7 +94,8 @@ async function startServer() {
                 isUserAuth,
                 user,
                 pubSub,
-                sendPushNotification
+                sendPushNotification,
+                 
 
             }
         },
@@ -122,7 +122,7 @@ async function startServer() {
             // listen 
 
             handleStoriesExpirations(db);
-            handleRemoveRequests(db) ; 
+            handleRemoveRequests(db);
             console.log(`Server is runing on port ${PORT}`)
         } catch (error) {
             console.log("Error : ", error)

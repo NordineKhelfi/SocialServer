@@ -137,6 +137,9 @@ export default {
                     },
                     id: {
                         [Op.notIn]: unImportantPosts
+                    } , 
+                    type : {
+                        [Op.not] : "reel"
                     }
                 }
 
@@ -181,7 +184,7 @@ export default {
                         }]
                     }],
                     where: whereCase,
-                    order: [["createdAt", "ASC"]],
+                    order: [["createdAt", "DESC"]],
                     limit
                 });
 
@@ -412,16 +415,36 @@ export default {
 
             var unImportantPosts = await user.getUnimportantPosts();
             unImportantPosts = unImportantPosts.map(post => post.id);
+            
+            var followings = await user.getFollowing();
+            followings = followings.map(follow => follow.followingId);
+            followings.push(user.id); 
 
+
+       
             try {
 
                 var favorites = await user.getFavorites({
                     include: [{
                         model: db.Post,
                         as: "post",
+                        required : true  , 
                         include: [{
                             model: db.User,
                             as: "user",
+                            required : true  , 
+                            where : { 
+                                [Op.or]: [
+                                    {
+                                        id: {
+                                            [Op.in]: followings
+                                        }
+                                    },
+                                    {
+                                        private: false
+                                    }
+                                ]
+                            } , 
                             include: [{
                                 model: db.Media,
                                 as: "profilePicture"
@@ -464,6 +487,7 @@ export default {
                 }
                 return posts;
             } catch (error) {
+                console.log (error.message) ; 
                 return new ApolloError(error.message);
             }
         },
