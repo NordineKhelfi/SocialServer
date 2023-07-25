@@ -19,9 +19,7 @@
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
-  "production": {
-
-    
+  "production": {    
     "username": "root",
     "password": "vinkst",
     "database": "vinkst",

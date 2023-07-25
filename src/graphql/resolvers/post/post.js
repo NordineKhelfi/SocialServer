@@ -494,8 +494,6 @@ export default {
         searchPost: async (_, { type, query, offset, limit }, { db, user }) => {
             try {
 
-
-
                 var blockedUsers = await db.BlockedUser.findAll({
                     where: {
                         [Op.or]: [
@@ -572,10 +570,16 @@ export default {
 
                 query = query.trim();
 
-                var posts = await db.Post.findAll({
-                    subQuery: false,
-                    include: include,
-                    where: {
+                var searchQuery = { 
+                    type: type,
+                    id: {
+                        [Op.notIn]: unImportantPosts
+                    }
+                } ; 
+
+                if (query) { 
+                    searchQuery = { 
+                        ...searchQuery , 
                         [Op.or]: [
                             {
                                 title: {
@@ -583,27 +587,31 @@ export default {
                                 }
                             },
                             Sequelize.where(
-                                Sequelize.fn("CONCAT", Sequelize.col("`User`.name"), " ", Sequelize.col("`User`.lastname")),
+                                Sequelize.fn("CONCAT", Sequelize.col("`user`.name"), " ", Sequelize.col("`user`.lastname")),
                                 {
                                     [Op.like]: `%${query}%`
                                 }
                             ),
                             Sequelize.where(
-                                Sequelize.fn("CONCAT", Sequelize.col("`User`.lastname"), " ", Sequelize.col("`User`.name")),
+                                Sequelize.fn("CONCAT", Sequelize.col("`user`.lastname"), " ", Sequelize.col("`user`.name")),
                                 {
                                     [Op.like]: `%${query}%`
                                 }
                             ),
                             Sequelize.where(
-                                Sequelize.col("`User`.username"), {
+                                Sequelize.col("`user`.username"), {
                                 [Op.like]: `%${query}%`
                             }
                             )
                         ],
-                        type: type,
-                        id: {
-                            [Op.notIn]: unImportantPosts
-                        }
+                    }
+                }
+
+                var posts = await db.Post.findAll({
+                    subQuery: false,
+                    include: include,
+                    where: {
+                       ...searchQuery 
                     },
                     offset: offset,
                     limit: limit,
