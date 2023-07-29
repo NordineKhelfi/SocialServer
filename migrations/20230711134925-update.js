@@ -55,15 +55,24 @@ module.exports = {
       ),
     ])
     */
-    /*
-    return queryInterface.addColumn("Countries", "dialCode",
-      {
-        type: Sequelize.STRING,
-        allowNull: true ,
-      }
-    ) ; 
-      */
-    
+    return Promise.all([
+      queryInterface.addColumn("Users", "isValid",
+        {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        },
+      ),
+
+      queryInterface.addColumn("Users", "otpCode",
+        {
+          type: Sequelize.INTEGER,
+          allowNull: true,
+        },
+      ),
+
+    ])
+
   },
 
   async down(queryInterface, Sequelize) {

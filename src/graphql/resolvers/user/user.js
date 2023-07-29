@@ -256,9 +256,6 @@ export default {
                 });
                 if (!user)
                     throw new Error("User Not found ");
-
-
-
                 // create token 
                 var token = createToken(user.email, user.password);
 
