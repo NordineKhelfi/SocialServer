@@ -10,6 +10,7 @@ export default gql`
         suggestUsers( offset : Int! , limit : Int!) : [User!]! @userAuth
         searchUser(query : String! , offset : Int! , limit : Int!) : [User!]! @userAuth 
         oAuth ( email : String!) : UserToken!
+        checkEmailExists( email : String!) : Boolean!  
     }
 
     extend type Mutation { 
@@ -26,7 +27,8 @@ export default gql`
         toggleAllowMessaging : Boolean! @userAuth
         sendEmailConfirmation(email : String!) : Boolean! 
         confirmEmail (email: String! , otpCode  : String!): UserToken! 
-        forgetPassword(otp : String! , newPassword : String!) : UserToken! @userAuth
+        forgetPassword(otp : String! , newPassword : String!) : String! @userAuth
+
     } 
 
 

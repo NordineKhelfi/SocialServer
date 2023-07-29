@@ -271,6 +271,22 @@ export default {
                 return new ApolloError(error.message);
             }
 
+        } , 
+        checkEmailExists : async( _ , {email } , { db  }) => { 
+            try { 
+
+                const user = await db.User.findOne({
+                    where : {
+                        email : email 
+                    }
+                }) ; 
+
+
+                return user != null ; 
+
+            }catch(error) {
+                return new ApolloError(error.message)  ; 
+            }
         }
 
     },
@@ -580,11 +596,8 @@ export default {
                 // create token
                 var token = createToken(account.email, account.password);
 
-                
-                return {
-                    user : account , 
-                    token : token 
-                }
+
+                return token;
             } catch (error) {
                 return new ApolloError(error.message);
             }
