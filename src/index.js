@@ -1,5 +1,5 @@
 import express from "express";
-import { PORT, UPLOAD_COMMENTS_RECORDS_DIR, ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR } from "./config";
+import { mailConfig, PORT, UPLOAD_COMMENTS_RECORDS_DIR, ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR } from "./config";
 import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
@@ -14,11 +14,40 @@ import { PubSub } from "graphql-subscriptions";
 import { handleStoriesExpirations } from "./providers";
 import { sendPushNotification } from "./providers/pushNotification";
 import { handleRemoveRequests } from "./providers/user";
+import nodemailer from "nodemailer";
+import { google } from "googleapis";
 
+const oAuth = google.auth.OAuth2;
+const oAuth_client = new oAuth(mailConfig.clientId, mailConfig.clientSecret)
+oAuth_client.setCredentials({ refresh_token: mailConfig.refreshToken })
 
+const sendMail = async (email, content) => {
 
+    if (!email || !content)
+        return;
 
+    const { token } = await oAuth_client.getAccessToken();
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            type: "OAuth2",
+            user: mailConfig.email,
+            clientId: mailConfig.clientId,
+            clientSecret: mailConfig.clientSecret,
+            refreshToken: mailConfig.refreshToken,
+            accessToken: token
+        }
+    });
+
+    transporter.sendMail({
+        from: mailConfig.email,
+        to: email,
+        ...content
+    }, (error, result) => {})
+}
  
+
 // initialize our express server 
 // init the Server 
 const app = express();
@@ -95,7 +124,7 @@ async function startServer() {
                 user,
                 pubSub,
                 sendPushNotification,
-                 
+                sendMail
 
             }
         },

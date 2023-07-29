@@ -8,7 +8,7 @@ module.exports = {
     const reasons = require("../assets/removeReasons.json");
     const countries = require("../assets/countries.json");
     const reportReasons = require("../assets/reportReasons.json");
-
+    /*
     
     return Promise.all([
       queryInterface.bulkInsert("Simats", simats),
@@ -16,7 +16,7 @@ module.exports = {
       queryInterface.bulkInsert("Countries", countries.map(country => ({ name: country.name, dialCode: country.dialCode }))),
       queryInterface.bulkInsert("ReportReasons", reportReasons),
     ])
-    
+    */
   },
 
   async down(queryInterface, Sequelize) {

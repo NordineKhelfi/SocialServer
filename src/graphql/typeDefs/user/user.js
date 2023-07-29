@@ -24,8 +24,9 @@ export default gql`
         toggleMute : Boolean! @userAuth
         toggleShowState : Boolean! @userAuth
         toggleAllowMessaging : Boolean! @userAuth
-        sendEmailConfirmation : Boolean! @userAuth
-        
+        sendEmailConfirmation(email : String!) : Boolean! 
+        confirmEmail (email: String! , otpCode  : String!): UserToken! 
+        forgetPassword(otp : String! , newPassword : String!) : UserToken! @userAuth
     } 
 
 
@@ -88,6 +89,8 @@ export default gql`
         showState : Boolean 
         updatedAt : String! 
         createdAt : String! 
+        isValid : Boolean! 
+        
     }
     type UserToken { 
         user : User! 

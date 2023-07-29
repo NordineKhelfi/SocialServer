@@ -162,6 +162,15 @@ module.exports = (Sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    isValid :   {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    } , 
+    otpCode: {
+      type: DataTypes.INTEGER ,
+      allowNull: true,
+    }, 
   }, {
     timestamps: true,
 

@@ -158,7 +158,16 @@ module.exports = {
         type :  Sequelize.STRING , 
         allowNull : true 
       } , 
- 
+
+      isValid :   {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      } , 
+      otpCode: {
+        type: Sequelize.INTEGER ,
+        allowNull: true,
+      }, 
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE
 

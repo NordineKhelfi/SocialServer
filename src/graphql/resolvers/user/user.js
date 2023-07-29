@@ -486,34 +486,108 @@ export default {
         },
 
 
-        sendEmailConfirmation: async (_, { }, { db, user , mailTransporter }) => {
-            /*
+        sendEmailConfirmation: async (_, { email }, { db, sendMail }) => {
+
             try {
 
+                var user = await db.User.findOne({
+                    where: {
+                        email
+                    }
+                });
+
+                if (!user)
+                    throw new Error("There is no user match this email");
+
+                var otpCode = String(Math.trunc(Math.random() * 10)) + String(Math.trunc(Math.random() * 10)) + String(Math.trunc(Math.random() * 10)) + String(Math.trunc(Math.random() * 10));
+                await user.update({ otpCode: otpCode });
 
                 const confirmationMessage = {
-                    from : "vinkst0@gmail.com" , 
-                    to:   user.email , 
-                    subject : "email confirmation" , 
-                    text : "this is your confirmation code : 1254" 
+                    from: "Vinkst",
+                    to: user.email,
+                    subject: "تأكيد الحساب",
+                    html: `
+                        <p>رقم تأكيد الحساب : <b>${otpCode}</b></p>
+                    `
                 }
 
-                mailTransporter.sendMail(confirmationMessage , ( error ) => { 
-                    if (error) { 
-                        console.log (error) ; 
-                    }else { 
-                        console.log ("success check your mail") ; 
-                    }
-                })
-                
-                 
-                return true ; 
+                sendMail(user.email, confirmationMessage)
+                return true;
 
 
             } catch (error) {
                 return new ApolloError(error.message)
             }
-            */
+        },
+        confirmEmail: async (_, { email, otpCode }, { db, user }) => {
+            try {
+                var user = await db.User.findOne({
+                    where: {
+                        email
+                    },
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
+                    }]
+                });
+
+                if (!user)
+                    throw new Error("There is no user match this email");
+
+                if (user.otpCode == otpCode) {
+                    await user.update({ isValid: true })
+
+                    // create token 
+                    var token = createToken(user.email, user.password);
+
+                    return {
+                        user: user,
+                        token: token
+
+                    };
+                }
+                else {
+                    throw new Error("Not Valid Otp Code")
+                }
+
+            } catch (error) {
+                return new ApolloError(error.mesage);
+            }
+        },
+
+
+        forgetPassword: async (_, { otp, newPassword }, { db, user }) => {
+            try {
+
+                var account = await db.User.findOne({
+                    where: {
+                        id: user.id,
+                        otpCode: otp
+                    },
+                    include: [{
+                        model: db.Media,
+                        as: "profilePicture"
+                    }]
+                });
+
+                if (!account)
+                    throw new Error("There is no user match this email");
+
+
+                account.password = await hash(newPassword, 10)
+                await account.update({ password: account.password });
+
+                // create token
+                var token = createToken(account.email, account.password);
+
+                
+                return {
+                    user : account , 
+                    token : token 
+                }
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
         }
 
     }

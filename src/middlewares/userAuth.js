@@ -38,11 +38,10 @@ export const userAuth = async (request, response, next) => {
     });
 
     // check if there is a valid user 
-    if (!user) {
+    if (!user || !user.isValid) {
         request.isUserAuth = false;
         return next();
-    }
-
+    } 
     // assing the user and validation to the request 
     request.user = user;
     request.isUserAuth = true;
