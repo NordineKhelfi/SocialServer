@@ -305,6 +305,7 @@ export default {
                     throw new Error("Comment cant be deleted");
 
                 var media = [];
+                const post = comment.post ; 
 
                 if (comment.media)
                     media.push(comment.media);
@@ -320,7 +321,7 @@ export default {
                 }
 
                 await deleteFiles(media.map(m => m.path)) ; 
-                
+                await post.update({numComments : post.numComments -1 }) ; 
                 
                 return comment;
 

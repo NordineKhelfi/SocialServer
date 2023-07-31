@@ -1,8 +1,8 @@
 import { ApolloError } from "apollo-server-express"
 import { UPLOAD_REPLAYS_RECORDS_DIR } from "../../../config";
-import { uploadFiles } from "../../../providers";
+import { deleteFiles, uploadFiles } from "../../../providers";
 import { ReplayValidator } from "../../../validators";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 export default {
     Query: {
@@ -39,10 +39,10 @@ export default {
                     }, {
                         model: db.User,
                         as: "user",
-                        required : true , 
-                        where : { 
-                            disabled : false 
-                        } , 
+                        required: true,
+                        where: {
+                            disabled: false
+                        },
                         include: [
                             {
                                 model: db.Media,
@@ -53,11 +53,11 @@ export default {
                     order: [
                         ["id", "DESC"]
                     ],
-                    where : { 
-                        userId : {
-                            [Op.notIn] : blockedUsers 
+                    where: {
+                        userId: {
+                            [Op.notIn]: blockedUsers
                         }
-                    } ,
+                    },
                     offset: offset,
                     limit: limit,
 
@@ -262,6 +262,61 @@ export default {
                     await user.addReplayLikes(replay);
                     return true;
                 }
+
+            } catch (error) {
+                return new ApolloError(error.message);
+            }
+        },
+
+
+        deleteReplay: async (_, { replayId }, { db, user }) => {
+            try {
+
+
+                const replay = await db.Replay.findOne({
+                    include: [{
+                        model: db.Comment,
+                        as: "comment",
+                        include: [{
+                            model: db.Post,
+                            as: "post"
+                        }]
+                    }, {
+                        model: db.Media,
+                        as: "media"
+                    }],
+
+                    where: {
+                        id: replayId,
+
+                        [Op.or]: [
+
+                            {
+                                userId: user.id
+                            },
+
+                            Sequelize.where(Sequelize.col("comment.userId"), user.id),
+                            Sequelize.where(Sequelize.col("comment.post.userId"), user.id)
+                        ]
+                    }
+                });
+
+
+                if (!replay)
+                    throw new Error("Cant delete this replay")
+
+
+                const media = replay.media;
+                if (media) {
+                    await media.destroy();
+                    await deleteFiles([media.path]);
+                };
+
+                await replay.destroy();
+
+                return replay;
+
+
 
             } catch (error) {
                 return new ApolloError(error.message);
