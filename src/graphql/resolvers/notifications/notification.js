@@ -91,24 +91,43 @@ export default {
 
                 blockedUsers = blockedUsers.map(blockedUser => {
                     return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                })
+                }) ; 
 
+
+                var disabledAccounts = await db.User.findAll({
+                    where : { 
+                        disabled : true , 
+                    } , 
+                    include : [{
+                        model : db.Like , 
+                        as : "likes" , 
+                        include: [{
+                            model : db.Post , 
+                            as : "post" , 
+                            where : { 
+                                userId : user.id
+                            }
+                        }]
+                    }]
+                }) ; 
+                disabledAccounts = disabledAccounts.map(account => account.id) ;
+                
                 var likes = await db.Like.findAll({
                     attributes: ['postId'],
                     group: "postId",
-                  
+                
                     include: [{
                         model: db.Post,
                         as: "post",
-                    
+                       
                         where: {
                             userId: user.id
                         },
                         include: [{
                             model: db.Like,
-                            as: "postLikes",                     
-                            where : { 
-
+                            as: "postLikes",
+                       
+                            where: {
                                 [Op.and]: [
                                     {
                                         userId: {
@@ -119,25 +138,24 @@ export default {
                                         userId: {
                                             [Op.notIn]: blockedUsers
                                         }
-                                    } , 
-                                    
+                                    },
+                                    { 
+                                        userId : { 
+                                            [Op.notIn] : disabledAccounts
+                                        }
+                                    }
                                 ]
-                            } ,
-                           
+                            },
                             include: [{
                                 model: db.User,
                                 as: "user",
-                                required : false  , 
-                                where : { 
-                                    disabled : false , 
-                                  
-                                } , 
+                            
                                 include: [{
                                     model: db.Media,
                                     as: "profilePicture"
                                 }]
-                            }]
-
+                            }],
+                          
                         }, {
                             model: db.Media,
                             as: "media",
@@ -148,18 +166,23 @@ export default {
                                 model: db.Media,
                                 as: "thumbnail"
                             }]
-                        }]
+                        }],
+
+
                     }],
+                  
+                    
                     order: [["post", "postLikes", "createdAt", "DESC"]],
                     limit: [offset, limit]
                 });
 
 
-         
+
 
                 return likes.map(like => {
 
                     const { post } = like;
+                    
                     var postLike = post.postLikes[0];
                     postLike.post = JSON.parse(JSON.stringify(post));
 
@@ -172,7 +195,7 @@ export default {
 
             } catch (error) {
 
- 
+
                 return new ApolloError(error.message);
             }
         },
@@ -204,8 +227,8 @@ export default {
                         where: {
                             id: {
                                 [Op.notIn]: blockedUsers
-                            } , 
-                            disabled : false 
+                            },
+                            disabled: false
                         },
                         include: [{
                             model: db.Media,
@@ -281,8 +304,8 @@ export default {
                         where: {
                             id: {
                                 [Op.notIn]: blockedUsers
-                            }, 
-                            disabled : false 
+                            },
+                            disabled: false
                         },
                         include: [{
                             model: db.Media,
@@ -359,8 +382,8 @@ export default {
                         where: {
                             id: {
                                 [Op.notIn]: blockedUsers
-                            } , 
-                            disabled : false 
+                            },
+                            disabled: false
                         },
                         include: [{
                             model: db.Media,
