@@ -1,8 +1,8 @@
 import { ApolloError } from "apollo-server-express"
 import { UPLOAD_COMMENTS_RECORDS_DIR } from "../../../config";
-import { uploadFiles } from "../../../providers";
+import { deleteFiles, uploadFiles } from "../../../providers";
 import { CommentValidator } from "../../../validators";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 export default {
     Query: {
@@ -51,10 +51,10 @@ export default {
                         {
                             model: db.User,
                             as: "user",
-                            required : true , 
-                            where : { 
-                                disabled : false 
-                            } , 
+                            required: true,
+                            where: {
+                                disabled: false
+                            },
                             include: [{
                                 model: db.Media,
                                 as: "profilePicture"
@@ -62,16 +62,16 @@ export default {
                         }
 
                     ],
-                    where : { 
-                        userId : {
-                            [Op.notIn] : blockedUsers 
+                    where: {
+                        userId: {
+                            [Op.notIn]: blockedUsers
                         }
-                    } , 
+                    },
                     order: [
                         ["id", "DESC"]
                     ],
                     offset: offset,
-                  
+
                     limit: limit,
                 });
 
@@ -266,6 +266,66 @@ export default {
 
             } catch (error) {
                 return new ApolloError(error.message);
+            }
+        },
+        deleteComment: async (_, { commentId }, { db, user }) => {
+            try {
+
+
+
+                const comment = await db.Comment.findOne({
+                    include: [{
+                        model: db.Post,
+                        as: "post"
+                    },
+                    {
+                        model: db.Media,
+                        as: "media"
+                    }, {
+                        model: db.Replay,
+                        as: "replays",
+                        include: [{
+                            model: db.Media,
+                            as: "media"
+                        }]
+                    }],
+                    where: {
+                        id: commentId,
+                        [Op.or]: [
+                            {
+                                userId: user.id
+                            },
+                            Sequelize.where(Sequelize.col("`post`.userId"), user.id)
+                        ]
+                    },
+
+                });
+
+                if (!comment)
+                    throw new Error("Comment cant be deleted");
+
+                var media = [];
+
+                if (comment.media)
+                    media.push(comment.media);
+
+                if (comment.replays) {
+                    media.push(...comment.replays.filter(replay => replay.media).map(replay => replay.media)    );
+                }
+
+                await comment.destroy() ; 
+
+                for(let index = 0 ; index < media.length ; index++) { 
+                    await media[index].destroy() ;
+                }
+
+                await deleteFiles(media.map(m => m.path)) ; 
+                
+                
+                return comment;
+
+            } catch (error) {
+                return new ApolloError(error.message)
             }
         }
     }

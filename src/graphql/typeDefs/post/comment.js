@@ -11,16 +11,14 @@ export default gql`
     extend type Mutation { 
         comment(commentInput : CommentInput!) :  Comment! @userAuth 
         likeComment (commentId : ID!) : Boolean! @userAuth 
-
+        deleteComment(commentId : ID!) : Comment! @userAuth 
     }
-
 
     input CommentInput { 
         postId : ID! 
         media : Upload 
         comment : String  
     } 
-
 
     type Comment { 
         id : ID! 
