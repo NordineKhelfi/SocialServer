@@ -54,25 +54,36 @@ module.exports = {
         }
       ),
     ])
-    */
+    */ 
+    /*
     return Promise.all([
-      queryInterface.addColumn("Users", "isValid",
-        {
-          type: Sequelize.BOOLEAN,
-          allowNull: false,
-          defaultValue: false,
-        },
-      ),
-
-      queryInterface.addColumn("Users", "otpCode",
-        {
-          type: Sequelize.INTEGER,
-          allowNull: true,
-        },
-      ),
-
+      queryInterface.addColumn("ValidationRequests" , "username" , {
+        type : Sequelize.STRING , 
+        allowNull : false , 
+      }) , 
+      queryInterface.addColumn("ValidationRequests" , "note" , {
+        type : Sequelize.STRING , 
+        allowNull : true 
+      }) , 
+      queryInterface.addColumn("ValidationRequests" , "status" , {
+        type : Sequelize.ENUM(["pending" , "rejected" , "approuved"]) ,
+        allowNull : false , 
+        defaultValue : "pending"  
+      }) , 
+      
     ])
+    */
 
+
+    return Promise.all([
+      queryInterface.changeColumn("ValidationRequests" , "fileType" , 
+      {
+        type : Sequelize.ENUM(["بطاقة تعريف", "رخصة قيادة", "جواز السفر"]) , 
+        allowNull : false , 
+        defaultValue : "بطاقة تعريف"
+      }
+      )
+    ])
   },
 
   async down(queryInterface, Sequelize) {

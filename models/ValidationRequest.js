@@ -27,7 +27,7 @@ module.exports = (Sequelize, DataTypes) => {
             }
         },
         fileType: {
-            type: DataTypes.ENUM(['بطاقة تعريف', 'جواز سفر']),
+            type : DataTypes.ENUM(["بطاقة تعريف", "رخصة قيادة", "جواز السفر"]) , 
             allowNull: false,
             defaultValue: "بطاقة تعريف"
         },
@@ -58,11 +58,7 @@ module.exports = (Sequelize, DataTypes) => {
                 key: "id"
             }
         },
-        validated: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: false
-        },
+
         linkOne: {
             type: DataTypes.STRING,
             allowNull: false
@@ -75,34 +71,48 @@ module.exports = (Sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
-        }
+        },
+
+        status: {
+            type: DataTypes.ENUM(["pending", "rejected", "approuved"]),
+            allowNull: false,
+            defaultValue: "pending"
+        },
+        note: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        username: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
     }, {
         charset: 'utf8',
         collate: 'utf8_unicode_ci'
     });
 
 
-    ValidationRequest.associate = ( db ) => { 
-        ValidationRequest.belongsTo(db.User , { 
-            foreignKey : "userId" , 
-            as : "user"
-        }); 
+    ValidationRequest.associate = (db) => {
+        ValidationRequest.belongsTo(db.User, {
+            foreignKey: "userId",
+            as: "user"
+        });
 
-        ValidationRequest.belongsTo(db.Media , { 
-            foreignKey : "mediaId" , 
-            as : "media"
-        }); 
+        ValidationRequest.belongsTo(db.Media, {
+            foreignKey: "mediaId",
+            as: "media"
+        });
 
-        ValidationRequest.belongsTo(db.Country , { 
-            foreignKey : "countryId" , 
-            as : "country"
-        }); 
+        ValidationRequest.belongsTo(db.Country, {
+            foreignKey: "countryId",
+            as: "country"
+        });
 
-        ValidationRequest.belongsTo(db.Category , { 
-            foreignKey : "categoryId" , 
-            as : "category"
-        }); 
-        
+        ValidationRequest.belongsTo(db.Category, {
+            foreignKey: "categoryId",
+            as: "category"
+        });
+
     }
 
 

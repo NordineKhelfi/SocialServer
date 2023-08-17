@@ -29,7 +29,7 @@ module.exports = {
         } 
       } , 
       fileType : { 
-        type : Sequelize.ENUM(['بطاقة تعريف' , 'جواز سفر']) , 
+        type : Sequelize.ENUM(["بطاقة تعريف", "رخصة قيادة", "جواز السفر"]) , 
         allowNull : false , 
         defaultValue : "بطاقة تعريف"
       } , 
@@ -60,11 +60,19 @@ module.exports = {
           key : "id"
         }
       } , 
-      validated : { 
-        type : Sequelize.BOOLEAN ,
+      status : { 
+        type : Sequelize.ENUM(["pending" , "rejected" , "approuved"]) ,
         allowNull : false , 
-        defaultValue : false  
-      }, 
+        defaultValue : "pending"  
+      },  
+      note : { 
+        type : Sequelize.STRING , 
+        allowNull : true 
+      } , 
+      username : { 
+        type : Sequelize.STRING , 
+        allowNull : false , 
+      } , 
       linkOne : { 
         type : Sequelize.STRING , 
         allowNull : false 

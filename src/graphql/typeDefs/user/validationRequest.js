@@ -2,11 +2,14 @@ import { gql } from "apollo-server-express";
 
 
 export default gql`
-
+    extend type Query { 
+        getCurrentValidationRequest : ValidationRequest @userAuth 
+    }
 
  
     extend type Mutation { 
         createValidationRequest(validationRequestInput : ValidationRequestInput!)  : ValidationRequest! @userAuth
+        deleteValidationRequest : ValidationRequest! @userAuth
     }
 
     
@@ -24,9 +27,13 @@ export default gql`
         categoryId : ID!
         category : Category! 
         country : Country!
-        validated : Boolean! 
+         
         linkOne : String!
         linkTwo : String
+        username : String! 
+        status : String! 
+        note : String 
+
     }
 
 
@@ -38,7 +45,8 @@ export default gql`
         countryId : ID! 
         categoryId : ID!
         linkOne : String!
-        linkTwo : String    
+        linkTwo : String  
+        username : String!   
     }
 
 
