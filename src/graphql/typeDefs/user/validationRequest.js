@@ -10,6 +10,7 @@ export default gql`
     extend type Mutation { 
         createValidationRequest(validationRequestInput : ValidationRequestInput!)  : ValidationRequest! @userAuth
         deleteValidationRequest : ValidationRequest! @userAuth
+        changeValidationRequestStatus ( id : ID! , status : String! ) : ValidationRequest! 
     }
 
     

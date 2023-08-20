@@ -91,6 +91,40 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
+        } , 
+        changeValidationRequestStatus : async ( _ ,  { id , status } , {db}) => {
+            try {
+
+                if (!["pending" , "rejected" , "approuved"].includes(status)  )
+                    throw new Error("Status is not allowed") ; 
+                
+             
+                const validationRequest = await db.ValidationRequest.findOne({
+                    where : {
+                        id : id 
+                    } , 
+                    include : [{
+                        model : db.User , 
+                        as : "user"
+                    }]
+                }) ; 
+
+                if ( ! validationRequest ) 
+                    throw new Error("Validation request not found") ; 
+            
+                await validationRequest.update({
+                    status 
+                })
+     
+                await validationRequest.user.update({
+                    validated : status === "approuved"
+                })
+
+                return validationRequest ; 
+
+            }catch(error) {
+                return new ApolloError(error.message)
+            }
         }
     }
 }
