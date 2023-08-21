@@ -153,7 +153,20 @@ module.exports = {
         defaultValue : true , 
         
       } , 
-
+      categoryId : {
+        type : Sequelize.INTEGER , 
+        allowNull : true , 
+        onDelete: "SET NULL",
+        references: {
+          model: "Categories",
+          key: "id"
+        }
+      } ,
+      professional : {
+        type : Sequelize.BOOLEAN , 
+        allowNull : false ,
+        defaultValue : false 
+      } , 
       state : { 
         type :  Sequelize.STRING , 
         allowNull : true 

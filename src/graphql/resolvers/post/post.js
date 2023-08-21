@@ -1,8 +1,8 @@
 import { deleteFiles, uploadFiles } from "../../../providers";
-import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR } from "../../../config";
+import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_SERVICES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_POST_WORKS_DIR } from "../../../config";
 import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
-import { PostValidator } from "../../../validators/post";
+import { PostValidator, ServiceValidator, WorkValidator } from "../../../validators/post";
 import { Op, Sequelize } from "sequelize";
 import { isValidHashTag } from "./hashtag";
 
@@ -137,9 +137,9 @@ export default {
                     },
                     id: {
                         [Op.notIn]: unImportantPosts
-                    } , 
-                    type : {
-                        [Op.not] : "reel"
+                    },
+                    type: {
+                        [Op.not]: "reel"
                     }
                 }
 
@@ -415,25 +415,25 @@ export default {
 
             var unImportantPosts = await user.getUnimportantPosts();
             unImportantPosts = unImportantPosts.map(post => post.id);
-            
+
             var followings = await user.getFollowing();
             followings = followings.map(follow => follow.followingId);
-            followings.push(user.id); 
+            followings.push(user.id);
 
 
-       
+
             try {
 
                 var favorites = await user.getFavorites({
                     include: [{
                         model: db.Post,
                         as: "post",
-                        required : true  , 
+                        required: true,
                         include: [{
                             model: db.User,
                             as: "user",
-                            required : true  , 
-                            where : { 
+                            required: true,
+                            where: {
                                 [Op.or]: [
                                     {
                                         id: {
@@ -444,7 +444,7 @@ export default {
                                         private: false
                                     }
                                 ]
-                            } , 
+                            },
                             include: [{
                                 model: db.Media,
                                 as: "profilePicture"
@@ -487,7 +487,7 @@ export default {
                 }
                 return posts;
             } catch (error) {
-                console.log (error.message) ; 
+                console.log(error.message);
                 return new ApolloError(error.message);
             }
         },
@@ -570,16 +570,16 @@ export default {
 
                 query = query.trim();
 
-                var searchQuery = { 
+                var searchQuery = {
                     type: type,
                     id: {
                         [Op.notIn]: unImportantPosts
                     }
-                } ; 
+                };
 
-                if (query) { 
-                    searchQuery = { 
-                        ...searchQuery , 
+                if (query) {
+                    searchQuery = {
+                        ...searchQuery,
                         [Op.or]: [
                             {
                                 title: {
@@ -611,7 +611,7 @@ export default {
                     subQuery: false,
                     include: include,
                     where: {
-                       ...searchQuery 
+                        ...searchQuery
                     },
                     offset: offset,
                     limit: limit,
@@ -650,9 +650,27 @@ export default {
                 if (postInput.type == "reel" && !postInput.reel && !postInput.reel.thumbnail)
                     throw new Error("Thumbnail required for reels");
 
+                var categoryId = null;
+
+                if (postInput.type == "work" && !postInput.workInput) {
+                    await WorkValidator.validate(postInput.workInput, { abortEarly: true });
+                    categoryId = postInput.workInput.categoryId;
+                
+                }
+                
+                if (postInput.type == "service" && !postInput.serviceInput) { 
+                
+                    await ServiceValidator.validate(postInput.serviceInput, { abortEarly: true });
+                    categoryId = postInput.serviceInput.categoryId;
+                }
+
+                if (categoryId) {
+                    const category = await db.Category.findByPk(categoryId)
+                    if (!category)
+                        throw new Error("Category not found");
+                }
 
                 // if the post is media for upload the media and assign it to the post 
-
                 var outputs = [];
                 var medium = [];
                 var thumbnail = null;
@@ -669,6 +687,14 @@ export default {
                     // and associate the reel to the post 
                     thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
 
+                }
+
+                if (postInput.type == "work") {
+                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_WORKS_DIR);
+                }
+
+                if (postInput.type == "service") {
+                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_SERVICES_DIR);
                 }
 
                 // create the post and assign it to the given user 
@@ -727,12 +753,51 @@ export default {
                     }
                 }
 
+                var keywords = [];
+                if (postInput.type == "work") {
+                    keywords = postInput.workInput.keywords
+                    postInput.workInput.postId = post.id;
+                    const work = await db.Work.create(postInput.workInput);
+                    post.work = work;
+                }
+
+                if (postInput.type == "service") {
+                    keywords = postInput.serviceInput.keywords
+                    postInput.serviceInput.postId = post.id;
+                    const service = await db.Service.create(postInput.serviceInput);
+                    post.work = service;
+
+                }
+                for (var index = 0; index < keywords.length; index++) {
+                    var keyword = keywords[index];
+
+                    const keywordExists = await db.Keyword.findOne({
+                        where: {
+                            name: keyword
+                        }
+                    });
+
+                    if (keywordExists) {
+                        await post.addKeyword(keywordExists);
+                        keywords[index] = keywordExists;
+                        continue;
+                    }
+
+                    var newKyeword = await db.Keyword.create({ name: keyword });
+                    await post.addKeyword(newKyeword);
+                    keywords[index] = newKyeword;
+
+                }
+
+
                 post.hashtags = hashtags;
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
                 await user.update({
                     numPosts: user.numPosts + 1
                 });
+
+
 
                 return post;
 

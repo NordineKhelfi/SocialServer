@@ -28,7 +28,8 @@ export default gql`
         sendEmailConfirmation(email : String!) : Boolean! 
         confirmEmail (email: String! , otpCode  : String!): UserToken! 
         forgetPassword(otp : String! , newPassword : String!) : String! @userAuth
-
+        activateProfessional  : User! @userAuth      
+        pickCategory ( categoryId : ID!) : User! @userAuth 
     } 
 
 
@@ -92,7 +93,8 @@ export default gql`
         updatedAt : String! 
         createdAt : String! 
         isValid : Boolean! 
-        
+        categoryId : ID 
+        professional : Boolean!        
     }
     type UserToken { 
         user : User! 

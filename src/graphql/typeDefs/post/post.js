@@ -35,7 +35,10 @@ export default gql`
         type : String! 
         media : [Upload!] 
         hashtags : [String!] 
-        reel : ReelInput 
+        
+        reel : ReelInput , 
+        workInput : WorkInput 
+        serviceInput : ServiceInput 
     }
     type Post  { 
         id : ID! 
@@ -53,6 +56,9 @@ export default gql`
         userId : ID! 
         postLikes : [Like!]
         hashtags : [HashTag!] 
+        keywords : [Keyword!]
+        work : Work 
+        service : Service 
          
     }
     

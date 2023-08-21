@@ -598,7 +598,41 @@ export default {
             } catch (error) {
                 return new ApolloError(error.message);
             }
+        } , 
+
+        activateProfessional : async ( _ , {  } , {db , user}) => {
+            try {
+                await user.update({
+                    professional : true , 
+                })
+                return user ; 
+            }catch(error) {
+                return new ApolloError(error.message)
+            }
+        } , 
+        pickCategory : async ( _ , { categoryId} , {db , user}) => {
+            try {
+
+                const category = await db.Category.findOne( {
+                    where : {
+                        id : categoryId
+                    }
+                }) ; 
+
+                if ( ! category ) 
+                    throw new ApolloError("No Category found") ; 
+
+
+                await user.update({ 
+                    categoryId : category.id
+                }) ; 
+
+                return user ; 
+
+            }catch(error) { 
+                return new ApolloError(error.message) ; 
+            }
         }
 
     }
-}
+} 

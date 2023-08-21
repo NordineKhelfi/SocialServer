@@ -53,23 +53,23 @@ module.exports = (Sequelize, DataTypes) => {
             as: "user"
         });
 
-     
-        Post.hasMany(db.Like , { 
-            foreignKey : "postId" , 
-            as : "postLikes"
+
+        Post.hasMany(db.Like, {
+            foreignKey: "postId",
+            as: "postLikes"
         })
 
         Post.belongsToMany(db.Media, {
             through: "PostMedia",
-            as: "media" , 
-            foreignKey : "postId"
+            as: "media",
+            foreignKey: "postId"
         });
 
-        
+
         Post.hasMany(db.Favorite, {
-            
-            as: "userFavorites" , 
-            foreignKey : "postId"
+
+            as: "userFavorites",
+            foreignKey: "postId"
         });
 
         Post.hasMany(db.Comment, {
@@ -79,20 +79,36 @@ module.exports = (Sequelize, DataTypes) => {
         Post.hasOne(db.Reel, {
             foreignKey: "postId",
             as: "reel"
-        }) ; 
+        });
 
-        Post.belongsToMany(db.HashTag , {
-            through : "PostHashTags" , 
-            foreignKey : "postId" , 
-            as  : "hashtags"
-        }) ; 
+        Post.belongsToMany(db.HashTag, {
+            through: "PostHashTags",
+            foreignKey: "postId",
+            as: "hashtags"
+        });
 
 
-        Post.belongsToMany(db.User  , { 
-            as : "unimportantPosts" , 
-            through : "UnimportantPosts" , 
+        Post.belongsToMany(db.User, {
+            as: "unimportantPosts",
+            through: "UnimportantPosts",
+            foreignKey: "postId"
+        });
+        Post.belongsToMany(db.Keyword , {
+            as : "keywords" , 
+            through : "PostKeywords" , 
             foreignKey : "postId"
-          }) ; 
+        }) ; 
+
+
+        Post.hasOne( db.Work , {
+            as : "work" , 
+            foreignKey : "postId"
+        }) ; 
+
+        Post.hasOne( db.Service , {
+            as : "service" , 
+            foreignKey : "postId"
+        })
     }
 
 

@@ -15,7 +15,7 @@ module.exports = {
         allowNull: true
       },
       type: {
-        type: Sequelize.ENUM(["note", "image", "reel"]),
+        type: Sequelize.ENUM(["note", "image", "reel" , "work" , "service"]),
         allowNull: false,
         defaultValue: "note"
       },

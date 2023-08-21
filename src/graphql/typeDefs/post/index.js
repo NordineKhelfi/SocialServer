@@ -6,6 +6,9 @@ import story from "./story";
 import reel from "./reel"  ;
 import like from "./like" ;  
 import hashtag from "./hashtag";
+import work from "./work";
+import service from "./service";
+import Keyword from "./Keyword";
 export default [
     media , 
     post , 
@@ -14,5 +17,8 @@ export default [
     story , 
     reel , 
     like , 
-    hashtag
+    hashtag , 
+    work , 
+    service , 
+    Keyword
 ]

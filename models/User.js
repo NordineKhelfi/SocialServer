@@ -171,6 +171,20 @@ module.exports = (Sequelize, DataTypes) => {
       type: DataTypes.INTEGER ,
       allowNull: true,
     }, 
+    categoryId : {
+      type : DataTypes.INTEGER , 
+      allowNull : true , 
+      onDelete: "SET NULL",
+      references: {
+        model: "Categories",
+        key: "id"
+      }
+    } ,
+    professional : {
+      type : DataTypes.BOOLEAN , 
+      allowNull : false ,
+      defaultValue : false 
+    } , 
   }, {
     timestamps: true,
 
@@ -220,7 +234,6 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey: "userId"
     })
 
-
     user.belongsToMany(db.Replay, {
       through: "ReplayLikes",
       as: "replayLikes",
@@ -233,13 +246,11 @@ module.exports = (Sequelize, DataTypes) => {
     });
 
     user.hasMany(db.Follow, {
-
       as: "followers",
       foreignKey: "followingId"
     });
 
     user.hasMany(db.BlockedUser, {
-
       as: "blockedUsers",
       foreignKey: "userId"
     });
@@ -249,15 +260,16 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey: "blockedUserId"
     });
     
-
     user.hasMany(db.Story, {
       foreignKey: "userId",
       as: "stories"
     })
+
     user.hasMany(db.StoryLike, {
       foreignKey: "userId",
       as: "storyLikes"
     })
+    
     user.hasMany(db.StoryComment, {
       foreignKey: "userId",
       as: "storyComments"
@@ -268,7 +280,6 @@ module.exports = (Sequelize, DataTypes) => {
       through: "StorySeen",
       foreignKey: "userId"
     });
-
 
     user.hasOne(db.NotificationsState, {
       as: "notificationsState",
@@ -281,7 +292,6 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey: "userId"
     })
 
-
     user.hasMany(db.ArchivedConversation , { 
       as : "archivedConversations" , 
       foreignKey : "userId"
@@ -292,13 +302,16 @@ module.exports = (Sequelize, DataTypes) => {
       foreignKey : "userId"
     })
 
-
     user.belongsToMany(db.Post  , { 
       as : "unimportantPosts" , 
       through : "UnimportantPosts" , 
       foreignKey : "userId"
     }) ; 
 
+    user.belongsTo(db.Category , {
+      as : "category" , 
+      foreignKey : "categoryId"
+    })
   }
 
   return user;
