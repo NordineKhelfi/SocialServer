@@ -28,6 +28,9 @@ export const PostValidator = yup.object({
     })
 
     .test("service-content", "Service Data not found", (postInput) => {
+
+        console.log(postInput.media.length) ; 
+
         if (postInput.type == "service" && (!postInput.serviceInput || !postInput.media || postInput.media.length == 0) )
             return false;
 

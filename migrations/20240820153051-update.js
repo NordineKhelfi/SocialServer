@@ -35,6 +35,17 @@ module.exports = {
     ])
     */
 
+
+
+    return Promise.all([
+      queryInterface.addColumn("Services", "description", {
+
+        type: Sequelize.TEXT,
+        allowNull: true,
+
+
+      })
+    ])
   },
 
   async down(queryInterface, Sequelize) {

@@ -46,6 +46,20 @@ export default {
 
                             model: db.HashTag,
                             as: "hashtags"
+                        }, {
+                            model: db.Work,
+                            as: "work",
+                            include: [{
+                                model: db.Category,
+                                as: "category"
+                            }]
+                        }, {
+                            model : db.Service , 
+                            as : "service" , 
+                            include : [{
+                                model : db.Category , 
+                                as : "category"
+                            }]
                         }
 
                     ],
@@ -319,6 +333,13 @@ export default {
                             model: db.Media,
                             as: "thumbnail"
                         }]
+                    }, {
+                        model: db.Work,
+                        as: "work",
+                        include: [{
+                            model: db.Category,
+                            as: "category"
+                        }]
                     }],
                     where: whereCase,
                     order: [["createdAt", "DESC"]],
@@ -376,6 +397,24 @@ export default {
                             as: "thumbnail"
                         }]
 
+                    }, {
+                        model: db.Work,
+                        as: "work",
+                        include: [{
+                            model: db.Category,
+                            as: "category"
+                        }]
+                    }, {
+                        model : db.Service , 
+                        as : "service" , 
+                        include : [{
+                            model : db.Category , 
+                            as : "category"
+                        }]
+                    }, { 
+                        model : db.Keyword , 
+                        as : "keywords" , 
+                
                     }],
                     where: {
                         id: postId
@@ -655,11 +694,11 @@ export default {
                 if (postInput.type == "work" && !postInput.workInput) {
                     await WorkValidator.validate(postInput.workInput, { abortEarly: true });
                     categoryId = postInput.workInput.categoryId;
-                
+
                 }
-                
-                if (postInput.type == "service" && !postInput.serviceInput) { 
-                
+
+                if (postInput.type == "service" && !postInput.serviceInput) {
+
                     await ServiceValidator.validate(postInput.serviceInput, { abortEarly: true });
                     categoryId = postInput.serviceInput.categoryId;
                 }

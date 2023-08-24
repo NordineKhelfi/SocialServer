@@ -23,6 +23,12 @@ module.exports = {
         allowNull : false 
       } , 
 
+      description : {
+        type : Sequelize.TEXT , 
+        allowNull : true , 
+
+      } , 
+
       categoryId : { 
         type : Sequelize.INTEGER, 
         allowNull : false , 
