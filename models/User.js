@@ -311,6 +311,11 @@ module.exports = (Sequelize, DataTypes) => {
     user.belongsTo(db.Category , {
       as : "category" , 
       foreignKey : "categoryId"
+    }) ; 
+
+    user.hasOne(db.Wallet , {
+      as : "wallet" , 
+      foreignKey : "userId"
     })
   }
 

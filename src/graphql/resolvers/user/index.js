@@ -9,6 +9,7 @@ import removeReasons from "./removeReasons";
 import removeRequest from "./removeRequest";
 import reportReason from "./reportReason";
 import report from "./report";
+import wallet from "./wallet";
 export default [
     user , 
     country  , 
@@ -19,5 +20,6 @@ export default [
     removeReasons , 
     removeRequest , 
     reportReason , 
-    report
+    report , 
+    wallet
 ]

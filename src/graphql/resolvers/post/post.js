@@ -9,10 +9,8 @@ import { isValidHashTag } from "./hashtag";
 export default {
     Upload: GraphQLUpload,
     Query: {
-
         getUserPosts: async (_, { userId, postType, offset, limit }, { db, user }) => {
             try {
-
                 // check if the user exists 
                 const profile = await db.User.findByPk(userId, {
                     include: [
@@ -27,7 +25,6 @@ export default {
 
                 var unImportantPosts = await user.getUnimportantPosts();
                 unImportantPosts = unImportantPosts.map(post => post.id);
-
                 // get all the posts that belongs to the given user 
                 var posts = await profile.getPosts({
                     include: [
@@ -43,7 +40,6 @@ export default {
                                 as: "thumbnail"
                             }]
                         }, {
-
                             model: db.HashTag,
                             as: "hashtags"
                         }, {
@@ -61,7 +57,6 @@ export default {
                                 as : "category"
                             }]
                         }
-
                     ],
                     where: {
                         type: postType,
@@ -129,11 +124,9 @@ export default {
                         return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
                     })
 
-
                     followings = await user.getFollowing();
                     followings = followings.map(follow => follow.followingId);
                     followings.push(user.id);
-
 
                     unImportantPosts = await user.getUnimportantPosts();
                     unImportantPosts = unImportantPosts.map(post => post.id);
@@ -270,10 +263,7 @@ export default {
 
                     unImportantPosts = await user.getUnimportantPosts();
                     unImportantPosts = unImportantPosts.map(post => post.id);
-
                 }
-
-
 
                 var whereCase = {
                     userId: {
@@ -370,7 +360,7 @@ export default {
                 return posts;
 
             } catch (error) {
-                console.log(error);
+                
                 return new ApolloError(error.message)
             }
         },
@@ -690,25 +680,26 @@ export default {
                     throw new Error("Thumbnail required for reels");
 
                 var categoryId = null;
+                var category = null ; 
 
-                if (postInput.type == "work" && !postInput.workInput) {
+                if (postInput.type == "work" ) {
                     await WorkValidator.validate(postInput.workInput, { abortEarly: true });
                     categoryId = postInput.workInput.categoryId;
-
                 }
 
-                if (postInput.type == "service" && !postInput.serviceInput) {
+                if (postInput.type == "service" ) {
 
                     await ServiceValidator.validate(postInput.serviceInput, { abortEarly: true });
                     categoryId = postInput.serviceInput.categoryId;
                 }
-
+               
                 if (categoryId) {
-                    const category = await db.Category.findByPk(categoryId)
+                    category = await db.Category.findByPk(categoryId) ; 
+                
                     if (!category)
                         throw new Error("Category not found");
                 }
-
+           
                 // if the post is media for upload the media and assign it to the post 
                 var outputs = [];
                 var medium = [];
@@ -725,7 +716,6 @@ export default {
                     // and associate it to the reel 
                     // and associate the reel to the post 
                     thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
-
                 }
 
                 if (postInput.type == "work") {
@@ -797,6 +787,8 @@ export default {
                     keywords = postInput.workInput.keywords
                     postInput.workInput.postId = post.id;
                     const work = await db.Work.create(postInput.workInput);
+                    console.log (category )
+                    work.category = category ; 
                     post.work = work;
                 }
 
@@ -804,9 +796,10 @@ export default {
                     keywords = postInput.serviceInput.keywords
                     postInput.serviceInput.postId = post.id;
                     const service = await db.Service.create(postInput.serviceInput);
+                    service.category = category ; 
                     post.work = service;
-
                 }
+
                 for (var index = 0; index < keywords.length; index++) {
                     var keyword = keywords[index];
 
@@ -825,23 +818,20 @@ export default {
                     var newKyeword = await db.Keyword.create({ name: keyword });
                     await post.addKeyword(newKyeword);
                     keywords[index] = newKyeword;
-
                 }
 
 
                 post.hashtags = hashtags;
+                post.keywords = keywords ; 
+
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
                 await user.update({
                     numPosts: user.numPosts + 1
                 });
-
-
-
                 return post;
 
             } catch (error) {
-
                 return new ApolloError(error.message);
             }
         },
@@ -1063,6 +1053,15 @@ export default {
                     }, {
                         model: db.HashTag,
                         as: "hashtags"
+                    }, {
+                        model : db.Work , 
+                        as : "work" 
+                    } , {
+                        model : db.Service , 
+                        as : "service"
+                    }, {
+                        model : db.Keyword , 
+                        as : "keywords"
                     }]
                 });
 
@@ -1072,6 +1071,8 @@ export default {
                 if (post.media && post.media.length > 0 && !postInput.media) {
                     throw new Error("Media is required");
                 }
+
+
                 await post.removeHashtags(post.hashtags.map(hashtag => hashtag.id));
                 var hashtags = [];
 
@@ -1101,7 +1102,50 @@ export default {
 
                     }
                 }
+
                 post.hashtags = hashtags;
+
+                await post.removeKeywords(post.keywords.map(keyword => keyword.id));
+                var keywords = [];
+
+                if (postInput.type == "work") {
+                    keywords = postInput.workInput.keywords
+                    //postInput.workInput.postId = post.id;    
+                    await post.work.update(postInput.workInput) ; 
+
+                }
+
+                if (postInput.type == "service") {
+                    keywords = postInput.serviceInput.keywords
+                    await post.service.update(postInput.serviceInput) ; 
+                }
+
+            
+            
+                
+                
+                for (var index = 0; index < keywords.length; index++) {
+                
+                    var keyword = keywords[index];
+
+                    const keywordExists = await db.Keyword.findOne({
+                        where: {
+                            name: keyword
+                        }
+                    });
+
+                    if (keywordExists) {
+                        await post.addKeyword(keywordExists);
+                        keywords[index] = keywordExists;
+                        continue;
+                    }
+
+                    var newKyeword = await db.Keyword.create({ name: keyword });
+                    await post.addKeyword(newKyeword);
+                    keywords[index] = newKyeword;
+
+                }
+                
 
                 if (postInput.media && postInput.media.length > 0) {
                     var uploadableMedia = postInput.media.filter(postMedia => postMedia.id == null && postMedia.file);
@@ -1124,6 +1168,13 @@ export default {
                     if (post.type == "image" && uploadableMedia && uploadableMedia.length > 0)
                         outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_IMAGES_DIR);
 
+
+                    if (post.type == "work" && uploadableMedia && uploadableMedia.length > 0) 
+                    outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_WORKS_DIR);
+
+                    if (post.type == "service" && uploadableMedia && uploadableMedia.length > 0) 
+                    outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_SERVICES_DIR);
+                
 
                     if (post.type == "reel" && uploadableMedia && uploadableMedia.length > 0) {
 
@@ -1154,9 +1205,6 @@ export default {
                     }
                     post.media = medium;
                 }
-
-
-
                 await post.update({
                     title: postInput.title
                 })

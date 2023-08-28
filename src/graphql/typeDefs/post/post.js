@@ -23,10 +23,12 @@ export default gql`
 
     input EditPostInput {
         id : ID! , 
-        media : [ EditMedia!] 
+        media : [EditMedia!] 
         hashtags : [String!] 
         reel : EditReelInput 
         title : String 
+        serviceInput : ServiceInput 
+        workInput : WorkInput 
     }
 
 
@@ -35,7 +37,6 @@ export default gql`
         type : String! 
         media : [Upload!] 
         hashtags : [String!] 
-        
         reel : ReelInput , 
         workInput : WorkInput 
         serviceInput : ServiceInput 

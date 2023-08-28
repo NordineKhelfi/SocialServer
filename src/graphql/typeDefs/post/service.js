@@ -20,4 +20,7 @@ export default gql`
         description : String
 
     }
+
+
+    
 `
