@@ -500,13 +500,9 @@ export default {
 
 
         sendEmailConfirmation: async (_, { email }, { db, sendMail }) => {
-
             try {
-
                 var user = await db.User.findOne({
-                    where: {
-                        email
-                    }
+                    where: { email }
                 });
 
                 if (!user)
@@ -526,7 +522,6 @@ export default {
 
                 sendMail(user.email, confirmationMessage)
                 return true;
-
 
             } catch (error) {
                 return new ApolloError(error.message)
@@ -556,7 +551,6 @@ export default {
                     return {
                         user: user,
                         token: token
-
                     };
                 }
                 else {
@@ -571,7 +565,6 @@ export default {
 
         forgetPassword: async (_, { otp, newPassword }, { db, user }) => {
             try {
-
                 var account = await db.User.findOne({
                     where: {
                         id: user.id,

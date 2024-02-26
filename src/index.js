@@ -1,5 +1,5 @@
 import express from "express";
-import { mailConfig, PORT, UPLOAD_COMMENTS_RECORDS_DIR, ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR } from "./config";
+import { mailConfig, PORT, UPLOAD_COMMENTS_RECORDS_DIR, ASSETS, UPLOAD_MESSAGE_IMAGES_DIR, UPLOAD_MESSAGE_RECORDS_DIR, UPLOAD_MESSAGE_VIDEOS_DIR, UPLOAD_PICTURES_DIR, UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_THUMBNAILS_DIR, UPLOAD_POST_VIDEOS_DIR, UPLOAD_REPLAYS_RECORDS_DIR, UPLOAD_STORIES_DIR, UPLOAD_POST_WORKS_DIR, UPLOAD_POST_SERVICES_DIR } from "./config";
 import { ApolloServer } from "apollo-server-express";
 import { Server } from "http";
 import { typeDefs, resolvers, directives } from "./graphql";
@@ -18,7 +18,7 @@ import nodemailer from "nodemailer";
 import { google } from "googleapis";
 
 const oAuth = google.auth.OAuth2;
-const oAuth_client = new oAuth(mailConfig.clientId, mailConfig.clientSecret)
+const oAuth_client = new oAuth(mailConfig.clientId, mailConfig.clientSecret, "https://dashing-incredibly-grouse.ngrok-free.app/auth/google/callback");
 oAuth_client.setCredentials({ refresh_token: mailConfig.refreshToken })
 
 const sendMail = async (email, content) => {
@@ -31,12 +31,13 @@ const sendMail = async (email, content) => {
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-            type: "OAuth2",
+            // type: "OAuth2",
             user: mailConfig.email,
-            clientId: mailConfig.clientId,
-            clientSecret: mailConfig.clientSecret,
-            refreshToken: mailConfig.refreshToken,
-            accessToken: token
+            pass: "spqd zlvj mqmw khze"
+            // clientId: mailConfig.clientId,
+            // clientSecret: mailConfig.clientSecret,
+            // refreshToken: mailConfig.refreshToken,
+            // accessToken: token
         }
     });
 
@@ -44,9 +45,11 @@ const sendMail = async (email, content) => {
         from: mailConfig.email,
         to: email,
         ...content
-    }, (error, result) => {})
+    }, (error, result) => {
+        console.log(error);
+        console.log(result);
+    })
 }
- 
 
 // initialize our express server 
 // init the Server 
@@ -69,10 +72,52 @@ app.use("/" + UPLOAD_REPLAYS_RECORDS_DIR, express.static(UPLOAD_REPLAYS_RECORDS_
 app.use("/" + UPLOAD_MESSAGE_IMAGES_DIR, express.static(UPLOAD_MESSAGE_IMAGES_DIR));
 app.use("/" + UPLOAD_MESSAGE_VIDEOS_DIR, express.static(UPLOAD_MESSAGE_VIDEOS_DIR));
 app.use("/" + UPLOAD_MESSAGE_RECORDS_DIR, express.static(UPLOAD_MESSAGE_RECORDS_DIR));
+app.use("/" + UPLOAD_POST_WORKS_DIR, express.static(UPLOAD_POST_WORKS_DIR));
+app.use("/" + UPLOAD_POST_SERVICES_DIR, express.static(UPLOAD_POST_SERVICES_DIR));
 app.use("/" + ASSETS, express.static(ASSETS))
 app.use("/" + UPLOAD_STORIES_DIR, express.static(UPLOAD_STORIES_DIR));
 
+app.get('/', (req, res) => {
+    res.json({ message: 'Al-hamdulillah' });
+});
 
+app.get('/authorize', (req, res) => {
+    const authUrl = oAuth_client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/gmail.send'],
+    });
+
+    console.log('Authorize this app by visiting this URL:', authUrl);
+    res.json({ authUrl });
+});
+
+app.get('/auth/google/callback', async (req, res) => {
+    const code = req.query.code;
+
+    try {
+        const { tokens } = await oAuth_client.getToken(code);
+        const refreshToken = tokens.refresh_token;
+        console.log(refreshToken);
+        // Handle tokens as needed (e.g., store them securely)
+        res.json(tokens);
+    } catch (error) {
+        console.error('Error exchanging code for tokens:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/sendmail', (req, res) => {
+    sendMail('nordine.khelfi@gmail.com', {
+        from: "Vinkst",
+        to: 'nordine.khelfi@gmail.com',
+        subject: "تأكيد الحساب",
+        html: `
+            <p>رقم تأكيد الحساب : <b>010101</b></p>
+        `
+    });
+
+    res.json({ message: 'Sent!' });
+});
 
 var schema = makeExecutableSchema({ typeDefs, resolvers })
 schema = directives.userAuthDirective()(schema);

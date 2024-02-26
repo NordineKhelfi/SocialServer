@@ -61,12 +61,9 @@ export default {
                 if (amount > wallet.funds)
                     throw new Error("unseffisant funds");
 
-
                 return await wallet.update({
                     funds: (wallet.funds - amount).toFixed(2)
                 });
-
-
 
             } catch (error) {
                 return new ApolloError(error.message);

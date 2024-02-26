@@ -15,7 +15,6 @@ module.exports = {
         }
 
       },
-
       mediaId: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -24,8 +23,9 @@ module.exports = {
           model: "Media",
           key: "id"
         }
-      }
-
+      },
+      createdAt : Sequelize.DATE , 
+      updatedAt : Sequelize.DATE
     });
   },
   async down(queryInterface, Sequelize) {

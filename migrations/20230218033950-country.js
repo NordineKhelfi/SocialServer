@@ -18,7 +18,9 @@ module.exports = {
       dialCode : {
         type : Sequelize.STRING  , 
         allowNull : false , 
-      }
+      },
+      createdAt : Sequelize.DATE , 
+      updatedAt : Sequelize.DATE 
     }, {
       timestamps: true,
       charset: 'utf8',

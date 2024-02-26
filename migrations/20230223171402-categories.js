@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    return queryInterface.createTable("Categories" , { 
+    return queryInterface.createTable("Categories" , {
       id : { 
         type : Sequelize.INTEGER , 
         autoIncrement : true , 
@@ -16,7 +16,7 @@ module.exports = {
       }
     }, { 
       charset: 'utf8',
-      collate: 'utf8_unicode_ci'
+      collate: 'utf8_unicode_ci',
     }).then( async () => { 
 
       const categories = require("../assets/categories.json") ; 

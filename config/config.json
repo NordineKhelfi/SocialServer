@@ -1,13 +1,18 @@
 {
   "development": {
-    "username": "root",
-    "password": "kachihaja50",
-    "database": "Social",
-    "host": "127.0.0.1",
-    "dialect": "mysql" , 
-    "logging" : false   , 
+    "username": "vinkst_uyu2_user",
+    "password": "NahVSgolxVPr7V0FasdTPUhBWNiDEE3Y",
+    "database": "vinkst_uyu2",
+    "host": "dpg-cnehqkol5elc73dbic70-a.singapore-postgres.render.com",
+    "dialect": "postgres" ,
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    },
+    "logging" : false, 
     "define": {
-      "timestamps": false,
       "charset": "utf8",
       "collate": "utf8_general_ci"
     }
@@ -20,17 +25,21 @@
     "dialect": "mysql"
   },
   "production": {    
-    "username": "root",
-    "password": "vinkst",
-    "database": "vinkst",
-    "host": "127.0.0.1",
-    "dialect": "mysql" , 
-    "logging" : false  , 
+    "username": "vinkst_uyu2_user",
+    "password": "NahVSgolxVPr7V0FasdTPUhBWNiDEE3Y",
+    "database": "vinkst_uyu2",
+    "host": "dpg-cnehqkol5elc73dbic70-a.singapore-postgres.render.com",
+    "dialect": "postgres" ,
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    },
+    "logging" : false, 
     "define": {
-      "timestamps": false,
       "charset": "utf8",
       "collate": "utf8_general_ci"
     }  
-    
   }
 }

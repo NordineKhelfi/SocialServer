@@ -4,7 +4,7 @@ import { deleteFiles, uploadFiles } from "../../../providers";
 import { CommentValidator } from "../../../validators";
 import { Op, Sequelize } from "sequelize";
 
-export default {
+export default  {
     Query: {
         getPostComments: async (_, { postId, offset, limit }, { db, user }) => {
             try {

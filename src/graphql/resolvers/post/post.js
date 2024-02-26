@@ -4,11 +4,49 @@ import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
 import { PostValidator, ServiceValidator, WorkValidator } from "../../../validators/post";
 import { Op, Sequelize } from "sequelize";
-import { isValidHashTag } from "./hashtag";
+import hashtag, { isValidHashTag } from "./hashtag";
 
 export default {
     Upload: GraphQLUpload,
     Query: {
+
+        customerFilter: async (_, { }, { db, user }) => {
+            try {
+
+                return db.Post.findAll({
+                 
+
+                    include: [{
+                        model: db.User,
+                        as: "user",
+                        include: [{
+                            model: db.Media,
+                            as: "profilePicture"
+                        }]
+                    }, {
+                        model: db.HashTag,
+                        as: "hashtags" , 
+                 
+                    }, {
+                        model : db.Media , 
+                        as : "media" 
+                    }], 
+                    where : {
+                        [Op.or] : [
+                            Sequelize.where(Sequelize.col("hashtags.name")  ,  {
+                                [Op.like] : "#vinkst" 
+                            })
+                        ] 
+                    }
+
+
+
+                });
+            } catch (error) {
+
+            }
+        },
+
         getUserPosts: async (_, { userId, postType, offset, limit }, { db, user }) => {
             try {
                 // check if the user exists 
@@ -50,11 +88,11 @@ export default {
                                 as: "category"
                             }]
                         }, {
-                            model : db.Service , 
-                            as : "service" , 
-                            include : [{
-                                model : db.Category , 
-                                as : "category"
+                            model: db.Service,
+                            as: "service",
+                            include: [{
+                                model: db.Category,
+                                as: "category"
                             }]
                         }
                     ],
@@ -237,7 +275,6 @@ export default {
                 var unImportantPosts = [];
 
                 if (user) {
-
                     blockedUsers = await db.BlockedUser.findAll({
                         where: {
                             [Op.or]: [
@@ -255,11 +292,9 @@ export default {
                         return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
                     })
 
-
                     followings = await user.getFollowing();
                     followings = followings.map(follow => follow.followingId);
                     followings.push(user.id);
-
 
                     unImportantPosts = await user.getUnimportantPosts();
                     unImportantPosts = unImportantPosts.map(post => post.id);
@@ -360,7 +395,6 @@ export default {
                 return posts;
 
             } catch (error) {
-                
                 return new ApolloError(error.message)
             }
         },
@@ -395,16 +429,16 @@ export default {
                             as: "category"
                         }]
                     }, {
-                        model : db.Service , 
-                        as : "service" , 
-                        include : [{
-                            model : db.Category , 
-                            as : "category"
+                        model: db.Service,
+                        as: "service",
+                        include: [{
+                            model: db.Category,
+                            as: "category"
                         }]
-                    }, { 
-                        model : db.Keyword , 
-                        as : "keywords" , 
-                
+                    }, {
+                        model: db.Keyword,
+                        as: "keywords",
+
                     }],
                     where: {
                         id: postId
@@ -670,8 +704,38 @@ export default {
     },
 
     Mutation: {
-        createPost: async (_, { postInput }, { db, user }) => {
 
+        createPostTwo : async ( _ , {  postInput } , {db , user}) => { 
+            try { 
+
+                postInput.userId = user.id ; 
+
+                postInput.service = postInput.serviceInput ; 
+
+                postInput = db.Post.create( postInput , {
+                    include : [{
+                        model : db.HashTag , 
+                        as : "hashtags" , 
+                    } , { 
+                        model : db.Service , 
+                        as : "service" , 
+
+                       
+                    } , {
+                        model : db.Keyword , 
+                        as : "keywords"
+                    } ]
+                })  ; 
+
+
+                return postInput ; 
+
+            }catch( err ) { 
+                return new ApolloError(err.message)
+            }
+        } , 
+
+        createPost: async (_, { postInput }, { db, user }) => {
             try {
                 // vdaliate post input 
                 await PostValidator.validate(postInput, { abortEarly: true });
@@ -680,26 +744,25 @@ export default {
                     throw new Error("Thumbnail required for reels");
 
                 var categoryId = null;
-                var category = null ; 
+                var category = null;
 
-                if (postInput.type == "work" ) {
+                if (postInput.type == "work") {
                     await WorkValidator.validate(postInput.workInput, { abortEarly: true });
                     categoryId = postInput.workInput.categoryId;
                 }
 
-                if (postInput.type == "service" ) {
-
+                if (postInput.type == "service") {
                     await ServiceValidator.validate(postInput.serviceInput, { abortEarly: true });
                     categoryId = postInput.serviceInput.categoryId;
                 }
-               
+
                 if (categoryId) {
-                    category = await db.Category.findByPk(categoryId) ; 
-                
+                    category = await db.Category.findByPk(categoryId);
+
                     if (!category)
                         throw new Error("Category not found");
                 }
-           
+
                 // if the post is media for upload the media and assign it to the post 
                 var outputs = [];
                 var medium = [];
@@ -710,7 +773,6 @@ export default {
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR);
 
                 if (postInput.type == "reel") {
-
                     outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
@@ -740,7 +802,6 @@ export default {
                     reel.thumbnail = media;
                     post.reel = reel;
                 }
-
 
                 for (let index = 0; index < outputs.length; index++) {
                     // insert media into database 
@@ -787,8 +848,8 @@ export default {
                     keywords = postInput.workInput.keywords
                     postInput.workInput.postId = post.id;
                     const work = await db.Work.create(postInput.workInput);
-                    console.log (category )
-                    work.category = category ; 
+                    console.log(category)
+                    work.category = category;
                     post.work = work;
                 }
 
@@ -796,7 +857,7 @@ export default {
                     keywords = postInput.serviceInput.keywords
                     postInput.serviceInput.postId = post.id;
                     const service = await db.Service.create(postInput.serviceInput);
-                    service.category = category ; 
+                    service.category = category;
                     post.work = service;
                 }
 
@@ -820,9 +881,8 @@ export default {
                     keywords[index] = newKyeword;
                 }
 
-
                 post.hashtags = hashtags;
-                post.keywords = keywords ; 
+                post.keywords = keywords;
 
                 // assign all the uploaded media to the media attribute 
                 post.media = medium;
@@ -1032,8 +1092,6 @@ export default {
 
         editPost: async (_, { postInput }, { db, user }) => {
             try {
-
-
                 const post = await db.Post.findOne({
                     where: {
                         userId: user.id,
@@ -1054,14 +1112,15 @@ export default {
                         model: db.HashTag,
                         as: "hashtags"
                     }, {
-                        model : db.Work , 
-                        as : "work" 
-                    } , {
-                        model : db.Service , 
-                        as : "service"
+                        model: db.Work,
+                        as: "work",
+
                     }, {
-                        model : db.Keyword , 
-                        as : "keywords"
+                        model: db.Service,
+                        as: "service"
+                    }, {
+                        model: db.Keyword,
+                        as: "keywords"
                     }]
                 });
 
@@ -1072,60 +1131,26 @@ export default {
                     throw new Error("Media is required");
                 }
 
-
                 await post.removeHashtags(post.hashtags.map(hashtag => hashtag.id));
-                var hashtags = [];
-
-                if (postInput.hashtags && postInput.hashtags.length > 0) {
-                    for (let index = 0; index < postInput.hashtags.length; index++) {
-                        var hashtag = postInput.hashtags[index];
-                        if (!isValidHashTag(hashtag)) {
-                            continue;
-                        }
-
-                        const hashtagExists = await db.HashTag.findOne({
-                            where: {
-                                name: {
-                                    [Op.like]: hashtag
-                                }
-                            }
-                        });
-                        if (hashtagExists) {
-                            await post.addHashtag(hashtagExists);
-                            hashtags.push(hashtagExists);
-                            continue;
-                        }
-
-                        var newHashTag = await db.HashTag.create({ name: hashtag });
-                        await post.addHashtag(newHashTag);
-                        hashtags.push(newHashTag);
-
-                    }
-                }
-
-                post.hashtags = hashtags;
-
                 await post.removeKeywords(post.keywords.map(keyword => keyword.id));
                 var keywords = [];
 
-                if (postInput.type == "work") {
+                if (post.type == "work") {
                     keywords = postInput.workInput.keywords
                     //postInput.workInput.postId = post.id;    
-                    await post.work.update(postInput.workInput) ; 
+                    await post.work.update(postInput.workInput);
+                    post.work.category = db.Category.findByPk(postInput.workInput.categoryId)
 
                 }
 
-                if (postInput.type == "service") {
+                if (post.type == "service") {
                     keywords = postInput.serviceInput.keywords
-                    await post.service.update(postInput.serviceInput) ; 
+                    await post.service.update(postInput.serviceInput);
+                    post.service.category = db.Category.findByPk(postInput.workInput.categoryId)
                 }
 
-            
-            
-                
-                
                 for (var index = 0; index < keywords.length; index++) {
-                
+
                     var keyword = keywords[index];
 
                     const keywordExists = await db.Keyword.findOne({
@@ -1145,7 +1170,9 @@ export default {
                     keywords[index] = newKyeword;
 
                 }
-                
+
+                post.keywords = keywords;
+
 
                 if (postInput.media && postInput.media.length > 0) {
                     var uploadableMedia = postInput.media.filter(postMedia => postMedia.id == null && postMedia.file);
@@ -1169,12 +1196,12 @@ export default {
                         outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_IMAGES_DIR);
 
 
-                    if (post.type == "work" && uploadableMedia && uploadableMedia.length > 0) 
-                    outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_WORKS_DIR);
+                    if (post.type == "work" && uploadableMedia && uploadableMedia.length > 0)
+                        outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_WORKS_DIR);
 
-                    if (post.type == "service" && uploadableMedia && uploadableMedia.length > 0) 
-                    outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_SERVICES_DIR);
-                
+                    if (post.type == "service" && uploadableMedia && uploadableMedia.length > 0)
+                        outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_SERVICES_DIR);
+
 
                     if (post.type == "reel" && uploadableMedia && uploadableMedia.length > 0) {
 
@@ -1205,12 +1232,16 @@ export default {
                     }
                     post.media = medium;
                 }
+
+
                 await post.update({
                     title: postInput.title
                 })
+
                 return post;
 
             } catch (error) {
+                console.log(error.message);
                 return new ApolloError(error.message);
             }
         },

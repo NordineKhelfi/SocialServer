@@ -14,12 +14,13 @@ module.exports = {
       path : { 
         type : Sequelize.STRING , 
         allowNull : false 
-      } 
+      },
+      createdAt : Sequelize.DATE , 
+      updatedAt : Sequelize.DATE 
     })
   },
 
   async down (queryInterface, Sequelize) {
     return queryInterface.dropTable("Media") ; 
-
   }
 };

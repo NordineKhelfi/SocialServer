@@ -10,6 +10,8 @@ export default gql`
         getFavorites(offset : Int! , limit : Int!) : [Post!]! @userAuth 
         searchPost(type : String! , query : String  , offset : Int! , limit : Int!) : [Post!]! @userAuth  
         refresh(time : String! , limit : Int!) : [Post!]! @userAuth 
+
+        customerFilter  : [Post!] 
     } 
 
     extend type Mutation { 
@@ -19,12 +21,14 @@ export default gql`
         favorite ( postId : ID! ) : Boolean! @userAuth
         editPost (postInput  : EditPostInput!) : Post @userAuth 
         unImportant(postId : ID!) : Boolean! @userAuth 
+
+        createPostTwo(postInput : PostInput!) : Post
     }
 
     input EditPostInput {
         id : ID! , 
         media : [EditMedia!] 
-        hashtags : [String!] 
+        hashtags : [HashTagInput!] 
         reel : EditReelInput 
         title : String 
         serviceInput : ServiceInput 
@@ -36,7 +40,8 @@ export default gql`
         title : String  
         type : String! 
         media : [Upload!] 
-        hashtags : [String!] 
+        hashtags : [HashTagInput!] 
+        
         reel : ReelInput , 
         workInput : WorkInput 
         serviceInput : ServiceInput 
@@ -62,6 +67,13 @@ export default gql`
         service : Service 
          
     }
+
+
+    input KeywordInput { 
+ 
+        name : String! 
+    }
+
     
 
 `

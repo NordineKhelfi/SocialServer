@@ -22,4 +22,9 @@ export default gql`
         isFollowed : Boolean 
     }
 
+    input HashTagInput { 
+ 
+        name : String! 
+    }
+
 `

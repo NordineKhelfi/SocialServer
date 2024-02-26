@@ -1,4 +1,3 @@
-
 'use strict';
 
 
@@ -44,6 +43,18 @@ module.exports = {
       })
     ])
     */
+
+    return Promise.all([
+
+    
+      queryInterface.addColumn("HashTags" , "name" , {
+         
+          type: Sequelize.STRING,
+          allowNull: false , 
+ 
+          
+      })
+    ])
   },
 
   async down(queryInterface, Sequelize) {
