@@ -1,16 +1,11 @@
 {
   "development": {
-    "username": "vinkst_uyu2_user",
-    "password": "NahVSgolxVPr7V0FasdTPUhBWNiDEE3Y",
-    "database": "vinkst_uyu2",
-    "host": "dpg-cnehqkol5elc73dbic70-a.singapore-postgres.render.com",
-    "dialect": "postgres" ,
-    "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
-    },
+    "username": "khelfi",
+    "password": "i4i#H#D#cB@Vs5B",
+    "database": "khelfi_vinkst",
+    "host": "mysql-khelfi.alwaysdata.net",
+    "port": 3306,
+    "dialect": "mysql" ,
     "logging" : false, 
     "define": {
       "charset": "utf8",
@@ -25,17 +20,12 @@
     "dialect": "mysql"
   },
   "production": {    
-    "username": "vinkst_uyu2_user",
-    "password": "NahVSgolxVPr7V0FasdTPUhBWNiDEE3Y",
-    "database": "vinkst_uyu2",
-    "host": "dpg-cnehqkol5elc73dbic70-a.singapore-postgres.render.com",
-    "dialect": "postgres" ,
-    "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
-    },
+    "username": "khelfi",
+    "password": "i4i#H#D#cB@Vs5B",
+    "database": "khelfi_vinkst",
+    "host": "mysql-khelfi.alwaysdata.net",
+    "port": 3306,
+    "dialect": "mysql" ,
     "logging" : false, 
     "define": {
       "charset": "utf8",
