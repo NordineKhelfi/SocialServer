@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "khelfi",
-    "password": "i4i#H#D#cB@Vs5B",
-    "database": "khelfi_vinkst",
-    "host": "mysql-khelfi.alwaysdata.net",
+    "username": "vinkst_dev_user",
+    "password": "tXeTd5kk#-{rTjiA",
+    "database": "vinkst_dev_db",
+    "host": "localhost",
     "port": 3306,
     "dialect": "mysql" ,
     "logging" : false, 
