@@ -17,16 +17,16 @@ import { handleRemoveRequests } from "./providers/user";
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 
-const oAuth = google.auth.OAuth2;
-const oAuth_client = new oAuth(mailConfig.clientId, mailConfig.clientSecret, "https://dashing-incredibly-grouse.ngrok-free.app/auth/google/callback");
-oAuth_client.setCredentials({ refresh_token: mailConfig.refreshToken })
+// const oAuth = google.auth.OAuth2;
+// const oAuth_client = new oAuth(mailConfig.clientId, mailConfig.clientSecret, "https://dashing-incredibly-grouse.ngrok-free.app/auth/google/callback");
+// oAuth_client.setCredentials({ refresh_token: mailConfig.refreshToken })
 
 const sendMail = async (email, content) => {
 
     if (!email || !content)
         return;
 
-    const { token } = await oAuth_client.getAccessToken();
+    // const { token } = await oAuth_client.getAccessToken();
 
     const transporter = nodemailer.createTransport({
         service: "gmail",

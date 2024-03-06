@@ -8,10 +8,10 @@ const { parsed } = config();
 //     refreshToken : "1//04FV50GoDkVZCCgYIARAAGAQSNwF-L9Ire7rUx90eQcHyuBucIdroK0ApTqruzxc8a9CagWi3o9p76RiSJGxy8iEbDNoDu9YhKH8" 
 // }
 export const mailConfig = {  
-    email : "khairallahghazi@gmail.com" , 
-    clientId : "1061580292307-tmvn3813dq5rmn0tk1jqpl5t7e64fdp9.apps.googleusercontent.com" ,
-    clientSecret : "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" , 
-    refreshToken : "1//03qZX8DPyOg54CgYIARAAGAMSNwF-L9IrnUDbKYVMH-Fm2AGT8Ycb_i8y9HUiXgdDDDbkJTNG8fBHdiR9nre0NDYim2SkgcU9LoI" 
+    email : "khairallahghazi@gmail.com", 
+    // clientId : "1061580292307-tmvn3813dq5rmn0tk1jqpl5t7e64fdp9.apps.googleusercontent.com" ,
+    // clientSecret : "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" , 
+    // refreshToken : "1//03qZX8DPyOg54CgYIARAAGAMSNwF-L9IrnUDbKYVMH-Fm2AGT8Ycb_i8y9HUiXgdDDDbkJTNG8fBHdiR9nre0NDYim2SkgcU9LoI" 
 }
 
 export const {
