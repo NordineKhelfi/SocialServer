@@ -33,7 +33,7 @@ const sendMail = async (email, content) => {
         auth: {
             // type: "OAuth2",
             user: mailConfig.email,
-            pass: "spqd zlvj mqmw khze"
+            pass: "cith hmuu hwsy uwyw"
             // clientId: mailConfig.clientId,
             // clientSecret: mailConfig.clientSecret,
             // refreshToken: mailConfig.refreshToken,
