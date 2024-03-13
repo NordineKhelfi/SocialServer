@@ -15,7 +15,6 @@ import { handleStoriesExpirations } from "./providers";
 import { sendPushNotification } from "./providers/pushNotification";
 import { handleRemoveRequests } from "./providers/user";
 import nodemailer from "nodemailer";
-import { google } from "googleapis";
 
 // const oAuth = google.auth.OAuth2;
 // const oAuth_client = new oAuth(mailConfig.clientId, mailConfig.clientSecret, "https://dashing-incredibly-grouse.ngrok-free.app/auth/google/callback");
@@ -187,13 +186,13 @@ async function startServer() {
         ]
 
     });
+
     await apolloServer.start();
 
     http.listen(PORT, async () => {
         try {
             // apply the apollo server as middleware 
             apolloServer.applyMiddleware({ app });
-            // listen 
 
             handleStoriesExpirations(db);
             handleRemoveRequests(db);
@@ -202,9 +201,6 @@ async function startServer() {
             console.log("Error : ", error)
         }
     })
-
-
-
 }
 
 startServer();

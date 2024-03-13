@@ -9,13 +9,9 @@ import hashtag, { isValidHashTag } from "./hashtag";
 export default {
     Upload: GraphQLUpload,
     Query: {
-
         customerFilter: async (_, { }, { db, user }) => {
             try {
-
                 return db.Post.findAll({
-                 
-
                     include: [{
                         model: db.User,
                         as: "user",
@@ -38,12 +34,9 @@ export default {
                             })
                         ] 
                     }
-
-
-
                 });
             } catch (error) {
-
+                console.log(error);
             }
         },
 
@@ -320,7 +313,6 @@ export default {
                 };
 
                 var posts = await db.Post.findAll({
-
                     include: [{
                         model: db.User,
                         as: "user",
@@ -337,8 +329,6 @@ export default {
                                     private: false
                                 }
                             ]
-
-
                         },
                         include: [{
                             model: db.Media,
@@ -348,7 +338,6 @@ export default {
                         model: db.Media,
                         as: "media"
                     }, {
-
                         model: db.HashTag,
                         as: "hashtags"
                     }, {
@@ -398,6 +387,7 @@ export default {
                 return new ApolloError(error.message)
             }
         },
+
         getPostById: async (_, { postId }, { db, user }) => {
             try {
 
@@ -680,6 +670,7 @@ export default {
                     limit: limit,
                     order: [["createdAt", "DESC"]]
                 });
+
                 for (let index = 0; index < posts.length; index++) {
                     posts[index].liked = (await user.getLikes({
                         where: {
@@ -704,12 +695,9 @@ export default {
     },
 
     Mutation: {
-
         createPostTwo : async ( _ , {  postInput } , {db , user}) => { 
             try { 
-
                 postInput.userId = user.id ; 
-
                 postInput.service = postInput.serviceInput ; 
 
                 postInput = db.Post.create( postInput , {
@@ -737,7 +725,6 @@ export default {
 
         createPost: async (_, { postInput }, { db, user }) => {
             try {
-                // vdaliate post input 
                 await PostValidator.validate(postInput, { abortEarly: true });
 
                 if (postInput.type == "reel" && !postInput.reel && !postInput.reel.thumbnail)
@@ -892,6 +879,7 @@ export default {
                 return post;
 
             } catch (error) {
+                console.log(error);
                 return new ApolloError(error.message);
             }
         },

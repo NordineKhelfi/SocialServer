@@ -1,10 +1,9 @@
 import * as yup from "yup";
 
-
 export const PostValidator = yup.object({
     type: yup.string().required().oneOf(["note", "reel", "image", "work", "service"]),
-    title: yup.string().notRequired().max(255),
-    media: yup.array().notRequired(),    
+    title: yup.string().notRequired().max(25000),
+    media: yup.array().notRequired(),
 })
     .test("note-text", "Note Text is required", (postInput) => {
         if (postInput.type == "note" && (!postInput.title || postInput.title.trim().length == 0))
@@ -22,7 +21,7 @@ export const PostValidator = yup.object({
         return true;
     })
     .test("service-content", "Service Data not found", (postInput) => {
-        if (postInput.type == "service" && (!postInput.serviceInput || !postInput.media || postInput.media.length == 0) )
+        if (postInput.type == "service" && (!postInput.serviceInput || !postInput.media || postInput.media.length == 0))
             return false;
         return true;
     })
