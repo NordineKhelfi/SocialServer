@@ -266,6 +266,7 @@ export default {
                 var blockedUsers = [];
                 var followings = [];
                 var unImportantPosts = [];
+                var postsInteractedWith = [];
 
                 if (user) {
                     blockedUsers = await db.BlockedUser.findAll({
@@ -291,6 +292,15 @@ export default {
 
                     unImportantPosts = await user.getUnimportantPosts();
                     unImportantPosts = unImportantPosts.map(post => post.id);
+
+                    postsInteractedWith = await db.UserPostInteraction.findAll({
+                        where: {
+                            userId: user.id
+                        }
+                    });
+                    postsInteractedWith = postsInteractedWith.map(post => post.id);
+
+                    unImportantPosts.push(...postsInteractedWith);
                 }
 
                 var whereCase = {
@@ -976,7 +986,7 @@ export default {
                 if (blockedUser)
                     throw new Error("this user is blocked");
 
-                // check if this post is allready likes or not 
+                // check if this post is already liked or not 
                 const likes = (await user.getLikes({
                     where: {
                         postId: postId
@@ -984,16 +994,15 @@ export default {
                 })).pop();
 
 
-                // if the post allready liked remove the likes 
-                // and decreese the number of likes in the post 
+                // if the post already liked remove the likes 
+                // and decrease the number of likes in the post 
                 if (likes) {
                     await likes.destroy()
                     await post.update({ likes: post.likes - 1 })
                     return false;
-
                 } else {
                     // else if this is the first like for this user to this post 
-                    // thel add the post to thes like
+                    // then add the post to the likes
                     // and increase the likes in the post  
 
                     var like = await db.Like.create({
@@ -1007,7 +1016,6 @@ export default {
                     like.createdAt = new Date();
                     like.user = user;
                     like.post = post;
-
 
                     if (user.id != post.userId) {
                         sendPushNotification(
@@ -1032,6 +1040,13 @@ export default {
                             newLike: like
                         })
                     }
+
+                    await db.UserPostInteraction.create({
+                        userId: user.id,
+                        postId: post.id,
+                        interactionType: 'Like'
+                      });
+
                     return true;
                 }
 

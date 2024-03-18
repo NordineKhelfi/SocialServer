@@ -179,7 +179,7 @@ export default  {
                 commentInput.userId = user.id;
                 commentInput.user = user;
 
-                // cheeck if the comment have media attached to 
+                // check if the comment have media attached to
                 if (commentInput.media) {
                     const output = await uploadFiles([commentInput.media], UPLOAD_COMMENTS_RECORDS_DIR);
                     const media = await db.Media.create({
@@ -194,8 +194,6 @@ export default  {
                 commentInput.id = result.id;
                 commentInput.post = post;
                 commentInput.createdAt = new Date();
-
-
 
                 await post.update({
                     numComments: post.numComments + 1
@@ -231,7 +229,11 @@ export default  {
 
                 }
 
-
+                await db.UserPostInteraction.create({
+                    userId: user.id,
+                    postId: post.id,
+                    interactionType: 'Comment'
+                  });
 
                 return commentInput;
 
