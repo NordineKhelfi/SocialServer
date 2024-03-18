@@ -299,6 +299,7 @@ export default {
                         }
                     });
                     postsInteractedWith = postsInteractedWith.map(post => post.id);
+                    console.log(postsInteractedWith);
 
                     unImportantPosts.push(...postsInteractedWith);
                 }
