@@ -298,9 +298,7 @@ export default {
                             userId: user.id
                         }
                     });
-                    postsInteractedWith = postsInteractedWith.map(post => post.id);
-                    console.log(postsInteractedWith);
-
+                    postsInteractedWith = postsInteractedWith.map(x => x.postId);
                     unImportantPosts.push(...postsInteractedWith);
                 }
 
