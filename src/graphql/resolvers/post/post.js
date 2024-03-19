@@ -3,8 +3,9 @@ import { UPLOAD_POST_IMAGES_DIR, UPLOAD_POST_SERVICES_DIR, UPLOAD_POST_THUMBNAIL
 import { GraphQLUpload } from "graphql-upload";
 import { ApolloError } from "apollo-server-express";
 import { PostValidator, ServiceValidator, WorkValidator } from "../../../validators/post";
-import { Op, Sequelize } from "sequelize";
+import { Op, Sequelize, DataTypes } from "sequelize";
 import hashtag, { isValidHashTag } from "./hashtag";
+import { recordPostInteraction, recordSeenPost } from "../../../providers/post";
 
 export default {
     Upload: GraphQLUpload,
@@ -791,7 +792,7 @@ export default {
                         })
                     }
 
-                    await db.UserPostInteraction.create({
+                    await recordPostInteraction(db, {
                         userId: user.id,
                         postId: post.id,
                         interactionType: 'Like'
@@ -1031,8 +1032,8 @@ export default {
     }
 }
 
-async function getPosts({time, user, db, includeReels, limit, isRefresh}) {
-    time = time ? 
+async function getPosts({ time, user, db, includeReels, limit, isRefresh }) {
+    time = time ?
         new Date(parseInt(time)).toISOString() :
         new Date().toISOString();
 
@@ -1143,9 +1144,10 @@ async function getPosts({time, user, db, includeReels, limit, isRefresh}) {
             }]
         }],
         where: whereCase,
-        order: [["createdAt", "DESC"]],
+        order: [["popularity", "DESC"], ["createdAt", "DESC"]],
         limit
     });
+
     // if the user logged in check if he already liked on of this posts 
     if (user) {
         for (let index = 0; index < posts.length; index++) {
@@ -1160,6 +1162,8 @@ async function getPosts({time, user, db, includeReels, limit, isRefresh}) {
                     postId: posts[index].id
                 }
             })).length > 0;
+
+            await recordSeenPost(db, { userId: user.id, postId: posts[index].id });
         }
     }
     else {
@@ -1168,5 +1172,6 @@ async function getPosts({time, user, db, includeReels, limit, isRefresh}) {
             posts[index].isFavorite = false;
         }
     }
+
     return posts;
 }

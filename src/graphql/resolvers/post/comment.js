@@ -3,6 +3,7 @@ import { UPLOAD_COMMENTS_RECORDS_DIR } from "../../../config";
 import { deleteFiles, uploadFiles } from "../../../providers";
 import { CommentValidator } from "../../../validators";
 import { Op, Sequelize } from "sequelize";
+import { recordPostInteraction } from "../../../providers/post";
 
 export default  {
     Query: {
@@ -229,11 +230,11 @@ export default  {
 
                 }
 
-                await db.UserPostInteraction.create({
+                await recordPostInteraction(db, {
                     userId: user.id,
                     postId: post.id,
                     interactionType: 'Comment'
-                  });
+                });
 
                 return commentInput;
 

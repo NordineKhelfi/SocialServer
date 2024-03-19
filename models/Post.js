@@ -37,6 +37,10 @@ module.exports = (Sequelize, DataTypes) => {
                 key: "id"
             }
         },
+        popularity: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1
+        },
         createdAt: DataTypes.DATE,
         updatedAt: DataTypes.DATE,
     }, {
@@ -93,21 +97,21 @@ module.exports = (Sequelize, DataTypes) => {
             through: "UnimportantPosts",
             foreignKey: "postId"
         });
-        Post.belongsToMany(db.Keyword , {
-            as : "keywords" , 
-            through : "PostKeywords" , 
-            foreignKey : "postId"
-        }) ; 
+        Post.belongsToMany(db.Keyword, {
+            as: "keywords",
+            through: "PostKeywords",
+            foreignKey: "postId"
+        });
 
 
-        Post.hasOne( db.Work , {
-            as : "work" , 
-            foreignKey : "postId"
-        }) ; 
+        Post.hasOne(db.Work, {
+            as: "work",
+            foreignKey: "postId"
+        });
 
-        Post.hasOne( db.Service , {
-            as : "service" , 
-            foreignKey : "postId"
+        Post.hasOne(db.Service, {
+            as: "service",
+            foreignKey: "postId"
         })
     }
 
