@@ -21,18 +21,18 @@ export default {
                         }]
                     }, {
                         model: db.HashTag,
-                        as: "hashtags" , 
-                 
+                        as: "hashtags",
+
                     }, {
-                        model : db.Media , 
-                        as : "media" 
-                    }], 
-                    where : {
-                        [Op.or] : [
-                            Sequelize.where(Sequelize.col("hashtags.name")  ,  {
-                                [Op.like] : "#vinkst" 
+                        model: db.Media,
+                        as: "media"
+                    }],
+                    where: {
+                        [Op.or]: [
+                            Sequelize.where(Sequelize.col("hashtags.name"), {
+                                [Op.like]: "#vinkst"
                             })
-                        ] 
+                        ]
                     }
                 });
             } catch (error) {
@@ -130,269 +130,20 @@ export default {
 
         refresh: async (_, { time, limit }, { db, user }) => {
             try {
-                time = new Date(parseInt(time)).toISOString();
-
-                var blockedUsers = [];
-                var followings = [];
-                var unImportantPosts = [];
-
-                if (user) {
-
-                    blockedUsers = await db.BlockedUser.findAll({
-                        where: {
-                            [Op.or]: [
-                                {
-                                    blockedUserId: user.id
-                                },
-                                {
-                                    userId: user.id
-                                }
-                            ]
-                        }
-                    });
-
-                    blockedUsers = blockedUsers.map(blockedUser => {
-                        return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                    })
-
-                    followings = await user.getFollowing();
-                    followings = followings.map(follow => follow.followingId);
-                    followings.push(user.id);
-
-                    unImportantPosts = await user.getUnimportantPosts();
-                    unImportantPosts = unImportantPosts.map(post => post.id);
-
-                }
-
-
-
-                var whereCase = {
-                    userId: {
-                        [Op.notIn]: blockedUsers
-                    },
-                    createdAt: {
-                        [Op.gt]: time
-                    },
-                    id: {
-                        [Op.notIn]: unImportantPosts
-                    },
-                    type: {
-                        [Op.not]: "reel"
-                    }
-                }
-
-                var posts = await db.Post.findAll({
-
-                    include: [{
-                        model: db.User,
-                        as: "user",
-                        required: true,
-                        where: {
-                            disabled: false,
-                            [Op.or]: [
-                                {
-                                    id: {
-                                        [Op.in]: followings
-                                    }
-                                },
-                                {
-                                    private: false
-                                }
-                            ]
-
-
-                        },
-                        include: [{
-                            model: db.Media,
-                            as: "profilePicture"
-                        }]
-                    }, {
-                        model: db.Media,
-                        as: "media"
-                    }, {
-
-                        model: db.HashTag,
-                        as: "hashtags"
-                    }, {
-                        model: db.Reel,
-                        as: "reel",
-                        include: [{
-                            model: db.Media,
-                            as: "thumbnail"
-                        }]
-                    }],
-                    where: whereCase,
-                    order: [["createdAt", "DESC"]],
-                    limit
-                });
-
-                // if the user logged in check if he allready liked on of this posts 
-                if (user) {
-                    for (let index = 0; index < posts.length; index++) {
-                        posts[index].liked = (await user.getLikes({
-                            where: {
-                                postId: posts[index].id
-                            }
-                        })).length > 0;
-
-                        posts[index].isFavorite = (await user.getFavorites({
-                            where: {
-                                postId: posts[index].id
-                            }
-                        })).length > 0;
-                    }
-                }
-                else {
-                    for (let index = 0; index < posts.length; index++) {
-                        posts[index].liked = false;
-                        posts[index].isFavorite = false;
-                    }
-                }
+                let posts = await getPosts({ time, user, db, limit, isRefresh: true });
                 return posts;
-
-
             } catch (error) {
+                console.log(error);
                 return new ApolloError(error.message);
             }
         },
 
         getPosts: async (_, { time, limit, includeReels }, { db, user }) => {
             try {
-                if (!time)
-                    time = new Date().toISOString();
-                else
-                    time = new Date(parseInt(time)).toISOString();
-
-                var blockedUsers = [];
-                var followings = [];
-                var unImportantPosts = [];
-                var postsInteractedWith = [];
-
-                if (user) {
-                    blockedUsers = await db.BlockedUser.findAll({
-                        where: {
-                            [Op.or]: [
-                                {
-                                    blockedUserId: user.id
-                                },
-                                {
-                                    userId: user.id
-                                }
-                            ]
-                        }
-                    });
-
-                    blockedUsers = blockedUsers.map(blockedUser => {
-                        return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId)
-                    })
-
-                    followings = await user.getFollowing();
-                    followings = followings.map(follow => follow.followingId);
-                    followings.push(user.id);
-
-                    unImportantPosts = await user.getUnimportantPosts();
-                    unImportantPosts = unImportantPosts.map(post => post.id);
-
-                    postsInteractedWith = await db.UserPostInteraction.findAll({
-                        where: {
-                            userId: user.id
-                        }
-                    });
-                    postsInteractedWith = postsInteractedWith.map(x => x.postId);
-                    unImportantPosts.push(...postsInteractedWith);
-                }
-
-                var whereCase = {
-                    userId: {
-                        [Op.notIn]: blockedUsers
-                    },
-                    createdAt: {
-                        [Op.lt]: time
-                    },
-                    id: {
-                        [Op.notIn]: unImportantPosts
-                    }
-                }
-
-
-                if (!includeReels) {
-                    whereCase.type = {
-                        [Op.not]: "reel"
-                    }
-                };
-
-                var posts = await db.Post.findAll({
-                    include: [{
-                        model: db.User,
-                        as: "user",
-                        required: true,
-                        where: {
-                            disabled: false,
-                            [Op.or]: [
-                                {
-                                    id: {
-                                        [Op.in]: followings
-                                    }
-                                },
-                                {
-                                    private: false
-                                }
-                            ]
-                        },
-                        include: [{
-                            model: db.Media,
-                            as: "profilePicture"
-                        }]
-                    }, {
-                        model: db.Media,
-                        as: "media"
-                    }, {
-                        model: db.HashTag,
-                        as: "hashtags"
-                    }, {
-                        model: db.Reel,
-                        as: "reel",
-                        include: [{
-                            model: db.Media,
-                            as: "thumbnail"
-                        }]
-                    }, {
-                        model: db.Work,
-                        as: "work",
-                        include: [{
-                            model: db.Category,
-                            as: "category"
-                        }]
-                    }],
-                    where: whereCase,
-                    order: [["createdAt", "DESC"]],
-                    limit
-                });
-                // if the user logged in check if he allready liked on of this posts 
-                if (user) {
-                    for (let index = 0; index < posts.length; index++) {
-                        posts[index].liked = (await user.getLikes({
-                            where: {
-                                postId: posts[index].id
-                            }
-                        })).length > 0;
-
-                        posts[index].isFavorite = (await user.getFavorites({
-                            where: {
-                                postId: posts[index].id
-                            }
-                        })).length > 0;
-                    }
-                }
-                else {
-                    for (let index = 0; index < posts.length; index++) {
-                        posts[index].liked = false;
-                        posts[index].isFavorite = false;
-                    }
-                }
+                let posts = await getPosts({ time, user, db, includeReels, limit });
                 return posts;
-
             } catch (error) {
+                console.log(error);
                 return new ApolloError(error.message)
             }
         },
@@ -704,33 +455,33 @@ export default {
     },
 
     Mutation: {
-        createPostTwo : async ( _ , {  postInput } , {db , user}) => { 
-            try { 
-                postInput.userId = user.id ; 
-                postInput.service = postInput.serviceInput ; 
+        createPostTwo: async (_, { postInput }, { db, user }) => {
+            try {
+                postInput.userId = user.id;
+                postInput.service = postInput.serviceInput;
 
-                postInput = db.Post.create( postInput , {
-                    include : [{
-                        model : db.HashTag , 
-                        as : "hashtags" , 
-                    } , { 
-                        model : db.Service , 
-                        as : "service" , 
-
-                       
-                    } , {
-                        model : db.Keyword , 
-                        as : "keywords"
-                    } ]
-                })  ; 
+                postInput = db.Post.create(postInput, {
+                    include: [{
+                        model: db.HashTag,
+                        as: "hashtags",
+                    }, {
+                        model: db.Service,
+                        as: "service",
 
 
-                return postInput ; 
+                    }, {
+                        model: db.Keyword,
+                        as: "keywords"
+                    }]
+                });
 
-            }catch( err ) { 
+
+                return postInput;
+
+            } catch (err) {
                 return new ApolloError(err.message)
             }
-        } , 
+        },
 
         createPost: async (_, { postInput }, { db, user }) => {
             try {
@@ -1044,7 +795,7 @@ export default {
                         userId: user.id,
                         postId: post.id,
                         interactionType: 'Like'
-                      });
+                    });
 
                     return true;
                 }
@@ -1278,4 +1029,144 @@ export default {
             }
         }
     }
+}
+
+async function getPosts({time, user, db, includeReels, limit, isRefresh}) {
+    time = time ? 
+        new Date(parseInt(time)).toISOString() :
+        new Date().toISOString();
+
+    var blockedUsers = [];
+    var followings = [];
+    var unImportantPosts = [];
+    var postsInteractedWith = [];
+
+    if (user) {
+        blockedUsers = await db.BlockedUser.findAll({
+            where: {
+                [Op.or]: [
+                    {
+                        blockedUserId: user.id
+                    },
+                    {
+                        userId: user.id
+                    }
+                ]
+            }
+        });
+
+        blockedUsers = blockedUsers.map(blockedUser => {
+            return (blockedUser.userId == user.id) ? (blockedUser.blockedUserId) : (blockedUser.userId);
+        });
+
+        followings = await user.getFollowing();
+        followings = followings.map(follow => follow.followingId);
+        followings.push(user.id);
+
+        unImportantPosts = await user.getUnimportantPosts();
+        unImportantPosts = unImportantPosts.map(post => post.id);
+
+        postsInteractedWith = await db.UserPostInteraction.findAll({
+            where: {
+                userId: user.id
+            }
+        });
+        postsInteractedWith = postsInteractedWith.map(x => x.postId);
+        unImportantPosts.push(...postsInteractedWith);
+    }
+
+    var whereCase = {
+        userId: {
+            [Op.notIn]: blockedUsers
+        },
+        createdAt: {
+            [Op.lt]: time
+        },
+        id: {
+            [Op.notIn]: unImportantPosts
+        }
+    };
+
+    if (isRefresh) {
+        whereCase.createdAt = {
+            [Op.gt]: time
+        }
+    }
+
+    if (!isRefresh && !includeReels) {
+        whereCase.type = {
+            [Op.not]: "reel"
+        };
+    };
+
+    var posts = await db.Post.findAll({
+        include: [{
+            model: db.User,
+            as: "user",
+            required: true,
+            where: {
+                disabled: false,
+                [Op.or]: [
+                    {
+                        id: {
+                            [Op.in]: followings
+                        }
+                    },
+                    {
+                        private: false
+                    }
+                ]
+            },
+            include: [{
+                model: db.Media,
+                as: "profilePicture"
+            }]
+        }, {
+            model: db.Media,
+            as: "media"
+        }, {
+            model: db.HashTag,
+            as: "hashtags"
+        }, {
+            model: db.Reel,
+            as: "reel",
+            include: [{
+                model: db.Media,
+                as: "thumbnail"
+            }]
+        }, {
+            model: db.Work,
+            as: "work",
+            include: [{
+                model: db.Category,
+                as: "category"
+            }]
+        }],
+        where: whereCase,
+        order: [["createdAt", "DESC"]],
+        limit
+    });
+    // if the user logged in check if he already liked on of this posts 
+    if (user) {
+        for (let index = 0; index < posts.length; index++) {
+            posts[index].liked = (await user.getLikes({
+                where: {
+                    postId: posts[index].id
+                }
+            })).length > 0;
+
+            posts[index].isFavorite = (await user.getFavorites({
+                where: {
+                    postId: posts[index].id
+                }
+            })).length > 0;
+        }
+    }
+    else {
+        for (let index = 0; index < posts.length; index++) {
+            posts[index].liked = false;
+            posts[index].isFavorite = false;
+        }
+    }
+    return posts;
 }
