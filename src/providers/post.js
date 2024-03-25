@@ -25,7 +25,6 @@ async function updatePostPopularity(db, postId) {
 
   let popularity = interactionCount / seenCount;
   popularity = popularity || 1;
-  console.log({ interactionCount, seenCount, popularity });
 
   await db.Post.update({ popularity }, {
     where: {

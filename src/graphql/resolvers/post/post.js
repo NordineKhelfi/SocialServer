@@ -518,14 +518,15 @@ export default {
                 // check if the content is image or reel 
                 // uploda the content files and assign the paths to the outputs array 
                 if (postInput.type == "image")
-                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR);
+                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_IMAGES_DIR, true);
 
                 if (postInput.type == "reel") {
-                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR);
+                    outputs = await uploadFiles(postInput.media, UPLOAD_POST_VIDEOS_DIR, true);
+
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
                     // and associate the reel to the post 
-                    thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR)).pop();
+                    thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR, true)).pop();
                 }
 
                 if (postInput.type == "work") {
