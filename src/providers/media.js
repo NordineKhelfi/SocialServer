@@ -52,6 +52,8 @@ const uploadFiles = async (mediaFiles, directory, uploadToCloud) => {
                         return resolve(result);
                     });
                 });
+
+                uploadResponse.url = uploadResponse.url.replace('/upload', '/upload/q_auto:low');
             }
             else {
                 uploadResponse = await cloudinary.uploader.upload(path)
