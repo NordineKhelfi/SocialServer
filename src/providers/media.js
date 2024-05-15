@@ -11,10 +11,11 @@ cloudinary.config({
 
 const uploadFiles = async (mediaFiles, directory, uploadToCloud) => {
 
-    var paths = [];
+    let paths = [];
+    let tags = [];
+
     // loop over the media files 
     for (let index = 0; index < mediaFiles.length; index++) {
-
         // extract name and the read stream 
         const { filename, createReadStream } = await mediaFiles[index];
 
@@ -45,7 +46,6 @@ const uploadFiles = async (mediaFiles, directory, uploadToCloud) => {
             let uploadResponse;
 
             if (directory.endsWith('videos')) {
-
                 uploadResponse = await new Promise((resolve, reject) => {
                     cloudinary.uploader.upload_large(path, { resource_type: 'video' }, (error, result) => {
                         if (error) return reject(error);
@@ -56,14 +56,18 @@ const uploadFiles = async (mediaFiles, directory, uploadToCloud) => {
                 uploadResponse.url = uploadResponse.url.replace('/upload', '/upload/q_auto:low');
             }
             else {
-                uploadResponse = await cloudinary.uploader.upload(path)
+                uploadResponse = await cloudinary.uploader.upload(path, {
+                    categorization: "aws_rek_tagging",
+                    auto_tagging: 0.7
+                });
             }
 
             paths[index] = uploadResponse.url;
+            if (uploadResponse.tags) tags.push(...uploadResponse.tags);
         }
     }
 
-    return paths;
+    return { paths, tags: [...new Set(tags)] };
 }
 
 

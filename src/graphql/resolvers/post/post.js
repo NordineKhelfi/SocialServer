@@ -512,7 +512,7 @@ export default {
                 }
 
                 // if the post is media for upload the media and assign it to the post 
-                var outputs = [];
+                let outputs;
                 var medium = [];
                 var thumbnail = null;
                 // check if the content is image or reel 
@@ -526,7 +526,9 @@ export default {
                     // upload thumbnail to the given directory 
                     // and associate it to the reel 
                     // and associate the reel to the post 
-                    thumbnail = (await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR, true)).pop();
+                    let thumbnailUploadResponse = await uploadFiles([postInput.reel.thumbnail], UPLOAD_POST_THUMBNAILS_DIR, true);
+                    thumbnail = thumbnailUploadResponse.paths.pop();
+                    outputs.tags = thumbnailUploadResponse.tags;
                 }
 
                 if (postInput.type == "work") {
@@ -552,15 +554,15 @@ export default {
                     post.reel = reel;
                 }
 
-                for (let index = 0; index < outputs.length; index++) {
-                    // insert media into database 
-                    // add it to the post 
-                    const media = await db.Media.create({
-                        path: outputs[index]
-                    });
+                for (const path of outputs.paths) {
+                    const media = await db.Media.create({ path });
 
                     await post.addMedia(media);
                     medium.splice(0, 0, media);
+                }
+
+                if (outputs.tags.length) {
+                    await Promise.all(outputs.tags.map(tag => db.PostTag.create({ postId: post.id, tag })));
                 }
 
                 var hashtags = [];
@@ -946,7 +948,7 @@ export default {
                         }
                     }
 
-                    var outputs = [];
+                    let outputs;
                     if (post.type == "image" && uploadableMedia && uploadableMedia.length > 0)
                         outputs = await uploadFiles(uploadableMedia.map(image => image.file), UPLOAD_POST_IMAGES_DIR);
 
@@ -965,7 +967,7 @@ export default {
                         // and associate it to the reel 
                         // and associate the reel to the post 
                         await deleteFiles([post.reel.thumbnail.path]);
-                        var thumbnail = (await uploadFiles([postInput.reel.thumbnail.file], UPLOAD_POST_THUMBNAILS_DIR)).pop();
+                        var thumbnail = (await uploadFiles([postInput.reel.thumbnail.file], UPLOAD_POST_THUMBNAILS_DIR)).paths.pop();
 
                         if (thumbnail) {
                             await post.reel.thumbnail.update({
@@ -975,16 +977,13 @@ export default {
                         }
                     }
 
-                    for (let index = 0; index < outputs.length; index++) {
-                        // insert media into database 
-                        // add it to the post 
-                        const media = await db.Media.create({
-                            path: outputs[index]
-                        });
-
+                    for (const path of outputs.paths) {
+                        // insert media into database & add it to the post 
+                        const media = await db.Media.create({ path });
                         await post.addMedia(media);
                         medium.push(media);
                     }
+
                     post.media = medium;
                 }
 
@@ -1042,6 +1041,7 @@ async function getPosts({ time, user, db, includeReels, limit, isRefresh }) {
     var followings = [];
     var unImportantPosts = [];
     var postsInteractedWith = [];
+    var userInterests = [];
 
     if (user) {
         blockedUsers = await db.BlockedUser.findAll({
@@ -1069,12 +1069,15 @@ async function getPosts({ time, user, db, includeReels, limit, isRefresh }) {
         unImportantPosts = unImportantPosts.map(post => post.id);
 
         postsInteractedWith = await db.UserPostInteraction.findAll({
-            where: {
-                userId: user.id
-            }
+            where: { userId: user.id }
         });
         postsInteractedWith = postsInteractedWith.map(x => x.postId);
         unImportantPosts.push(...postsInteractedWith);
+
+        userInterests = await db.UserInterest.findAll({
+            where: { userId: user.id, count: { [Op.gt]: 1 } }
+        });
+        userInterests = userInterests.map(x => x.tag);
     }
 
     var whereCase = {
@@ -1101,55 +1104,76 @@ async function getPosts({ time, user, db, includeReels, limit, isRefresh }) {
         };
     };
 
-    var posts = await db.Post.findAll({
-        include: [{
-            model: db.User,
-            as: "user",
-            required: true,
-            where: {
-                disabled: false,
-                [Op.or]: [
-                    {
-                        id: {
-                            [Op.in]: followings
-                        }
-                    },
-                    {
-                        private: false
+    var includeOptions = [{
+        model: db.User,
+        as: "user",
+        required: true,
+        where: {
+            disabled: false,
+            [Op.or]: [
+                {
+                    id: {
+                        [Op.in]: followings
                     }
-                ]
-            },
-            include: [{
-                model: db.Media,
-                as: "profilePicture"
-            }]
-        }, {
+                },
+                {
+                    private: false
+                }
+            ]
+        },
+        include: [{
             model: db.Media,
-            as: "media"
-        }, {
-            model: db.HashTag,
-            as: "hashtags"
-        }, {
-            model: db.Reel,
-            as: "reel",
-            include: [{
-                model: db.Media,
-                as: "thumbnail"
-            }]
-        }, {
-            model: db.Work,
-            as: "work",
-            include: [{
-                model: db.Category,
-                as: "category"
-            }]
-        }],
+            as: "profilePicture"
+        }]
+    }, {
+        model: db.Media,
+        as: "media"
+    }, {
+        model: db.HashTag,
+        as: "hashtags"
+    }, {
+        model: db.Reel,
+        as: "reel",
+        include: [{
+            model: db.Media,
+            as: "thumbnail"
+        }]
+    }, {
+        model: db.Work,
+        as: "work",
+        include: [{
+            model: db.Category,
+            as: "category"
+        }]
+    }];
+
+    var includeTagOption = {
+        model: db.PostTag,
+        as: "tags",
+        where: {
+            tag: { [Op.in]: userInterests }
+        },
+        required: true
+    };
+
+    var posts = await db.Post.findAll({
+        include: !userInterests.length ? includeOptions : [...includeOptions, includeTagOption],
         where: whereCase,
         order: [["popularity", "DESC"], ["createdAt", "DESC"]],
         limit
     });
 
-    // if the user logged in check if he already liked on of this posts 
+    // If no post returned and user interests filter enabled, we retry without
+    if (userInterests.length > 0 && !posts.length) {
+        posts = await db.Post.findAll({
+            include: includeOptions,
+            where: whereCase,
+            order: [["popularity", "DESC"], ["createdAt", "DESC"]],
+            limit
+        });
+    }
+
+    // if the user logged in check if he already liked one of this posts 
     if (user) {
         for (let index = 0; index < posts.length; index++) {
             posts[index].liked = (await user.getLikes({

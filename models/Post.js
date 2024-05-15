@@ -2,7 +2,6 @@ const { Sequelize, DataTypes } = require("sequelize");
 
 module.exports = (Sequelize, DataTypes) => {
     const Post = Sequelize.define("Post", {
-
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
@@ -113,9 +112,12 @@ module.exports = (Sequelize, DataTypes) => {
             as: "service",
             foreignKey: "postId"
         })
+
+        Post.hasMany(db.PostTag, {
+            foreignKey: "postId",
+            as: "tags"
+        })
     }
 
-
     return Post;
-
 }
